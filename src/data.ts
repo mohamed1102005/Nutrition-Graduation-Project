@@ -1,5 +1,5 @@
 import hanaPhoto from './imports/istockphoto-2248733996-612x612.jpg'
-import nourPhoto from './imports/Elite_coaches_Marissa_Hurst-1.jpeg'
+import nourPhoto from './imports/nour-coach.jpg'
 
 export type Svc = 'move' | 'eat' | 'recover'
 

@@ -127,34 +127,38 @@ export default function FinanceOverview() {
       >
         {/* KPI Tiles */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
-          <div className="bg-sand rounded-2xl p-5 sm:p-6">
+          <div className="bg-white border border-line rounded-2xl p-5 sm:p-6">
             <div className="flex items-center justify-between">
               <span className="label uppercase text-ink-2">Gross Revenue</span>
               <DollarSign size={18} className="text-ink-2" />
             </div>
-            <p className="num text-[36px] sm:text-[44px] leading-none mt-3">
+            <p className="num text-[36px] sm:text-[44px] leading-none mt-3 text-ink">
               {(m?.grossRevenue ?? 0).toLocaleString('en-US')} <span className="text-[16px] font-sans text-ink-2 font-normal">EGP</span>
             </p>
             <p className="text-[13px] text-ink-2 font-medium mt-3">All-time inflow across platform</p>
           </div>
 
-          <div className={`${SVC.eat.tint} rounded-2xl p-5 sm:p-6`}>
+          <div className="bg-white border border-line rounded-2xl p-5 sm:p-6">
             <div className="flex items-center justify-between">
               <span className="label uppercase text-ink-2">MRR (Subscriptions)</span>
-              <TrendingUp size={18} className="text-eat" />
+              <div className="size-8 rounded-lg bg-eat-tint grid place-items-center">
+                <TrendingUp size={16} className="text-eat" />
+              </div>
             </div>
-            <p className="num text-[36px] sm:text-[44px] leading-none mt-3 text-eat">
+            <p className="num text-[36px] sm:text-[44px] leading-none mt-3 text-ink">
               {(m?.mrr ?? 0).toLocaleString('en-US')} <span className="text-[16px] font-sans text-ink-2 font-normal">EGP</span>
             </p>
             <p className="text-[13px] text-ink-2 font-medium mt-3">{m?.activeSubscribers ?? 0} active paying subscribers</p>
           </div>
 
-          <div className={`${SVC.recover.tint} rounded-2xl p-5 sm:p-6`}>
+          <div className="bg-white border border-line rounded-2xl p-5 sm:p-6">
             <div className="flex items-center justify-between">
               <span className="label uppercase text-ink-2">Specialist Payouts</span>
-              <Coins size={18} className="text-recover" />
+              <div className="size-8 rounded-lg bg-recover-tint grid place-items-center">
+                <Coins size={16} className="text-recover" />
+              </div>
             </div>
-            <p className="num text-[36px] sm:text-[44px] leading-none mt-3 text-recover">
+            <p className="num text-[36px] sm:text-[44px] leading-none mt-3 text-ink">
               {(m?.specialistDisbursed ?? 0).toLocaleString('en-US')} <span className="text-[16px] font-sans text-ink-2 font-normal">EGP</span>
             </p>
             <p className="text-[13px] text-ink-2 font-medium mt-3">
@@ -162,12 +166,14 @@ export default function FinanceOverview() {
             </p>
           </div>
 
-          <div className={`${SVC.move.tint} rounded-2xl p-5 sm:p-6`}>
+          <div className="bg-white border border-line rounded-2xl p-5 sm:p-6">
             <div className="flex items-center justify-between">
               <span className="label uppercase text-ink-2">Net Platform Profit</span>
-              <Wallet size={18} className="text-move" />
+              <div className="size-8 rounded-lg bg-move-tint grid place-items-center">
+                <Wallet size={16} className="text-move" />
+              </div>
             </div>
-            <p className="num text-[36px] sm:text-[44px] leading-none mt-3 text-move">
+            <p className="num text-[36px] sm:text-[44px] leading-none mt-3 text-ink">
               {(m?.netPlatformProfit ?? 0).toLocaleString('en-US')} <span className="text-[16px] font-sans text-ink-2 font-normal">EGP</span>
             </p>
             <p className="text-[13px] text-ink-2 font-medium mt-3">Retained earnings after payouts</p>
@@ -293,7 +299,7 @@ export default function FinanceOverview() {
               <tbody className="divide-y divide-line">
                 {recentTxs.map((tx: any) => (
                   <tr key={tx.id + tx.type} className="hover:bg-paper/50 transition">
-                    <td className="py-3 font-mono text-[12px] font-bold text-ink">{tx.reference}</td>
+                    <td className="py-3 num font-sans text-[12px] font-bold text-ink">{tx.reference}</td>
                     <td className="py-3">
                       <p className="font-semibold">{tx.customer_name}</p>
                       <p className="text-[12px] text-ink-2">{tx.customer_email}</p>

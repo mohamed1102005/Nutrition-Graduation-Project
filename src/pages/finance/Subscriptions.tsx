@@ -191,7 +191,7 @@ export default function FinanceSubscriptions() {
                   <td className="py-4 px-5 capitalize text-ink-2">
                     {s.method.replace('_', ' ')}
                   </td>
-                  <td className="py-4 px-5 font-mono text-[12px] text-ink font-semibold">
+                  <td className="py-4 px-5 num font-sans text-[12px] text-ink font-semibold">
                     {s.reference}
                   </td>
                   <td className="py-4 px-5 text-ink-2 text-[13px]">

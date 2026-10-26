@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { X } from 'lucide-react'
 
 export function Dialog({
@@ -14,11 +14,52 @@ export function Dialog({
   children: ReactNode
   side?: boolean
 }) {
+  const dialogRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     if (!open) return
-    const k = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
-    document.addEventListener('keydown', k)
-    return () => document.removeEventListener('keydown', k)
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose()
+        return
+      }
+      if (e.key === 'Tab' && dialogRef.current) {
+        const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+        if (focusable.length === 0) return
+        const first = focusable[0]
+        const last = focusable[focusable.length - 1]
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault()
+            last.focus()
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault()
+            first.focus()
+          }
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    const timer = setTimeout(() => {
+      const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      )
+      focusable?.[0]?.focus()
+    }, 50)
+
+    return () => {
+      document.body.style.overflow = prevOverflow
+      document.removeEventListener('keydown', handleKeyDown)
+      clearTimeout(timer)
+    }
   }, [open, onClose])
 
   if (!open) return null
@@ -26,6 +67,7 @@ export function Dialog({
   return (
     <div className={`fixed inset-0 z-50 bg-ink/40 flex ${side ? 'justify-end' : 'items-center justify-center p-5'}`} onClick={onClose}>
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label={title}

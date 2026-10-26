@@ -31,7 +31,7 @@ export default function Session() {
     `size-14 rounded-full grid place-items-center cursor-pointer transition ${danger ? 'bg-[#a02a2a] text-white' : on ? 'bg-white/15 text-white hover:bg-white/25' : 'bg-white text-ink'}`
 
   return (
-    <div className="min-h-screen bg-paper lg:h-screen lg:overflow-hidden flex flex-col">
+    <div className="min-h-screen bg-paper lg:h-[100dvh] lg:overflow-hidden flex flex-col">
       <header className="h-16 shrink-0 px-5 lg:px-8 flex items-center justify-between border-b border-line bg-paper">
         <div className="flex items-center gap-4">
           <Link to="/app/today" className="size-11 grid place-items-center rounded-xl hover:bg-ink/5" aria-label="Back to Today"><ArrowLeft size={20} /></Link>

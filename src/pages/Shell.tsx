@@ -260,6 +260,12 @@ export default function Shell() {
 
   return (
     <div className="min-h-screen bg-paper">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-ink focus:text-white focus:rounded-lg focus:font-bold"
+      >
+        Skip to main content
+      </a>
       <aside className={`hidden lg:flex fixed inset-y-0 ${isRtl ? 'right-0 border-l' : 'left-0 border-r'} w-[264px] bg-white border-line flex-col p-5 z-30`}>
         <Link to={home(role)} className="px-3 h-12 flex items-center" aria-label="Rebound">
           <Wordmark />
@@ -290,9 +296,9 @@ export default function Shell() {
                 <span className="w-[7px] h-5 rounded-full bg-recover" />
               </span>
             </Link>
-            <p className="h-display text-[24px] lg:text-[30px]" role="heading" aria-level={1}>
+            <h1 className="h-display text-[24px] lg:text-[30px]">
               {title}
-            </p>
+            </h1>
             {currentUser?.organization?.name && (
               <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sand/80 border border-line text-[12px] font-bold text-ink">
                 <Building2 size={13} className="text-move" aria-hidden />
@@ -381,7 +387,7 @@ export default function Shell() {
             </Pop>
           </div>
         </header>
-        <main className="px-5 lg:px-10 py-8 pb-12 max-w-[1200px]">
+        <main id="main-content" tabIndex={-1} className="px-5 lg:px-10 py-8 pb-12 max-w-[1200px] outline-none">
           {isSpecialistPending ? (
             <WaitingForApproval
               user={currentUser}

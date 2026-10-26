@@ -154,7 +154,7 @@ export default function Approvals() {
                         {a.city} · {a.years} years experience · applied {a.applied} {a.rateEgp ? `· ${a.rateEgp} EGP/session` : ''}
                       </p>
                       {(a.nationalId || a.syndicateId) && (
-                        <p className="text-[12px] text-ink-2 font-mono mt-0.5">
+                        <p className="text-[12px] text-ink-2 num font-sans mt-0.5">
                           {a.nationalId ? `ID: ${a.nationalId}` : ''} {a.nationalId && a.syndicateId ? '· ' : ''} {a.syndicateId ? `Syndicate: ${a.syndicateId}` : ''}
                         </p>
                       )}

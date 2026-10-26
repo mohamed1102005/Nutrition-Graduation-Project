@@ -6,10 +6,10 @@ import type { Svc } from '../../data'
 import { api } from '../../api'
 
 const initialTiles = [
-  ['Users', '1,284', '+38 this week', 'bg-sand'],
-  ['Active plans', '612', '+21 this week', SVC.move.tint],
-  ['Bookings this week', '947', '+6% vs last week', SVC.eat.tint],
-  ['Specialists', '46', '3 waiting for approval', SVC.recover.tint],
+  ['Users', '1,284', '+38 this week'],
+  ['Active plans', '612', '+21 this week'],
+  ['Bookings this week', '947', '+6% vs last week'],
+  ['Specialists', '46', '3 waiting for approval'],
 ] as const
 
 const fallbackActivity: [any, Svc, string, string][] = [
@@ -79,10 +79,10 @@ export default function Overview() {
   }, [])
 
   const tiles = counts ? [
-    ['Users', (counts.users ?? 0).toLocaleString('en-US'), `+${Math.max(1, Math.round((counts.users ?? 0) * 0.1))} this week`, 'bg-sand'],
-    ['Active plans', (counts.activePlans ?? 0).toLocaleString('en-US'), `+${Math.max(1, Math.round((counts.activePlans ?? 0) * 0.15))} this week`, SVC.move.tint],
-    ['Bookings this week', (counts.bookingsThisWeek ?? 0).toLocaleString('en-US'), '+6% vs last week', SVC.eat.tint],
-    ['Specialists', (counts.specialists ?? 0).toLocaleString('en-US'), `${counts.pendingSpecialists || 3} waiting for approval`, SVC.recover.tint],
+    ['Users', (counts.users ?? 0).toLocaleString('en-US'), `+${Math.max(1, Math.round((counts.users ?? 0) * 0.1))} this week`],
+    ['Active plans', (counts.activePlans ?? 0).toLocaleString('en-US'), `+${Math.max(1, Math.round((counts.activePlans ?? 0) * 0.15))} this week`],
+    ['Bookings this week', (counts.bookingsThisWeek ?? 0).toLocaleString('en-US'), '+6% vs last week'],
+    ['Specialists', (counts.specialists ?? 0).toLocaleString('en-US'), `${counts.pendingSpecialists || 3} waiting for approval`],
   ] : initialTiles
 
   const pendingCount = counts?.pendingSpecialists ?? 3
@@ -97,11 +97,11 @@ export default function Overview() {
         empty={<Card><EmptyState title="No activity yet" text="Numbers and activity appear here once people start using Rebound." /></Card>}
       >
         <dl className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {tiles.map(([l, v, d, bg]) => (
-            <div key={l} className={`${bg} rounded-2xl p-5 sm:p-6`}>
-              <dt className="label uppercase">{l}</dt>
-              <dd className="num text-[44px] sm:text-[56px] leading-none mt-3">{v}</dd>
-              <dd className="text-[14px] font-semibold mt-3">{d}</dd>
+          {tiles.map(([l, v, d]) => (
+            <div key={l} className="bg-white border border-line rounded-2xl p-5 sm:p-6">
+              <dt className="label uppercase text-ink-2">{l}</dt>
+              <dd className="num text-[44px] sm:text-[56px] leading-none mt-3 text-ink">{v}</dd>
+              <dd className="text-[14px] font-semibold mt-3 text-ink-2">{d}</dd>
             </div>
           ))}
         </dl>

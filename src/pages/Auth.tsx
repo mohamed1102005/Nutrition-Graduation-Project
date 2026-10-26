@@ -60,7 +60,7 @@ function AuthLayout({ children, wide = false }: { children: ReactNode; wide?: bo
           <Wordmark />
         </Link>
         <div className="flex-1 flex items-center">
-          <div className={`w-full ${wide ? 'max-w-[560px]' : 'max-w-[440px]'} mx-auto py-10 transition-all`}>{children}</div>
+          <div className={`w-full ${wide ? 'max-w-[560px]' : 'max-w-[440px]'} mx-auto py-10 transition-[max-width,opacity]`}>{children}</div>
         </div>
       </main>
     </div>

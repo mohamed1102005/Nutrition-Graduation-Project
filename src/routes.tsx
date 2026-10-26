@@ -1,37 +1,70 @@
-import { createBrowserRouter, Navigate, useLocation, useRouteError, isRouteErrorResponse } from 'react-router'
-import Landing from './pages/Landing'
-import { Login, Signup, JoinOrg, RegisterOrg } from './pages/Auth'
-import Onboarding from './pages/Onboarding'
-import Shell, { RoleOnly } from './pages/Shell'
+import { lazy, Suspense, type ComponentType } from 'react'
+import { createBrowserRouter, Navigate, useRouteError, isRouteErrorResponse } from 'react-router'
 import { NotFoundState, Btn, Card } from './ui'
-import { getToken, IS_DEMO_MODE } from './api'
-import Clients from './pages/specialist/Clients'
-import ClientDetail from './pages/specialist/ClientDetail'
-import Schedule from './pages/specialist/Schedule'
-import Overview from './pages/admin/Overview'
-import Users from './pages/admin/Users'
-import Approvals from './pages/admin/Approvals'
-import AdminSupport from './pages/admin/Support'
-import { Today } from './pages/AppPages'
-import { SpecialistsList, SpecialistProfile } from './pages/client/Specialists'
-import MySpecialists from './pages/client/MySpecialists'
-import Booking from './pages/client/Booking'
-import Bookings from './pages/client/Bookings'
-import Checkout from './pages/client/Checkout'
-import Plan from './pages/client/Plan'
-import Progress from './pages/client/Progress'
-import AiPlan from './pages/client/AiPlan'
-import Session from './pages/client/Session'
-import FinanceOverview from './pages/finance/Overview'
-import FinanceTransactions from './pages/finance/Transactions'
-import FinancePayouts from './pages/finance/Payouts'
-import FinanceSubscriptions from './pages/finance/Subscriptions'
-import OrgDashboard from './pages/org/Dashboard'
-import OrgMembers from './pages/org/Members'
-import OrgSpecialists from './pages/org/Specialists'
+import { RoleOnly } from './components/auth/RoleOnly'
+import { RequireAuth } from './components/auth/RequireAuth'
+export { RequireAuth }
+
+const PageFallback = () => (
+  <div className="flex items-center justify-center min-h-[40vh] p-8">
+    <div className="size-8 rounded-full border-2 border-line border-t-ink animate-spin" role="status" aria-label="Loading page" />
+  </div>
+)
+
+const load = <T extends ComponentType<any>>(
+  factory: () => Promise<{ default: T } | { [key: string]: T }>,
+  namedExport?: string
+) => {
+  const LazyComp = lazy(async () => {
+    const mod = await factory()
+    const Component = namedExport ? (mod as any)[namedExport] : ((mod as any).default || mod)
+    return { default: Component }
+  })
+  return function LazyPageWrapper(props: any) {
+    return (
+      <Suspense fallback={<PageFallback />}>
+        <LazyComp {...props} />
+      </Suspense>
+    )
+  }
+}
+
+// Lazy loaded page components
+const Landing = load(() => import('./pages/Landing'))
+const Login = load(() => import('./pages/Auth'), 'Login')
+const Signup = load(() => import('./pages/Auth'), 'Signup')
+const JoinOrg = load(() => import('./pages/Auth'), 'JoinOrg')
+const RegisterOrg = load(() => import('./pages/Auth'), 'RegisterOrg')
+const Onboarding = load(() => import('./pages/Onboarding'))
+const Shell = load(() => import('./pages/Shell'))
+const Today = load(() => import('./pages/AppPages'), 'Today')
+const SpecialistsList = load(() => import('./pages/client/Specialists'), 'SpecialistsList')
+const SpecialistProfile = load(() => import('./pages/client/Specialists'), 'SpecialistProfile')
+const MySpecialists = load(() => import('./pages/client/MySpecialists'))
+const Booking = load(() => import('./pages/client/Booking'))
+const Bookings = load(() => import('./pages/client/Bookings'))
+const Checkout = load(() => import('./pages/client/Checkout'))
+const Plan = load(() => import('./pages/client/Plan'))
+const Progress = load(() => import('./pages/client/Progress'))
+const AiPlan = load(() => import('./pages/client/AiPlan'))
+const Session = load(() => import('./pages/client/Session'))
+const Clients = load(() => import('./pages/specialist/Clients'))
+const ClientDetail = load(() => import('./pages/specialist/ClientDetail'))
+const Schedule = load(() => import('./pages/specialist/Schedule'))
+const Overview = load(() => import('./pages/admin/Overview'))
+const Users = load(() => import('./pages/admin/Users'))
+const Approvals = load(() => import('./pages/admin/Approvals'))
+const AdminSupport = load(() => import('./pages/admin/Support'))
+const FinanceOverview = load(() => import('./pages/finance/Overview'))
+const FinanceTransactions = load(() => import('./pages/finance/Transactions'))
+const FinancePayouts = load(() => import('./pages/finance/Payouts'))
+const FinanceSubscriptions = load(() => import('./pages/finance/Subscriptions'))
+const OrgDashboard = load(() => import('./pages/org/Dashboard'))
+const OrgMembers = load(() => import('./pages/org/Members'))
+const OrgSpecialists = load(() => import('./pages/org/Specialists'))
 
 const NotFound = () => <NotFoundState full />
-const only = (role: 'Client' | 'Specialist' | 'Admin' | 'Finance' | 'OrgAdmin', C: () => React.JSX.Element) => () => <RoleOnly role={role}><C /></RoleOnly>
+const only = (role: 'Client' | 'Specialist' | 'Admin' | 'Finance' | 'OrgAdmin', C: ComponentType<any>) => () => <RoleOnly role={role}><C /></RoleOnly>
 
 export function RouteErrorBoundary() {
   const error = useRouteError()
@@ -42,8 +75,8 @@ export function RouteErrorBoundary() {
     : 'An unexpected application error occurred'
 
   return (
-    <div className="min-h-screen bg-[#FAF8F4] grid place-items-center p-6 text-center">
-      <Card className="max-w-md w-full p-8 shadow-sm">
+    <div className="min-h-screen bg-paper grid place-items-center p-6 text-center">
+      <Card className="max-w-md w-full p-8">
         <div className="size-12 rounded-2xl bg-danger-tint text-danger grid place-items-center mx-auto mb-4 font-bold text-xl">
           !
         </div>
@@ -63,9 +96,6 @@ export function RouteErrorBoundary() {
     </div>
   )
 }
-
-import { RequireAuth } from '@/components/auth/RequireAuth'
-export { RequireAuth }
 
 export const router = createBrowserRouter([
   { path: '/', Component: Landing },

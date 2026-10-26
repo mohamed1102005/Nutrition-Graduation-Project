@@ -241,7 +241,7 @@ export default function FinancePayouts() {
             <tbody className="divide-y divide-line">
               {history.map((h) => (
                 <tr key={h.id} className="hover:bg-paper/30 transition">
-                  <td className="py-3.5 px-5 font-mono text-[12px] font-bold text-ink">
+                  <td className="py-3.5 px-5 num font-sans text-[12px] font-bold text-ink">
                     {h.reference || `PAY-${h.id}`}
                   </td>
                   <td className="py-3.5 px-5 font-semibold text-ink">

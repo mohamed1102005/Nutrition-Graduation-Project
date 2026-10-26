@@ -32,7 +32,7 @@ function Header() {
           <Btn variant="ghost" to="/login">
             Log in
           </Btn>
-          <Btn to="/signup">Get started</Btn>
+          <Btn to="/signup">Start assessment</Btn>
         </div>
         <div className="flex items-center gap-2 lg:hidden">
           <LanguageToggle variant="pill" />
@@ -57,7 +57,7 @@ function Header() {
             <Btn variant="secondary" to="/login">
               Log in
             </Btn>
-            <Btn to="/signup">Get started</Btn>
+            <Btn to="/signup">Start assessment</Btn>
           </div>
         </div>
       )}

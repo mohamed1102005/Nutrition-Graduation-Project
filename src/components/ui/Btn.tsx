@@ -2,7 +2,7 @@ import { Link } from 'react-router'
 import type { ComponentProps, ReactNode } from 'react'
 
 const variants = {
-  primary: 'bg-ink text-white hover:bg-[#2a2e35]',
+  primary: 'bg-ink text-white hover:bg-ink/90',
   secondary: 'bg-white text-ink border border-ink/20 hover:border-ink',
   inverse: 'bg-white text-ink hover:bg-eat-tint',
   ghost: 'text-ink hover:bg-ink/5',

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {
   X,
   Headset,
@@ -67,6 +67,46 @@ export function SupportModal({
   useEffect(() => {
     if (initialCategory) setCategory(initialCategory)
   }, [initialCategory])
+
+  const modalRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose()
+        return
+      }
+      if (e.key === 'Tab' && modalRef.current) {
+        const focusable = modalRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+        if (focusable.length === 0) return
+        const first = focusable[0]
+        const last = focusable[focusable.length - 1]
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault()
+            last.focus()
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault()
+            first.focus()
+          }
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.body.style.overflow = prevOverflow
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [open, onClose])
 
   useEffect(() => {
     if (open && activeTab === 'list') {
@@ -146,10 +186,14 @@ export function SupportModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4 backdrop-blur-xs"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4"
       onClick={onClose}
     >
       <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('support.modal_title')}
         className="relative flex flex-col w-full max-w-2xl max-h-[90vh] bg-white rounded-3xl border border-line shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
@@ -170,7 +214,8 @@ export function SupportModal({
           </div>
           <button
             onClick={onClose}
-            className="size-9 rounded-lg grid place-items-center hover:bg-ink/5 transition cursor-pointer text-ink-2"
+            aria-label="Close"
+            className="size-11 rounded-xl grid place-items-center hover:bg-ink/5 transition cursor-pointer text-ink-2"
           >
             <X size={20} />
           </button>

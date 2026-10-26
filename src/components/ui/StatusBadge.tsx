@@ -2,9 +2,9 @@ import { CircleCheck, Clock, Ban } from 'lucide-react'
 
 export function StatusBadge({ status }: { status: 'Confirmed' | 'Completed' | 'Cancelled' }) {
   const m = {
-    Confirmed: [CircleCheck, 'bg-ok-tint text-[#1d6b3d]'],
+    Confirmed: [CircleCheck, 'bg-ok-tint text-ok'],
     Completed: [Clock, 'bg-sand text-ink'],
-    Cancelled: [Ban, 'bg-bad-tint text-[#a02a2a]'],
+    Cancelled: [Ban, 'bg-bad-tint text-bad'],
   } as const
   const [I, c] = m[status]
   return (
