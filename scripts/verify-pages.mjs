@@ -2,7 +2,7 @@ import { Browser, sleep } from '../.agents/skills/design-taste-frontend/scripts/
 import { mkdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
-const BASE_URL = 'http://localhost:5173';
+const BASE_URL = 'http://localhost:8443';
 const SCREENSHOT_DIR = './screenshots-test';
 
 if (!existsSync(SCREENSHOT_DIR)) {

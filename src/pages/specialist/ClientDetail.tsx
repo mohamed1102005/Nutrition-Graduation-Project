@@ -28,6 +28,7 @@ import { clients, painTrend } from '../../data'
 import { LineChart, BarChart, Flag, PainTrend } from '@/components'
 import { labels } from '../client/Progress'
 import { api } from '../../api'
+import { useLanguage } from '../../context/LanguageContext'
 
 type Ex = { id: number; name: string; sets: number; reps: number; cleared: boolean; notes?: string }
 
@@ -60,6 +61,7 @@ export default function ClientDetail() {
 }
 
 function Inner({ id }: { id?: string }) {
+  const { t, lang } = useLanguage()
   const fallbackClient = clients.find((x) => x.id === id || x.name.toLowerCase().includes(String(id).toLowerCase())) || clients[0]
   const [c, setC] = useState<any>(fallbackClient)
   const [tab, setTab] = useState('Overview')
@@ -127,15 +129,15 @@ function Inner({ id }: { id?: string }) {
   if (!c)
     return (
       <Card>
-        <EmptyState title="Client Record Not Found" text="This patient may have been archived or transferred." action={<Btn to="/app/clients">Return to Patient Directory</Btn>} />
+        <EmptyState title={lang === 'ar' ? 'سجل المريض غير موجود' : 'Client Record Not Found'} text={lang === 'ar' ? 'ربما تمت أرشفة هذا السجل أو نقله.' : 'This patient may have been archived or transferred.'} action={<Btn to="/app/clients">{t('client_detail.back', 'All Patient Charts')}</Btn>} />
       </Card>
     )
 
-  const t = painTrend(c)
+  const trend = painTrend(c)
   const dirty = (fn: () => void) => { fn(); setSaved(false); setToast('') }
 
   const save = async () => {
-    if (c.area === 'knee' && (!/^\d+$/.test(angle) || Number(angle) < 0 || Number(angle) > 120)) return setAngleErr('Enter a knee angle between 0 and 120 degrees.')
+    if (c.area === 'knee' && (!/^\d+$/.test(angle) || Number(angle) < 0 || Number(angle) > 120)) return setAngleErr(lang === 'ar' ? 'أدخل زاوية للركبة بين 0 و 120 درجة.' : 'Enter a knee angle between 0 and 120 degrees.')
     setAngleErr('')
     try {
       if (id) {
@@ -156,19 +158,19 @@ function Inner({ id }: { id?: string }) {
         }).catch(() => {})
       }
       setSaved(true)
-      setToast(`Protocol changes published. ${c.name.split(' ')[0]}'s active client dashboard is updated.`)
+      setToast(lang === 'ar' ? `تم اعتماد ونشر التعديلات. تم تحديث لوحة تحكم ${c.name.split(' ')[0]}.` : `Protocol changes published. ${c.name.split(' ')[0]}'s active client dashboard is updated.`)
     } catch {
       setSaved(true)
-      setToast(`Protocol changes published. ${c.name.split(' ')[0]}'s active client dashboard is updated.`)
+      setToast(lang === 'ar' ? `تم اعتماد ونشر التعديلات. تم تحديث لوحة تحكم ${c.name.split(' ')[0]}.` : `Protocol changes published. ${c.name.split(' ')[0]}'s active client dashboard is updated.`)
     }
   }
 
   const addEx = (e: FormEvent) => {
     e.preventDefault()
     const v: Record<string, string> = {}
-    if (nf.name.trim().length < 3) v.name = 'Specify the exercise protocol name.'
-    if (!(Number(nf.sets) >= 1 && Number(nf.sets) <= 10)) v.sets = 'Sets: 1 to 10.'
-    if (!(Number(nf.reps) >= 1 && Number(nf.reps) <= 60)) v.reps = 'Reps: 1 to 60.'
+    if (nf.name.trim().length < 3) v.name = lang === 'ar' ? 'يرجى كتابة اسم التمرين أو البروتوكول.' : 'Specify the exercise protocol name.'
+    if (!(Number(nf.sets) >= 1 && Number(nf.sets) <= 10)) v.sets = lang === 'ar' ? 'المجموعات: 1 إلى 10.' : 'Sets: 1 to 10.'
+    if (!(Number(nf.reps) >= 1 && Number(nf.reps) <= 60)) v.reps = lang === 'ar' ? 'التكرارات: 1 إلى 60.' : 'Reps: 1 to 60.'
     setNerr(v)
     if (Object.keys(v).length) return
     dirty(() => setEx([...ex, { id: Date.now(), name: nf.name.trim(), sets: Number(nf.sets), reps: Number(nf.reps), cleared: false, notes: nf.notes.trim() }]))
@@ -178,22 +180,22 @@ function Inner({ id }: { id?: string }) {
 
   const addNote = async (e: FormEvent) => {
     e.preventDefault()
-    if (draft.trim().length < 3) return setNoteErr('Enter clinical observation details.')
+    if (draft.trim().length < 3) return setNoteErr(lang === 'ar' ? 'يرجى إدخال تفاصيل الملاحظة السريرية.' : 'Enter clinical observation details.')
     setNoteErr('')
     try {
       if (id) {
         await api.addSpecialistNote(id, { body: draft.trim(), visibleToClient: shared })
       }
-      setNotes([{ id: Date.now(), text: draft.trim(), when: 'Today', shared, author: 'Dr. Mona Fathy', role: 'Physical Therapist' }, ...notes])
+      setNotes([{ id: Date.now(), text: draft.trim(), when: lang === 'ar' ? 'اليوم' : 'Today', shared, author: 'Dr. Mona Fathy', role: 'Physical Therapist' }, ...notes])
       setDraft('')
     } catch {
-      setNotes([{ id: Date.now(), text: draft.trim(), when: 'Today', shared, author: 'Dr. Mona Fathy', role: 'Physical Therapist' }, ...notes])
+      setNotes([{ id: Date.now(), text: draft.trim(), when: lang === 'ar' ? 'اليوم' : 'Today', shared, author: 'Dr. Mona Fathy', role: 'Physical Therapist' }, ...notes])
       setDraft('')
     }
   }
 
   const L = labels.slice(-8)
-  const isPainCritical = t.now > Number(limit)
+  const isPainCritical = trend.now > Number(limit)
 
   return (
     <div className="space-y-6">
@@ -203,7 +205,7 @@ function Inner({ id }: { id?: string }) {
           to="/app/clients"
           className="inline-flex items-center gap-2 text-sm font-bold text-ink-2 hover:text-ink transition cursor-pointer"
         >
-          <ArrowLeft size={16} aria-hidden /> All Patient Charts
+          <ArrowLeft size={16} aria-hidden /> {t('client_detail.back', 'All Patient Charts')}
         </Link>
       </div>
 
@@ -221,23 +223,23 @@ function Inner({ id }: { id?: string }) {
                   {c.name}
                 </h1>
                 <span className="text-xs uppercase font-bold px-2.5 py-0.5 rounded-full bg-paper text-ink border border-line">
-                  Patient ID #{c.id}
+                  {lang === 'ar' ? `رقم المريض #${c.id}` : `Patient ID #${c.id}`}
                 </span>
                 <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-ok-tint text-[#1d6b3d]">
-                  Active Rehab
+                  {t('client_detail.active_rehab', 'Active Rehab')}
                 </span>
               </div>
 
               <p className="text-sm text-ink-2 font-medium">
-                {c.injury} · Week <strong className="text-ink num">{c.week}</strong> of {c.of} ({c.goal})
+                {c.injury} · {lang === 'ar' ? 'الأسبوع' : 'Week'} <strong className="text-ink num">{c.week}</strong> {lang === 'ar' ? 'من' : 'of'} {c.of} ({c.goal})
               </p>
 
               <div className="flex flex-wrap items-center gap-4 text-xs text-ink-2 pt-1">
-                <span>Age: <strong className="text-ink">{c.age} yrs</strong></span>
+                <span>{lang === 'ar' ? 'العمر:' : 'Age:'} <strong className="text-ink">{c.age} {lang === 'ar' ? 'سنة' : 'yrs'}</strong></span>
                 <span>·</span>
-                <span>Last Activity: <strong className="text-ink">{c.lastCheckin}</strong></span>
+                <span>{lang === 'ar' ? 'آخر نشاط:' : 'Last Activity:'} <strong className="text-ink">{c.lastCheckin}</strong></span>
                 <span>·</span>
-                <span>Contact: <strong className="text-ink">{c.phone}</strong></span>
+                <span>{lang === 'ar' ? 'التواصل:' : 'Contact:'} <strong className="text-ink">{c.phone}</strong></span>
               </div>
             </div>
           </div>
@@ -245,21 +247,21 @@ function Inner({ id }: { id?: string }) {
           {/* Quick Metrics & Actions */}
           <div className="flex flex-wrap items-center gap-3 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-line">
             <div className="px-4 py-2.5 rounded-xl border border-line bg-paper/60 text-center">
-              <span className="text-[11px] font-semibold text-ink-2 uppercase tracking-wider block">Pain Score</span>
+              <span className="text-[11px] font-semibold text-ink-2 uppercase tracking-wider block">{t('client_detail.pain_score', 'Pain Score')}</span>
               <span className="num font-bold text-[20px] text-ink leading-none mt-0.5 block">
-                {t.now} <span className="text-xs font-normal text-ink-2">/ 10</span>
+                {trend.now} <span className="text-xs font-normal text-ink-2">/ 10</span>
               </span>
             </div>
 
             <div className="px-4 py-2.5 rounded-xl border border-line bg-paper/60 text-center">
-              <span className="text-[11px] font-semibold text-ink-2 uppercase tracking-wider block">Safe Threshold</span>
+              <span className="text-[11px] font-semibold text-ink-2 uppercase tracking-wider block">{t('client_detail.safe_limit', 'Safe Threshold')}</span>
               <span className="num font-bold text-[20px] text-ink leading-none mt-0.5 block">
                 {limit} <span className="text-xs font-normal text-ink-2">/ 10</span>
               </span>
             </div>
 
             <Btn to="/session" className="gap-2">
-              <Video size={16} aria-hidden /> Launch Video Consult
+              <Video size={16} aria-hidden /> {t('client_detail.video_consult', 'Launch Video Consult')}
             </Btn>
           </div>
         </div>
@@ -267,8 +269,10 @@ function Inner({ id }: { id?: string }) {
 
       {/* Critical Safety Callout if Pain Exceeds Threshold */}
       {isPainCritical && (
-        <SafetyCallout title={`CLINICAL ALERT: Current pain (${t.now}/10) exceeds client safe threshold (${limit}/10)`}>
-          Patient reported elevated patellar pain following recent loading. All contraindicated Quad loading protocols should be paused immediately. Review the updated protocol below and message {c.name.split(' ')[0]}.
+        <SafetyCallout title={lang === 'ar' ? `تنبيه سريري عاجل: مستوى الألم الحالي (${trend.now}/10) يتجاوز السقف الآمن (${limit}/10)` : `CLINICAL ALERT: Current pain (${trend.now}/10) exceeds client safe threshold (${limit}/10)`}>
+          {lang === 'ar'
+            ? `سجل المريض ارتفاعاً في نوبات ألم الرضفة عقب الجلسة الأخيرة. يرجى إيقاف كافة تمارين الضغط وتحميل العضلة الرباعية فوراً ومراجعة البروتوكول أدناه والتواصل مع ${c.name.split(' ')[0]}.`
+            : `Patient reported elevated patellar pain following recent loading. All contraindicated Quad loading protocols should be paused immediately. Review the updated protocol below and message ${c.name.split(' ')[0]}.`}
         </SafetyCallout>
       )}
 
@@ -278,10 +282,10 @@ function Inner({ id }: { id?: string }) {
         value={tab}
         onChange={setTab}
         tabs={[
-          { id: 'Overview', label: 'Patient Vitals & Care Team' },
-          { id: 'Protocol', label: 'Exercise Prescription (EHR Editor)' },
-          { id: 'Progress', label: 'Longitudinal Recovery Curves' },
-          { id: 'Notes', label: `Interdisciplinary Notes (${notes.length})` },
+          { id: 'Overview', label: t('client_detail.tab_overview', 'Patient Vitals & Care Team') },
+          { id: 'Protocol', label: t('client_detail.tab_protocol', 'Exercise Prescription (EHR Editor)') },
+          { id: 'Progress', label: t('client_detail.tab_progress', 'Longitudinal Recovery Curves') },
+          { id: 'Notes', label: `${t('client_detail.tab_notes', 'Interdisciplinary Notes')} (${notes.length})` },
         ]}
       />
 
@@ -291,24 +295,24 @@ function Inner({ id }: { id?: string }) {
           <Card className="p-6 bg-white border border-line space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-line">
               <Activity size={18} className="text-ink-2" aria-hidden />
-              <h2 className="font-bold text-[17px] text-ink">Clinical Profile & Intake Vitals</h2>
+              <h2 className="font-bold text-[17px] text-ink">{t('client_detail.vitals_title', 'Clinical Profile & Intake Vitals')}</h2>
             </div>
 
             <dl className="divide-y divide-line/60 text-sm">
               {[
-                ['Full Legal Name', c.name],
-                ['Chronological Age', `${c.age} years`],
-                ['Primary Medical Diagnosis', c.injury],
-                ['Affected Anatomical Area', c.area.toUpperCase()],
-                ['Prescribed Protocol Length', `${c.of} weeks total`],
-                ['Safe Pain Ceiling', `${limit} / 10 maximum tolerance`],
-                ['Mechanical Angle Limiter', c.area === 'knee' ? `${angle || '60'}° flexion cap` : 'N/A'],
-                ['Email Address', c.email],
-                ['Direct Phone', c.phone],
+                [lang === 'ar' ? 'الاسم القانوني الكامل' : 'Full Legal Name', c.name],
+                [lang === 'ar' ? 'العمر الزمني' : 'Chronological Age', `${c.age} ${lang === 'ar' ? 'سنة' : 'years'}`],
+                [lang === 'ar' ? 'التشخيص الطبي الأساسي' : 'Primary Medical Diagnosis', c.injury],
+                [lang === 'ar' ? 'المنطقة التشريحية المتأثرة' : 'Affected Anatomical Area', c.area.toUpperCase()],
+                [lang === 'ar' ? 'مدة البرنامج المقررة' : 'Prescribed Protocol Length', `${c.of} ${lang === 'ar' ? 'أسابيع إجمالية' : 'weeks total'}`],
+                [lang === 'ar' ? 'السقف الآمن للألم' : 'Safe Pain Ceiling', `${limit} / 10 ${lang === 'ar' ? 'أقصى تسامح' : 'maximum tolerance'}`],
+                [lang === 'ar' ? 'محدد زاوية الحركة' : 'Mechanical Angle Limiter', c.area === 'knee' ? `${angle || '60'}° ${lang === 'ar' ? 'حد الثني' : 'flexion cap'}` : 'N/A'],
+                [lang === 'ar' ? 'البريد الإلكتروني' : 'Email Address', c.email],
+                [lang === 'ar' ? 'رقم الهاتف المباشر' : 'Direct Phone', c.phone],
               ].map(([k, v]) => (
                 <div key={k} className="py-2.5 flex items-center justify-between gap-4">
                   <dt className="text-ink-2 font-medium">{k}</dt>
-                  <dd className="font-semibold text-ink text-right num">{v}</dd>
+                  <dd className="font-semibold text-ink text-right rtl:text-left num">{v}</dd>
                 </div>
               ))}
             </dl>
@@ -318,14 +322,14 @@ function Inner({ id }: { id?: string }) {
             <Card className="p-6 bg-white border border-line">
               <div className="flex items-center gap-2 pb-2 border-b border-line mb-4">
                 <Users size={18} className="text-ink-2" aria-hidden />
-                <h2 className="font-bold text-[17px] text-ink">Interdisciplinary Care Team</h2>
+                <h2 className="font-bold text-[17px] text-ink">{t('client_detail.care_team_title', 'Interdisciplinary Care Team')}</h2>
               </div>
 
               <ul className="space-y-3">
                 {[
-                  { initial: 'MF', name: 'Dr. Mona Fathy, PT', role: 'Lead Physical Therapist (You)', svc: 'recover' },
-                  { initial: 'KA', name: 'Coach Karim Adel', role: 'Strength & Conditioning Coach', svc: 'move' },
-                  { initial: 'HM', name: 'Hana Mostafa, RD', role: 'Clinical Sports Dietitian', svc: 'eat' },
+                  { initial: 'MF', name: 'Dr. Mona Fathy, PT', role: lang === 'ar' ? 'أخصائي العلاج الطبيعي الرئيسي (أنت)' : 'Lead Physical Therapist (You)', svc: 'recover' },
+                  { initial: 'KA', name: 'Coach Karim Adel', role: lang === 'ar' ? 'مدرب القوة والتأهيل البدني' : 'Strength & Conditioning Coach', svc: 'move' },
+                  { initial: 'HM', name: 'Hana Mostafa, RD', role: lang === 'ar' ? 'أخصائية التغذية الرياضية السريرية' : 'Clinical Sports Dietitian', svc: 'eat' },
                 ].map((spec) => (
                   <li key={spec.name} className="flex items-center justify-between p-3 rounded-xl border border-line/60 bg-paper/30">
                     <div className="flex items-center gap-3">
@@ -338,7 +342,7 @@ function Inner({ id }: { id?: string }) {
                       </div>
                     </div>
                     <span className="text-xs font-semibold text-ok bg-ok-tint px-2.5 py-0.5 rounded-full">
-                      Synced
+                      {lang === 'ar' ? 'متزامن' : 'Synced'}
                     </span>
                   </li>
                 ))}
@@ -348,10 +352,12 @@ function Inner({ id }: { id?: string }) {
             <Card className="p-6 bg-sand/30 border border-line">
               <div className="flex items-center gap-2 mb-2">
                 <Info size={16} className="text-ink" aria-hidden />
-                <h3 className="font-bold text-sm text-ink">Multi-Disciplinary Coordination Status</h3>
+                <h3 className="font-bold text-sm text-ink">{lang === 'ar' ? 'حالة التنسيق الطبي متعدد التخصصات' : 'Multi-Disciplinary Coordination Status'}</h3>
               </div>
               <p className="text-xs leading-relaxed text-ink/80">
-                Any modifications made to {c.name.split(' ')[0]}'s exercise clearance automatically alert Coach Karim and Hana Mostafa, ensuring unified workout loading and nutrition recovery timing.
+                {lang === 'ar'
+                  ? `أي تعديلات تطرأ على تصريح تمارين ${c.name.split(' ')[0]} ترسل إشعاراً فورياً للكابتن كريم وأخصائية التغذية هنا، لضمان توافق الأحمال البدنية مع التوقيت الغذائي للاستشفاء.`
+                  : `Any modifications made to ${c.name.split(' ')[0]}'s exercise clearance automatically alert Coach Karim and Hana Mostafa, ensuring unified workout loading and nutrition recovery timing.`}
               </p>
             </Card>
           </div>
@@ -364,16 +370,16 @@ function Inner({ id }: { id?: string }) {
           <Card className="p-6 bg-white border border-line space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-line">
               <div>
-                <h2 className="font-bold text-[18px] text-ink">Prescribed Exercise Protocols</h2>
-                <p className="text-xs text-ink-2">Control clinical clearance, set volumes, and movement depth</p>
+                <h2 className="font-bold text-[18px] text-ink">{t('client_detail.protocols_title', 'Prescribed Exercise Protocols')}</h2>
+                <p className="text-xs text-ink-2">{t('client_detail.protocols_sub', 'Control clinical clearance, set volumes, and movement depth')}</p>
               </div>
               <Btn variant="secondary" className="gap-2 shrink-0" onClick={() => setAdd(true)}>
-                <Plus size={16} aria-hidden /> Add New Movement
+                <Plus size={16} aria-hidden /> {t('client_detail.add_movement', 'Add New Movement')}
               </Btn>
             </div>
 
             {ex.length === 0 ? (
-              <EmptyState title="No active exercises prescribed" text="Add standard rehabilitation movements to initiate client program." />
+              <EmptyState title={lang === 'ar' ? 'لا توجد تمارين علاجية محددة' : 'No active exercises prescribed'} text={lang === 'ar' ? 'أضف حركات تأهيلية للبدء في تفعيل خطة المريض.' : 'Add standard rehabilitation movements to initiate client program.'} />
             ) : (
               <ul className="space-y-3">
                 {ex.map((e) => (
@@ -390,7 +396,7 @@ function Inner({ id }: { id?: string }) {
                           }`}
                         >
                           {e.cleared ? <ShieldCheck size={12} aria-hidden /> : <Hourglass size={12} aria-hidden />}
-                          {e.cleared ? 'Cleared for Load' : 'Held / Awaiting Clearance'}
+                          {e.cleared ? t('client_detail.cleared', 'Cleared for Load') : t('client_detail.awaiting', 'Held / Awaiting Clearance')}
                         </span>
                       </div>
                       {e.notes && <p className="text-xs text-ink-2 mt-1">{e.notes}</p>}
@@ -399,7 +405,7 @@ function Inner({ id }: { id?: string }) {
                     <div className="flex items-center gap-3 shrink-0">
                       <div className="flex items-center gap-2">
                         <label className="text-xs text-ink-2 font-medium">
-                          Sets
+                          {t('client_detail.sets', 'Sets')}
                           <input
                             type="number"
                             min={1}
@@ -410,7 +416,7 @@ function Inner({ id }: { id?: string }) {
                           />
                         </label>
                         <label className="text-xs text-ink-2 font-medium">
-                          Reps
+                          {t('client_detail.reps', 'Reps')}
                           <input
                             type="number"
                             min={1}
@@ -427,7 +433,7 @@ function Inner({ id }: { id?: string }) {
                         className="!h-9 text-xs px-3"
                         onClick={() => dirty(() => setEx(ex.map((x) => (x.id === e.id ? { ...x, cleared: !x.cleared } : x))))}
                       >
-                        {e.cleared ? 'Pause' : 'Clear'}
+                        {e.cleared ? t('client_detail.pause', 'Pause') : t('client_detail.clear', 'Clear')}
                       </Btn>
 
                       <button
@@ -449,12 +455,12 @@ function Inner({ id }: { id?: string }) {
           <Card className="p-6 bg-white border border-line space-y-5 lg:sticky lg:top-24">
             <div className="flex items-center gap-2 pb-2 border-b border-line">
               <Sliders size={18} className="text-ink-2" aria-hidden />
-              <h2 className="font-bold text-[17px] text-ink">Safety Tolerances & Limits</h2>
+              <h2 className="font-bold text-[17px] text-ink">{t('client_detail.tolerances_title', 'Safety Tolerances & Limits')}</h2>
             </div>
 
             <div>
               <label className="text-xs uppercase font-bold text-ink-2 tracking-wider block mb-2">
-                Safe Pain Threshold (Out of 10)
+                {t('client_detail.pain_threshold', 'Safe Pain Threshold (Out of 10)')}
               </label>
               <Segment
                 label="Safe pain limit"
@@ -464,13 +470,13 @@ function Inner({ id }: { id?: string }) {
               />
               {Number(limit) > 4 && (
                 <p className="mt-2.5 rounded-xl bg-warn-tint p-3 text-xs leading-relaxed text-[#7a5200]">
-                  Ceiling above 4/10 exceeds clinic default baseline. Document reasoning in Care Notes.
+                  {lang === 'ar' ? 'تجاوز حد 4/10 يتخطى المعيار المرجعي الموصى به في العيادة. يرجى توثيق المبرر السريري في الملاحظات.' : 'Ceiling above 4/10 exceeds clinic default baseline. Document reasoning in Care Notes.'}
                 </p>
               )}
             </div>
 
             {c.area === 'knee' && (
-              <Field label="Maximum Knee Flexion Cap (Degrees)" helper="All squatting & leg pressing must stay within this angle" error={angleErr}>
+              <Field label={t('client_detail.knee_angle', 'Maximum Knee Flexion Cap (Degrees)')} helper={t('client_detail.knee_angle_sub', 'All squatting & leg pressing must stay within this angle')} error={angleErr}>
                 {(p) => (
                   <input
                     {...p}
@@ -485,7 +491,7 @@ function Inner({ id }: { id?: string }) {
 
             <div className="pt-2">
               <Btn className="w-full" onClick={save} disabled={saved}>
-                Publish Protocol Changes
+                {t('client_detail.publish_changes', 'Publish Protocol Changes')}
               </Btn>
 
               {toast && (
@@ -495,7 +501,7 @@ function Inner({ id }: { id?: string }) {
               )}
               {!saved && (
                 <p className="text-xs text-ink-2 text-center mt-2">
-                  Unsaved draft changes pending publication.
+                  {lang === 'ar' ? 'توجد تعديلات مسودة غير منشورة.' : 'Unsaved draft changes pending publication.'}
                 </p>
               )}
             </div>
@@ -509,11 +515,11 @@ function Inner({ id }: { id?: string }) {
           <Card className="p-6 bg-white border border-line">
             <div className="flex items-center justify-between pb-4 border-b border-line mb-4">
               <div>
-                <h2 className="font-bold text-[18px] text-ink">Pain Trajectory Over Time (Last 8 Weeks)</h2>
-                <p className="text-xs text-ink-2">Weekly patient-reported symptom scale vs. safe ceiling of {limit}/10</p>
+                <h2 className="font-bold text-[18px] text-ink">{t('client_detail.pain_trajectory', 'Pain Trajectory Over Time (Last 8 Weeks)')}</h2>
+                <p className="text-xs text-ink-2">{lang === 'ar' ? `مقياس الأعراض المسجل أسبوعياً من المريض مقارنة بالسقف الآمن ${limit}/10` : `Weekly patient-reported symptom scale vs. safe ceiling of ${limit}/10`}</p>
               </div>
               <span className="text-xs font-semibold bg-paper px-3 py-1 rounded-full border border-line">
-                Net Change: <strong className="text-ok">-3.0 pts</strong>
+                {lang === 'ar' ? 'صافي التغير:' : 'Net Change:'} <strong className="text-ok">-3.0 pts</strong>
               </span>
             </div>
 
@@ -533,11 +539,11 @@ function Inner({ id }: { id?: string }) {
           <Card className="p-6 bg-white border border-line">
             <div className="flex items-center justify-between pb-4 border-b border-line mb-4">
               <div>
-                <h2 className="font-bold text-[18px] text-ink">Session Adherence & Workouts Logged</h2>
-                <p className="text-xs text-ink-2">Weekly completed training sessions vs. prescribed target of 4/week</p>
+                <h2 className="font-bold text-[18px] text-ink">{t('client_detail.adherence_title', 'Session Adherence & Workouts Logged')}</h2>
+                <p className="text-xs text-ink-2">{lang === 'ar' ? 'الجلسات التدريبية المكتملة أسبوعياً مقابل الهدف المقرر 4 جلسات/أسبوع' : 'Weekly completed training sessions vs. prescribed target of 4/week'}</p>
               </div>
               <span className="text-xs font-semibold bg-ok-tint text-[#1d6b3d] px-3 py-1 rounded-full">
-                Compliance: 88%
+                {lang === 'ar' ? 'الالتزام: 88%' : 'Compliance: 88%'}
               </span>
             </div>
 
@@ -552,7 +558,7 @@ function Inner({ id }: { id?: string }) {
           <div className="space-y-3">
             {notes.length === 0 ? (
               <Card className="p-8">
-                <EmptyState title="No clinical notes recorded" text="Clinical observations logged here persist in the permanent client record." />
+                <EmptyState title={lang === 'ar' ? 'لا توجد ملاحظات سريرية مدونة' : 'No clinical notes recorded'} text={lang === 'ar' ? 'الملاحظات السريرية المدونة هنا تحفظ في السجل الدائم للمريض.' : 'Clinical observations logged here persist in the permanent client record.'} />
               </Card>
             ) : (
               notes.map((n) => (
@@ -564,7 +570,7 @@ function Inner({ id }: { id?: string }) {
                     <span className="flex items-center gap-2">
                       <span className="inline-flex items-center gap-1">
                         {n.shared ? <Eye size={12} /> : <Lock size={12} />}
-                        {n.shared ? 'Shared with Care Team' : 'Internal Clinician Note'}
+                        {n.shared ? (lang === 'ar' ? 'مشترك مع فريق الرعاية' : 'Shared with Care Team') : (lang === 'ar' ? 'ملاحظة سريرية داخلية' : 'Internal Clinician Note')}
                       </span>
                       <span>·</span>
                       <span>{n.when}</span>
@@ -577,14 +583,14 @@ function Inner({ id }: { id?: string }) {
           </div>
 
           <Card className="p-6 bg-white border border-line space-y-4 lg:sticky lg:top-24">
-            <h2 className="font-bold text-[17px] text-ink pb-2 border-b border-line">Log Clinical Observation</h2>
+            <h2 className="font-bold text-[17px] text-ink pb-2 border-b border-line">{t('client_detail.log_observation', 'Log Clinical Observation')}</h2>
             <form onSubmit={addNote} noValidate className="space-y-4">
-              <Field label="Clinical Note Entry" error={noteErr}>
+              <Field label={lang === 'ar' ? 'نص الملاحظة السريرية' : 'Clinical Note Entry'} error={noteErr}>
                 {(p) => (
                   <textarea
                     {...p}
                     rows={5}
-                    placeholder="Document joint palpation findings, ROM improvements, or load adjustments..."
+                    placeholder={lang === 'ar' ? 'سجل نتائج فحص المفاصل، تحسن مدى الحركة ROM، أو تعديلات الأحمال التدريبية...' : 'Document joint palpation findings, ROM improvements, or load adjustments...'}
                     className={`${inputCls} h-auto py-3 text-sm leading-relaxed`}
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
@@ -599,11 +605,11 @@ function Inner({ id }: { id?: string }) {
                   checked={shared}
                   onChange={(e) => setShared(e.target.checked)}
                 />
-                Share note with Karim (Trainer) & Hana (Dietitian)
+                {lang === 'ar' ? 'مشاركة الملاحظة مع كابتن كريم (المدرب) وهنا (أخصائية التغذية)' : 'Share note with Karim (Trainer) & Hana (Dietitian)'}
               </label>
 
               <Btn type="submit" className="w-full">
-                Append to Clinical Record
+                {t('client_detail.append_record', 'Append to Clinical Record')}
               </Btn>
             </form>
           </Card>
@@ -611,13 +617,15 @@ function Inner({ id }: { id?: string }) {
       )}
 
       {/* Remove Confirmation Dialog */}
-      <Dialog open={Boolean(rm)} onClose={() => setRm(null)} title="Confirm Protocol Deletion">
+      <Dialog open={Boolean(rm)} onClose={() => setRm(null)} title={lang === 'ar' ? 'تأكيد حذف الحركة من البرنامج' : 'Confirm Protocol Deletion'}>
         <p className="text-sm text-ink-2 leading-relaxed">
-          Are you sure you want to remove <strong>{rm?.name}</strong> from {c.name.split(' ')[0]}'s active rehabilitation protocol?
+          {lang === 'ar'
+            ? `هل أنت متأكد من رغبتك في إزالة ${rm?.name} من برنامج التأهيل النشط لـ ${c.name.split(' ')[0]}؟`
+            : `Are you sure you want to remove ${rm?.name} from ${c.name.split(' ')[0]}'s active rehabilitation protocol?`}
         </p>
         <div className="flex flex-col-reverse sm:flex-row gap-3 mt-6 sm:justify-end">
           <Btn variant="secondary" onClick={() => setRm(null)}>
-            Retain Movement
+            {lang === 'ar' ? 'الإبقاء على التمرين' : 'Retain Movement'}
           </Btn>
           <Btn
             className="!bg-[#a02a2a] text-white"
@@ -626,40 +634,42 @@ function Inner({ id }: { id?: string }) {
               setRm(null)
             }}
           >
-            Confirm Removal
+            {lang === 'ar' ? 'تأكيد الحذف' : 'Confirm Removal'}
           </Btn>
         </div>
       </Dialog>
 
       {/* Add Movement Dialog */}
-      <Dialog open={add} onClose={() => setAdd(false)} title="Prescribe New Exercise Protocol">
+      <Dialog open={add} onClose={() => setAdd(false)} title={lang === 'ar' ? 'وصف تمرين أو بروتوكول جديد' : 'Prescribe New Exercise Protocol'}>
         <form onSubmit={addEx} noValidate className="space-y-4">
-          <Field label="Movement Name & Variation" error={nerr.name}>
+          <Field label={lang === 'ar' ? 'اسم التمرين وتفاصيله' : 'Movement Name & Variation'} error={nerr.name}>
             {(p) => <input {...p} placeholder="e.g. Spanish Squats with Heavy Rig Band" className={inputCls} value={nf.name} onChange={(e) => setNf({ ...nf, name: e.target.value })} />}
           </Field>
 
           <div className="grid grid-cols-2 gap-4">
-            <Field label="Target Sets" error={nerr.sets}>
+            <Field label={lang === 'ar' ? 'عدد المجموعات' : 'Target Sets'} error={nerr.sets}>
               {(p) => <input {...p} inputMode="numeric" className={`${inputCls} num`} value={nf.sets} onChange={(e) => setNf({ ...nf, sets: e.target.value })} />}
             </Field>
-            <Field label="Target Repetitions" error={nerr.reps}>
+            <Field label={lang === 'ar' ? 'عدد التكرارات' : 'Target Repetitions'} error={nerr.reps}>
               {(p) => <input {...p} inputMode="numeric" className={`${inputCls} num`} value={nf.reps} onChange={(e) => setNf({ ...nf, reps: e.target.value })} />}
             </Field>
           </div>
 
-          <Field label="Clinical Instructions & Form Cues">
+          <Field label={lang === 'ar' ? 'تعليمات سريرية وتوجيهات الأداء' : 'Clinical Instructions & Form Cues'}>
             {(p) => <input {...p} placeholder="e.g. 45-second isometric hold, shin vertical" className={inputCls} value={nf.notes} onChange={(e) => setNf({ ...nf, notes: e.target.value })} />}
           </Field>
 
           <p className="text-xs text-ink-2 bg-sand/30 p-3 rounded-xl">
-            Newly added movements are initialized as <strong>"Waiting for PT"</strong> until explicitly cleared by the presiding therapist.
+            {lang === 'ar'
+              ? 'يتم تعيين التمارين المضافة حديثاً بحالة "بانتظار تصريح العلاج الطبيعي" حتى اعتمادها رسمياً من الأخصائي المشرف.'
+              : 'Newly added movements are initialized as "Waiting for PT" until explicitly cleared by the presiding therapist.'}
           </p>
 
           <div className="flex gap-3 justify-end pt-2">
             <Btn type="button" variant="secondary" onClick={() => setAdd(false)}>
-              Cancel
+              {lang === 'ar' ? 'إلغاء' : 'Cancel'}
             </Btn>
-            <Btn type="submit">Prescribe Exercise</Btn>
+            <Btn type="submit">{lang === 'ar' ? 'اعتماد التمرين في الخطة' : 'Prescribe Exercise'}</Btn>
           </div>
         </form>
       </Dialog>

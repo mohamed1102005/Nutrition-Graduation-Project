@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import { Btn, Card, Chip, Field, inputCls, PageHead, SafetyCallout, Segment, Skeleton, SVC } from '../../ui'
 import { api } from '../../api'
+import { useLanguage } from '../../context/LanguageContext'
 
 type Svc = 'move' | 'eat' | 'recover'
 
@@ -68,6 +69,7 @@ function build(days: number, goal: string, diet: string, kneeSafe: boolean) {
 }
 
 export default function AiPlan() {
+  const { t, isRtl } = useLanguage()
   const [goal, setGoal] = useState('Lose fat')
   const [days, setDays] = useState('4')
   const [injury, setInjury] = useState('Knee rehab, squats limited to 60 degrees')
@@ -143,15 +145,15 @@ export default function AiPlan() {
         <div>
           <div className="flex items-center gap-2 mb-1.5">
             <span className="inline-flex items-center gap-1.5 text-xs font-bold bg-ink text-white px-3 py-1 rounded-full uppercase tracking-wider">
-              <Sparkles size={13} className="text-sand" aria-hidden /> Gemini Health Intelligence
+              <Sparkles size={13} className="text-sand" aria-hidden /> {t('ai.badge', 'Gemini Health Intelligence')}
             </span>
             <span className="text-xs font-semibold text-ink-2">v3.5 Clinical Tuning</span>
           </div>
           <h1 className="h-display text-[26px] sm:text-[32px] text-ink leading-tight tracking-tight">
-            AI Protocol Co-Pilot
+            {t('ai.title', 'AI Protocol Co-Pilot')}
           </h1>
           <p className="text-sm text-ink-2 max-w-2xl mt-1">
-            Generate an evidence-based, synchronized training, nutrition, and joint-protection protocol in seconds. Automatically routed to your care team for clinical sign-off.
+            {t('ai.subtitle', 'Generate an evidence-based, synchronized training, nutrition, and joint-protection protocol in seconds. Automatically routed to your care team for clinical sign-off.')}
           </p>
         </div>
       </div>
@@ -161,13 +163,13 @@ export default function AiPlan() {
         <Card className="p-6 bg-white border border-line space-y-5">
           <div className="flex items-center gap-2 pb-3 border-b border-line">
             <BrainCircuit size={18} className="text-ink-2" aria-hidden />
-            <h2 className="font-bold text-[17px] text-ink">Protocol Parameters</h2>
+            <h2 className="font-bold text-[17px] text-ink">{t('ai.parameters', 'Protocol Parameters')}</h2>
           </div>
 
           {/* Goal Selector */}
           <div>
             <label className="text-xs uppercase font-bold text-ink-2 tracking-wider block mb-2">
-              Primary Objective
+              {t('ai.primary_goal', 'Primary Objective')}
             </label>
             <div className="grid grid-cols-1 gap-2">
               {goals.map((g) => (
@@ -193,13 +195,13 @@ export default function AiPlan() {
           {/* Days Per Week */}
           <div>
             <label className="text-xs uppercase font-bold text-ink-2 tracking-wider block mb-2">
-              Weekly Training Sessions
+              {t('ai.sessions_per_week', 'Weekly Training Sessions')}
             </label>
             <Segment label="Days per week" options={['3', '4', '5', '6']} value={days} onChange={setDays} />
           </div>
 
           {/* Injury / Constraints */}
-          <Field label="Clinical Limitations & Injury Notes" helper="Passed directly to your physical therapist for verification">
+          <Field label={t('ai.parameters', 'Clinical Limitations & Injury Notes')} helper={t('ai.injuries_helper', 'Passed directly to your physical therapist for verification')}>
             {(p) => (
               <input
                 {...p}
@@ -213,7 +215,7 @@ export default function AiPlan() {
           {/* Equipment Chips */}
           <div>
             <label className="text-xs uppercase font-bold text-ink-2 tracking-wider block mb-2" id="eq-lbl">
-              Equipment Access
+              {t('ai.equipment', 'Equipment Access')}
             </label>
             <div role="group" aria-labelledby="eq-lbl" className="flex flex-wrap gap-2">
               {equipmentOpts.map((e) => (
@@ -228,7 +230,7 @@ export default function AiPlan() {
           {/* Diet Preferences */}
           <div>
             <label className="text-xs uppercase font-bold text-ink-2 tracking-wider block mb-2">
-              Dietary Preference
+              {t('ai.diet_pref', 'Dietary Preference')}
             </label>
             <Segment label="Diet" options={diets} value={diet} onChange={setDiet} />
           </div>
@@ -240,7 +242,7 @@ export default function AiPlan() {
             disabled={phase === 'loading'}
           >
             <Sparkles size={16} aria-hidden />
-            {phase === 'done' ? 'Re-Synthesize Protocol' : 'Generate Weekly Blueprint'}
+            {phase === 'done' ? t('ai.btn_regenerate', 'Re-Synthesize Protocol') : t('ai.btn_generate', 'Generate Weekly Blueprint')}
           </Btn>
         </Card>
 

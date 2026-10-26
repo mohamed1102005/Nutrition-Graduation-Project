@@ -13,11 +13,11 @@ export { RoleOnly, type Role }
 type Ctx = RoleContextType
 export const useRole = () => useOutletContext<Ctx>().role
 
-const getNavItems = (t: (key: string) => string, isOrgMember = false) => ({
+const getNavItems = (t: (key: string, fallback?: string) => string, isOrgMember = false) => ({
   Client: isOrgMember
     ? [
         { to: '/app/today', label: t('nav.today'), Icon: House },
-        { to: '/app/my-specialists', label: t('nav.specialists') || 'Specialists', Icon: Users },
+        { to: '/app/my-specialists', label: t('nav.my_specialists', 'My Specialists'), Icon: Users },
         { to: '/app/bookings', label: t('nav.bookings'), Icon: CalendarDays },
         { to: '/app/plan', label: t('nav.plan'), Icon: ClipboardList },
         { to: '/app/progress', label: t('nav.progress'), Icon: LineChart },
@@ -26,7 +26,7 @@ const getNavItems = (t: (key: string) => string, isOrgMember = false) => ({
     : [
         { to: '/app/today', label: t('nav.today'), Icon: House },
         { to: '/app/specialists', label: t('nav.specialists'), Icon: Users },
-        { to: '/app/my-specialists', label: 'My specialists', Icon: Contact },
+        { to: '/app/my-specialists', label: t('nav.my_specialists', 'My Specialists'), Icon: Contact },
         { to: '/app/bookings', label: t('nav.bookings'), Icon: CalendarDays },
         { to: '/app/plan', label: t('nav.plan'), Icon: ClipboardList },
         { to: '/app/progress', label: t('nav.progress'), Icon: LineChart },
@@ -50,9 +50,9 @@ const getNavItems = (t: (key: string) => string, isOrgMember = false) => ({
     { to: '/app/finance/subscriptions', label: t('nav.subscriptions'), Icon: CreditCard },
   ],
   OrgAdmin: [
-    { to: '/app/org', label: 'Dashboard', Icon: LayoutDashboard },
-    { to: '/app/org/members', label: 'Members', Icon: Users },
-    { to: '/app/org/specialists', label: 'Specialists', Icon: Contact },
+    { to: '/app/org', label: t('nav.dashboard', 'Dashboard'), Icon: LayoutDashboard },
+    { to: '/app/org/members', label: t('nav.members', 'Members'), Icon: Users },
+    { to: '/app/org/specialists', label: t('nav.specialists', 'Specialists'), Icon: Contact },
   ],
 })
 
@@ -164,10 +164,10 @@ export default function Shell() {
     currentUser?.approvalStatus !== 'approved'
 
   const items = isSpecialistPending
-    ? [{ to: '/app/today', label: 'Approval Status', Icon: Clock }]
+    ? [{ to: '/app/today', label: t('nav.approval_status', 'Approval Status'), Icon: Clock }]
     : navs[role] || navs.Client
   const title = isSpecialistPending
-    ? 'Specialist Verification'
+    ? t('nav.verification_title', 'Specialist Verification')
     : (allNav.find((n) => loc.pathname.startsWith(n.to))?.label ?? 'Rebound')
   const home = (r: Role) => {
     if (r === 'OrgAdmin') return '/app/org'

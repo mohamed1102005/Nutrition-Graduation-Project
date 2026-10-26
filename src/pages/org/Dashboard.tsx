@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { Card, PageHead, Skeleton, Btn, SVC } from '../../ui'
 import { api } from '../../api'
+import { useLanguage } from '../../context/LanguageContext'
 
 /**
  * OrgAdmin Dashboard (/app/org)
@@ -30,6 +31,7 @@ import { api } from '../../api'
  * Only aggregate usage metrics and assignment linkages are surfaced.
  */
 export default function OrgDashboard() {
+  const { t, lang } = useLanguage()
   const [info, setInfo] = useState<any>(null)
   const [stats, setStats] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -127,14 +129,14 @@ export default function OrgDashboard() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="h-display text-2xl sm:text-3xl font-bold text-ink">
-                  {info?.name || 'Organization Dashboard'}
+                  {info?.name || t('org.title', 'Organization Dashboard')}
                 </h1>
                 <span className="px-2.5 py-0.5 rounded-full bg-sand text-[11px] font-bold uppercase text-ink">
-                  {info?.type || 'Enterprise'}
+                  {info?.type || (lang === 'ar' ? 'مؤسسي' : 'Enterprise')}
                 </span>
               </div>
               <p className="text-sm text-ink-2 mt-0.5">
-                Sponsored health & recovery roster for your members and athletes.
+                {t('org.sub', 'Sponsored health & recovery roster for your members and athletes.')}
               </p>
             </div>
           </div>
@@ -144,7 +146,7 @@ export default function OrgDashboard() {
         <div className="flex items-center gap-3 bg-white border border-line p-2.5 px-4 rounded-2xl">
           <div>
             <span className="text-[11px] font-semibold text-ink-2 block">
-              Team Invite Code
+              {t('org.invite_code', 'Team Invite Code')}
             </span>
             <span className="font-mono text-base font-bold tracking-widest text-ink">
               {info?.inviteCode || '--------'}
@@ -158,11 +160,11 @@ export default function OrgDashboard() {
           >
             {copied ? (
               <>
-                <Check size={14} className="text-ok" aria-hidden /> Copied
+                <Check size={14} className="text-ok" aria-hidden /> {t('org.copied', 'Copied')}
               </>
             ) : (
               <>
-                <Copy size={14} aria-hidden /> Copy
+                <Copy size={14} aria-hidden /> {t('org.copy', 'Copy')}
               </>
             )}
           </Btn>
@@ -174,14 +176,18 @@ export default function OrgDashboard() {
         <div className="flex items-start sm:items-center gap-3">
           <ShieldCheck size={20} className="text-ok shrink-0 mt-0.5 sm:mt-0" aria-hidden />
           <p className="text-ink-2">
-            Share code <strong className="font-mono text-ink font-bold px-1.5 py-0.5 rounded bg-sand/80">{info?.inviteCode}</strong> with your team. Members join via <strong className="text-ink">/join</strong> with 100% corporate coverage.
+            {lang === 'ar' ? (
+              <>شارك الرمز <strong className="font-mono text-ink font-bold px-1.5 py-0.5 rounded bg-sand/80">{info?.inviteCode}</strong> مع فريقك للانضمام عبر <strong className="text-ink">/join</strong> بتغطية مؤسسية 100%.</>
+            ) : (
+              <>Share code <strong className="font-mono text-ink font-bold px-1.5 py-0.5 rounded bg-sand/80">{info?.inviteCode}</strong> with your team. Members join via <strong className="text-ink">/join</strong> with 100% corporate coverage.</>
+            )}
           </p>
         </div>
         <Link
           to="/app/org/members"
           className="font-bold text-ink underline underline-offset-4 text-xs whitespace-nowrap self-end sm:self-auto hover:text-ink-2"
         >
-          View member roster &rarr;
+          {t('org.view_roster', 'View member roster')} &rarr;
         </Link>
       </div>
 
@@ -189,16 +195,16 @@ export default function OrgDashboard() {
       <Card className="p-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
           <div>
-            <h2 className="text-base font-bold text-ink">Sponsored Seat Capacity</h2>
+            <h2 className="text-base font-bold text-ink">{t('org.capacity_title', 'Sponsored Seat Capacity')}</h2>
             <p className="text-xs text-ink-2 mt-0.5">
-              Active corporate seats occupied by onboarded members.
+              {t('org.capacity_sub', 'Active corporate seats occupied by onboarded members.')}
             </p>
           </div>
-          <div className="text-right">
+          <div className="text-right rtl:text-left">
             <span className="num text-2xl font-bold text-ink">
               {seatsUsed}
             </span>
-            <span className="text-sm font-semibold text-ink-2"> / {seatLimit} seats</span>
+            <span className="text-sm font-semibold text-ink-2"> / {seatLimit} {lang === 'ar' ? 'مقعد' : 'seats'}</span>
           </div>
         </div>
 
@@ -217,8 +223,8 @@ export default function OrgDashboard() {
         </div>
 
         <div className="flex justify-between items-center text-xs text-ink-2 mt-2.5 font-medium">
-          <span>{occupancyPercent}% capacity utilized</span>
-          <span className="font-bold text-ink">{seatsRemaining} seats available</span>
+          <span>{occupancyPercent}% {lang === 'ar' ? 'من السعة مستغلة' : 'capacity utilized'}</span>
+          <span className="font-bold text-ink">{seatsRemaining} {lang === 'ar' ? 'مقعد متاح' : 'seats available'}</span>
         </div>
       </Card>
 

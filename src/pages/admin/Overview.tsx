@@ -18,6 +18,7 @@ import {
 import { Card, EmptyState, Gate, PageHead, Skeleton, Btn, SVC, type DemoState } from '../../ui'
 import type { Svc } from '../../data'
 import { api } from '../../api'
+import { useLanguage } from '../../context/LanguageContext'
 
 const initialTiles = [
   ['Total Users', '1,284', '+38 this week', Users],
@@ -64,6 +65,7 @@ function formatRelativeTime(timestamp?: string) {
 }
 
 export default function Overview() {
+  const { t, lang } = useLanguage()
   const [state, setState] = useState<DemoState>('loaded')
   const [counts, setCounts] = useState<any>(null)
   const [activityList, setActivityList] = useState<[any, Svc, string, string][]>(fallbackActivity)
@@ -93,11 +95,16 @@ export default function Overview() {
   }, [])
 
   const tiles = counts ? [
-    ['Total Users', (counts.users ?? 0).toLocaleString('en-US'), `+${Math.max(1, Math.round((counts.users ?? 0) * 0.1))} this week`, Users],
-    ['Active Plans', (counts.activePlans ?? 0).toLocaleString('en-US'), `+${Math.max(1, Math.round((counts.activePlans ?? 0) * 0.15))} this week`, ClipboardList],
-    ['Weekly Bookings', (counts.bookingsThisWeek ?? 0).toLocaleString('en-US'), '+6% vs last week', CalendarCheck],
-    ['Verified Specialists', (counts.specialists ?? 0).toLocaleString('en-US'), `${counts.pendingSpecialists || 3} pending review`, ShieldCheck],
-  ] : initialTiles
+    [t('admin.total_users', 'Total Users'), (counts.users ?? 0).toLocaleString('en-US'), `+${Math.max(1, Math.round((counts.users ?? 0) * 0.1))} ${lang === 'ar' ? 'هذا الأسبوع' : 'this week'}`, Users],
+    [t('admin.active_plans', 'Active Plans'), (counts.activePlans ?? 0).toLocaleString('en-US'), `+${Math.max(1, Math.round((counts.activePlans ?? 0) * 0.15))} ${lang === 'ar' ? 'هذا الأسبوع' : 'this week'}`, ClipboardList],
+    [t('admin.weekly_bookings', 'Weekly Bookings'), (counts.bookingsThisWeek ?? 0).toLocaleString('en-US'), lang === 'ar' ? '+6% مقارنة بالأسبوع الماضي' : '+6% vs last week', CalendarCheck],
+    [t('admin.verified_specialists', 'Verified Specialists'), (counts.specialists ?? 0).toLocaleString('en-US'), `${counts.pendingSpecialists || 3} ${lang === 'ar' ? 'بانتظار المراجعة' : 'pending review'}`, ShieldCheck],
+  ] : [
+    [t('admin.total_users', 'Total Users'), '1,284', lang === 'ar' ? '+38 هذا الأسبوع' : '+38 this week', Users],
+    [t('admin.active_plans', 'Active Plans'), '612', lang === 'ar' ? '+21 هذا الأسبوع' : '+21 this week', ClipboardList],
+    [t('admin.weekly_bookings', 'Weekly Bookings'), '947', lang === 'ar' ? '+6% مقارنة بالأسبوع الماضي' : '+6% vs last week', CalendarCheck],
+    [t('admin.verified_specialists', 'Verified Specialists'), '46', lang === 'ar' ? '3 بانتظار الاعتماد' : '3 pending credentials', ShieldCheck],
+  ]
 
   const pendingCount = counts?.pendingSpecialists ?? 3
 
@@ -108,13 +115,13 @@ export default function Overview() {
         <div>
           <div className="flex items-center gap-2 text-[13px] font-semibold text-ink-2 mb-1.5">
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sand text-ink text-[12px] font-bold">
-              Operations Center
+              {t('admin.ops_center', 'Operations Center')}
             </span>
             <span>·</span>
-            <span>Platform Governance & Telehealth Compliance</span>
+            <span>{t('admin.governance_sub', 'Platform Governance & Telehealth Compliance')}</span>
           </div>
           <h1 className="h-display text-[28px] sm:text-[32px] tracking-tight text-ink font-bold">
-            Platform Operations & Analytics
+            {t('admin.ops_title', 'Platform Operations & Analytics')}
           </h1>
         </div>
         <div className="flex items-center gap-3">
@@ -123,13 +130,13 @@ export default function Overview() {
             to="/app/users"
             className="min-h-11 px-4 text-[14px]"
           >
-            <Users size={16} aria-hidden /> User Accounts
+            <Users size={16} aria-hidden /> {t('admin.user_accounts', 'User Accounts')}
           </Btn>
           <Btn
             to="/app/approvals"
             className="min-h-11 px-5 text-[14px]"
           >
-            <FileCheck size={16} aria-hidden /> Pending Approvals ({pendingCount})
+            <FileCheck size={16} aria-hidden /> {t('admin.pending_approvals', 'Pending Approvals')} ({pendingCount})
           </Btn>
         </div>
       </div>

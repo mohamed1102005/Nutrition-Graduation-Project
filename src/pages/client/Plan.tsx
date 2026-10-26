@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import { Btn, Card, EmptyState, Gate, SafetyCallout, SVC, Skeleton, Tabs, type DemoState } from '../../ui'
 import { api } from '../../api'
+import { useLanguage } from '../../context/LanguageContext'
 
 type Svc = 'move' | 'eat' | 'recover'
 const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -320,6 +321,7 @@ function CareTeamBadge({
 }
 
 export default function Plan() {
+  const { t, isRtl } = useLanguage()
   const [tab, setTab] = useState<Svc>('move')
   const [day, setDay] = useState('Wed')
   const [state, setState] = useState<DemoState>('loaded')
@@ -462,23 +464,23 @@ export default function Plan() {
         <div>
           <div className="flex items-center gap-2 mb-1.5">
             <span className="num font-bold text-xs bg-ink text-white px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-              Active Protocol
+              {t('plan.active_protocol', 'Active Protocol')}
             </span>
             <span className="text-sm font-semibold text-ink-2">
-              Week <strong className="text-ink num">{programInfo.week}</strong> of {programInfo.total}
+              {t('plan.week_of', 'Week {cur} of {total}').replace('{cur}', String(programInfo.week)).replace('{total}', String(programInfo.total))}
             </span>
           </div>
           <h1 className="h-display text-[26px] sm:text-[32px] text-ink leading-tight tracking-tight">
-            Integrated Health & Performance Plan
+            {t('plan.title', 'Integrated Health & Performance Plan')}
           </h1>
           <p className="text-ink-2 text-sm max-w-2xl mt-1">
-            Coordinated care managed in real-time by your designated trainer, clinical dietitian, and physical therapist.
+            {t('plan.subtitle', 'Coordinated care managed in real-time by your designated trainer, clinical dietitian, and physical therapist.')}
           </p>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
           <Btn to="/session" className="gap-2">
-            <Play size={16} fill="currentColor" aria-hidden /> Launch Today's Session
+            <Play size={16} fill="currentColor" aria-hidden /> {t('plan.launch_session', "Launch Today's Session")}
           </Btn>
         </div>
       </div>
@@ -491,12 +493,12 @@ export default function Plan() {
               <Link2 size={16} aria-hidden />
             </span>
             <div>
-              <h2 className="font-bold text-[16px] text-ink">Synchronized Clinical Team Alignment</h2>
-              <p className="text-xs text-ink-2">All three specialists review and calibrate each other's protocol changes</p>
+              <h2 className="font-bold text-[16px] text-ink">{t('plan.sync_title', 'Synchronized Clinical Team Alignment')}</h2>
+              <p className="text-xs text-ink-2">{t('plan.sync_subtitle', "All three specialists review and calibrate each other's protocol changes")}</p>
             </div>
           </div>
           <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-ok bg-ok-tint px-3 py-1 rounded-full w-fit">
-            <ShieldCheck size={14} aria-hidden /> Care Plan 100% Verified
+            <ShieldCheck size={14} aria-hidden /> {t('plan.verified', 'Care Plan 100% Verified')}
           </span>
         </div>
 
@@ -518,15 +520,15 @@ export default function Plan() {
           value={tab}
           onChange={setTab}
           tabs={[
-            { id: 'move', label: 'Move · Strength & Conditioning', icon: <Dumbbell size={15} aria-hidden /> },
-            { id: 'eat', label: 'Eat · Nutrition & Fueling', icon: <Utensils size={15} aria-hidden /> },
-            { id: 'recover', label: 'Recover · Physical Therapy', icon: <HeartPulse size={15} aria-hidden /> },
+            { id: 'move', label: t('plan.tab_move', 'Move · Strength & Conditioning'), icon: <Dumbbell size={15} aria-hidden /> },
+            { id: 'eat', label: t('plan.tab_eat', 'Eat · Nutrition & Fueling'), icon: <Utensils size={15} aria-hidden /> },
+            { id: 'recover', label: t('plan.tab_recover', 'Recover · Physical Therapy'), icon: <HeartPulse size={15} aria-hidden /> },
           ]}
         />
 
         {tab === 'move' && currentMoveWorkout && (
           <div className="text-sm font-semibold text-ink-2">
-            Completed: <span className="num font-bold text-ink">{completedCount}</span> / {totalExercises} exercises
+            {t('plan.completed_stat', 'Completed: {count} / {total} exercises').replace('{count}', String(completedCount)).replace('{total}', String(totalExercises))}
           </div>
         )}
       </div>
@@ -617,13 +619,13 @@ export default function Plan() {
                 <div className="size-12 rounded-2xl bg-sand text-ink grid place-items-center mx-auto mb-3">
                   <Sparkles size={22} aria-hidden />
                 </div>
-                <h3 className="h-display text-[20px] font-bold text-ink">Scheduled Rest & Regeneration Day</h3>
+                <h3 className="h-display text-[20px] font-bold text-ink">{t('plan.rest_day_title', 'Scheduled Rest & Regeneration Day')}</h3>
                 <p className="text-ink-2 text-sm max-w-md mx-auto mt-2">
-                  Recovery is where tissue remodeling and strength gains occur. Aim for 7,000 brisk steps, adequate hydration, and prioritize 8 hours of sleep.
+                  {t('plan.rest_day_desc', 'Recovery is where tissue remodeling and strength gains occur. Aim for 7,000 brisk steps, adequate hydration, and prioritize 8 hours of sleep.')}
                 </p>
                 <div className="mt-5">
                   <Btn variant="secondary" onClick={() => setTab('recover')}>
-                    View Active Rehab Protocols
+                    {t('plan.tab_recover', 'View Active Rehab Protocols')}
                   </Btn>
                 </div>
               </Card>
@@ -678,26 +680,26 @@ export default function Plan() {
         {/* RECOVER TAB */}
         {tab === 'recover' && (
           <div className="space-y-5">
-            <SafetyCallout title="Knee Rehabilitation & Joint Safety Protocol">
-              Dr. Mona Fathy has established a hard <strong>4/10 pain threshold</strong>. If patellar ache exceeds 4/10, immediately pause Quad Sets and heel slides, apply ice for 15 minutes, and submit a log via your daily progress tracker.
+            <SafetyCallout title={t('plan.rehab_callout_title', 'Knee Rehabilitation & Joint Safety Protocol')}>
+              {t('plan.rehab_callout_desc', 'Dr. Mona Fathy has established a hard 4/10 pain threshold. If patellar ache exceeds 4/10, immediately pause Quad Sets and heel slides, apply ice for 15 minutes, and submit a log via your daily progress tracker.')}
             </SafetyCallout>
 
             <Card className="p-5 sm:p-6 bg-white border-line">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-ok mb-1">
-                    <ShieldCheck size={14} aria-hidden /> Daily Physical Therapy Routine
+                    <ShieldCheck size={14} aria-hidden /> {t('plan.pt_routine', 'Daily Physical Therapy Routine')}
                   </div>
                   <h2 className="h-display text-[22px] sm:text-[24px] font-bold text-ink">
                     Patellar Tendon Loading & Mobility
                   </h2>
                   <p className="text-sm text-ink-2 mt-0.5">
-                    Perform daily on both limbs, ideally 30 minutes prior to training or in the late afternoon.
+                    {t('plan.pt_desc', 'Perform daily on both limbs, ideally 30 minutes prior to training or in the late afternoon.')}
                   </p>
                 </div>
 
                 <Btn to="/session" className="gap-2 shrink-0">
-                  <Play size={14} fill="currentColor" aria-hidden /> Start Guided Routine
+                  <Play size={14} fill="currentColor" aria-hidden /> {t('plan.enter_session', 'Start Guided Routine')}
                 </Btn>
               </div>
             </Card>

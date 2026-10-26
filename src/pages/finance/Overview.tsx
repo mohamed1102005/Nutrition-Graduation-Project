@@ -4,6 +4,7 @@ import { DollarSign, TrendingUp, CreditCard, Coins, ArrowRight, ReceiptText, Shi
 import { Card, PageHead, Skeleton, SVC, Gate, Btn, type DemoState } from '../../ui'
 import { api } from '../../api'
 import { LineChart } from '@/components/charts/LineChart'
+import { useLanguage } from '../../context/LanguageContext'
 
 const PREVIEW_OVERVIEW_DATA = {
   metrics: {
@@ -47,6 +48,7 @@ const PREVIEW_OVERVIEW_DATA = {
 }
 
 export default function FinanceOverview() {
+  const { t, lang } = useLanguage()
   const [state, setState] = useState<DemoState>('loading')
   const [data, setData] = useState<any>(PREVIEW_OVERVIEW_DATA)
 
@@ -110,13 +112,13 @@ export default function FinanceOverview() {
         <div>
           <div className="flex items-center gap-2 text-[13px] font-semibold text-ink-2 mb-1.5">
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sand text-ink text-[12px] font-bold">
-              Treasury & Settlement
+              {t('finance.treasury', 'Treasury & Settlement')}
             </span>
             <span>·</span>
-            <span>Recurring Revenue & Egyptian Gateway Inflow</span>
+            <span>{t('finance.treasury_sub', 'Recurring Revenue & Egyptian Gateway Inflow')}</span>
           </div>
           <h1 className="h-display text-[28px] sm:text-[32px] tracking-tight text-ink font-bold">
-            Financial Health & Revenue Inflow
+            {t('finance.title', 'Financial Health & Revenue Inflow')}
           </h1>
         </div>
         <div className="flex items-center gap-3">
@@ -125,13 +127,13 @@ export default function FinanceOverview() {
             to="/app/finance/transactions"
             className="min-h-11 px-4 text-[14px]"
           >
-            <ReceiptText size={16} aria-hidden /> Full Ledger
+            <ReceiptText size={16} aria-hidden /> {t('finance.full_ledger', 'Full Ledger')}
           </Btn>
           <Btn
             to="/app/finance/payouts"
             className="min-h-11 px-5 text-[14px]"
           >
-            <Coins size={16} aria-hidden /> Specialist Disbursements
+            <Coins size={16} aria-hidden /> {t('finance.disbursements', 'Specialist Disbursements')}
           </Btn>
         </div>
       </div>
@@ -149,60 +151,60 @@ export default function FinanceOverview() {
             <Skeleton className="h-72" />
           </div>
         }
-        empty={<Card className="p-8 text-center text-ink-2">No financial data recorded yet.</Card>}
+        empty={<Card className="p-8 text-center text-ink-2">{lang === 'ar' ? 'لا توجد بيانات مالية مسجلة بعد.' : 'No financial data recorded yet.'}</Card>}
       >
         {/* KPI Tiles */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
           <div className="bg-white border border-line rounded-2xl p-5 sm:p-6">
             <div className="flex items-center justify-between">
-              <span className="label uppercase text-ink-2">Gross Revenue</span>
+              <span className="label uppercase text-ink-2">{t('finance.gross_revenue', 'Gross Revenue')}</span>
               <DollarSign size={18} className="text-ink-2" />
             </div>
             <p className="num text-[36px] sm:text-[44px] leading-none mt-3 text-ink">
-              {(m?.grossRevenue ?? 0).toLocaleString('en-US')} <span className="text-[16px] font-sans text-ink-2 font-normal">EGP</span>
+              {(m?.grossRevenue ?? 0).toLocaleString('en-US')} <span className="text-[16px] font-sans text-ink-2 font-normal">{lang === 'ar' ? 'ج.م' : 'EGP'}</span>
             </p>
-            <p className="text-[13px] text-ink-2 font-medium mt-3">All-time inflow across platform</p>
+            <p className="text-[13px] text-ink-2 font-medium mt-3">{lang === 'ar' ? 'إجمالي التدفقات التاريخية للمنصة' : 'All-time inflow across platform'}</p>
           </div>
 
           <div className="bg-white border border-line rounded-2xl p-5 sm:p-6">
             <div className="flex items-center justify-between">
-              <span className="label uppercase text-ink-2">MRR (Subscriptions)</span>
+              <span className="label uppercase text-ink-2">{t('finance.mrr_label', 'MRR (Subscriptions)')}</span>
               <div className="size-8 rounded-lg bg-eat-tint grid place-items-center">
                 <TrendingUp size={16} className="text-eat" />
               </div>
             </div>
             <p className="num text-[36px] sm:text-[44px] leading-none mt-3 text-ink">
-              {(m?.mrr ?? 0).toLocaleString('en-US')} <span className="text-[16px] font-sans text-ink-2 font-normal">EGP</span>
+              {(m?.mrr ?? 0).toLocaleString('en-US')} <span className="text-[16px] font-sans text-ink-2 font-normal">{lang === 'ar' ? 'ج.م' : 'EGP'}</span>
             </p>
-            <p className="text-[13px] text-ink-2 font-medium mt-3">{m?.activeSubscribers ?? 0} active paying subscribers</p>
+            <p className="text-[13px] text-ink-2 font-medium mt-3">{m?.activeSubscribers ?? 0} {lang === 'ar' ? 'مشترك نشط ومسدد' : 'active paying subscribers'}</p>
           </div>
 
           <div className="bg-white border border-line rounded-2xl p-5 sm:p-6">
             <div className="flex items-center justify-between">
-              <span className="label uppercase text-ink-2">Specialist Payouts</span>
+              <span className="label uppercase text-ink-2">{t('finance.payouts_label', 'Specialist Payouts')}</span>
               <div className="size-8 rounded-lg bg-recover-tint grid place-items-center">
                 <Coins size={16} className="text-recover" />
               </div>
             </div>
             <p className="num text-[36px] sm:text-[44px] leading-none mt-3 text-ink">
-              {(m?.specialistDisbursed ?? 0).toLocaleString('en-US')} <span className="text-[16px] font-sans text-ink-2 font-normal">EGP</span>
+              {(m?.specialistDisbursed ?? 0).toLocaleString('en-US')} <span className="text-[16px] font-sans text-ink-2 font-normal">{lang === 'ar' ? 'ج.م' : 'EGP'}</span>
             </p>
             <p className="text-[13px] text-ink-2 font-medium mt-3">
-              {(m?.specialistPending ?? 0) > 0 ? `${(m?.specialistPending ?? 0).toLocaleString('en-US')} EGP pending approval` : 'All payouts settled'}
+              {(m?.specialistPending ?? 0) > 0 ? `${(m?.specialistPending ?? 0).toLocaleString('en-US')} ${lang === 'ar' ? 'ج.م بانتظار الاعتماد' : 'EGP pending approval'}` : (lang === 'ar' ? 'تمت تسوية جميع المدفوعات' : 'All payouts settled')}
             </p>
           </div>
 
           <div className="bg-white border border-line rounded-2xl p-5 sm:p-6">
             <div className="flex items-center justify-between">
-              <span className="label uppercase text-ink-2">Net Platform Profit</span>
+              <span className="label uppercase text-ink-2">{t('finance.net_profit', 'Net Platform Profit')}</span>
               <div className="size-8 rounded-lg bg-move-tint grid place-items-center">
                 <Wallet size={16} className="text-move" />
               </div>
             </div>
             <p className="num text-[36px] sm:text-[44px] leading-none mt-3 text-ink">
-              {(m?.netPlatformProfit ?? 0).toLocaleString('en-US')} <span className="text-[16px] font-sans text-ink-2 font-normal">EGP</span>
+              {(m?.netPlatformProfit ?? 0).toLocaleString('en-US')} <span className="text-[16px] font-sans text-ink-2 font-normal">{lang === 'ar' ? 'ج.م' : 'EGP'}</span>
             </p>
-            <p className="text-[13px] text-ink-2 font-medium mt-3">Retained earnings after payouts</p>
+            <p className="text-[13px] text-ink-2 font-medium mt-3">{lang === 'ar' ? 'الأرباح المحتجزة بعد خصم المستحقات' : 'Retained earnings after payouts'}</p>
           </div>
         </div>
 
@@ -211,11 +213,11 @@ export default function FinanceOverview() {
           <Card className="p-6 mb-6">
             <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
               <div>
-                <p className="font-bold text-[18px]">Weekly Revenue Inflow</p>
-                <p className="text-[14px] text-ink-2">Total platform earnings over the last 8 weeks</p>
+                <p className="font-bold text-[18px]">{t('finance.weekly_inflow', 'Weekly Revenue Inflow')}</p>
+                <p className="text-[14px] text-ink-2">{t('finance.weekly_inflow_sub', 'Total platform earnings over the last 8 weeks')}</p>
               </div>
               <span className="label bg-paper border border-line px-3 py-1.5 rounded-full font-bold">
-                ARPU: {(m?.arpu ?? 0).toLocaleString('en-US')} EGP
+                ARPU: {(m?.arpu ?? 0).toLocaleString('en-US')} {lang === 'ar' ? 'ج.م' : 'EGP'}
               </span>
             </div>
             <LineChart

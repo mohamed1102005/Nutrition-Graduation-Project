@@ -36,10 +36,12 @@ const basePain = [6, 6, 5, 5, 5, 4, 4, 4, 3, 3, 3, 3]
 import { LineChart } from '@/components/charts/LineChart'
 import { BarChart } from '@/components/charts/BarChart'
 import { api } from '../../api'
+import { useLanguage } from '../../context/LanguageContext'
 
 export { LineChart, BarChart }
 
 export default function Progress() {
+  const { t, isRtl } = useLanguage()
   const [range, setRange] = useState('8 weeks')
   const [state, setState] = useState<DemoState>('loaded')
   const [open, setOpen] = useState(false)
@@ -138,21 +140,21 @@ export default function Progress() {
         <div>
           <div className="flex items-center gap-2 mb-1.5">
             <span className="text-xs uppercase font-bold px-2.5 py-0.5 rounded-full bg-ink text-white tracking-wider">
-              Health Analytics
+              {t('nav.progress', 'Progress')}
             </span>
             <span className="text-xs text-ink-2 font-medium">Synchronized Daily Log</span>
           </div>
           <h1 className="h-display text-[26px] sm:text-[32px] text-ink leading-tight tracking-tight">
-            Progress & Recovery Trends
+            {t('progress.title', 'Progress & Recovery Trends')}
           </h1>
           <p className="text-sm text-ink-2 max-w-2xl mt-1">
-            Tracking the relationship between body weight, training volume adherence, and patellar joint pain reduction.
+            {t('progress.subtitle', 'Tracking the relationship between body weight, training volume adherence, and patellar joint pain reduction.')}
           </p>
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
           <Btn onClick={() => setOpen(true)} className="gap-2">
-            <Plus size={16} aria-hidden /> Log Daily Vitals
+            <Plus size={16} aria-hidden /> {t('progress.log_vitals', 'Log Daily Vitals')}
           </Btn>
         </div>
       </div>
@@ -169,7 +171,7 @@ export default function Progress() {
         {/* Weight Stat */}
         <Card className="p-5 bg-white border border-line">
           <div className="flex items-center justify-between text-xs font-semibold text-ink-2 uppercase tracking-wider">
-            <span className="flex items-center gap-1.5"><Scale size={14} /> Current Weight</span>
+            <span className="flex items-center gap-1.5"><Scale size={14} /> {t('progress.current_weight', 'Current Weight')}</span>
             <span className="text-ok font-bold">Trend Down</span>
           </div>
           <div className="flex items-baseline gap-2 mt-2">
@@ -184,7 +186,7 @@ export default function Progress() {
         {/* Knee Pain Stat */}
         <Card className="p-5 bg-white border border-line">
           <div className="flex items-center justify-between text-xs font-semibold text-ink-2 uppercase tracking-wider">
-            <span className="flex items-center gap-1.5"><HeartPulse size={14} /> Joint Symptom Score</span>
+            <span className="flex items-center gap-1.5"><HeartPulse size={14} /> {t('progress.joint_symptoms', 'Joint Symptom Score')}</span>
             <span className="text-ok font-bold">Protected</span>
           </div>
           <div className="flex items-baseline gap-2 mt-2">
@@ -199,7 +201,7 @@ export default function Progress() {
         {/* Adherence Stat */}
         <Card className="p-5 bg-white border border-line">
           <div className="flex items-center justify-between text-xs font-semibold text-ink-2 uppercase tracking-wider">
-            <span className="flex items-center gap-1.5"><Dumbbell size={14} /> Target Consistency</span>
+            <span className="flex items-center gap-1.5"><Dumbbell size={14} /> {t('progress.consistency', 'Target Consistency')}</span>
             <span className="text-ink font-bold num">{Math.round((targetWorkoutsMet / wk.length) * 100)}%</span>
           </div>
           <div className="flex items-baseline gap-2 mt-2">

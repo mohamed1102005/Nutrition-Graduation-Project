@@ -20,6 +20,7 @@ import {
 import { Avatar, Btn, Card, Dialog, PainChip, Skeleton, SVC } from '../../ui'
 import type { Svc } from '../../data'
 import { api, getStoredUser } from '../../api'
+import { useLanguage } from '../../context/LanguageContext'
 
 const fallbackPlan: { id: string; svc: Svc; time: string; title: string; meta: string; action: string }[] = [
   { id: 'a', svc: 'eat', time: '2:00 PM', title: 'Lunch: Grilled chicken with rice', meta: '620 kcal · 42 g protein', action: 'Swap meal' },
@@ -44,6 +45,7 @@ function getActionLabel(svc: Svc) {
 }
 
 export default function ClientToday() {
+  const { t, isRtl } = useLanguage()
   const nav = useNavigate()
   const [loading, setLoading] = useState(true)
   const [userName, setUserName] = useState(() => getStoredUser()?.name || '')
@@ -164,13 +166,13 @@ export default function ClientToday() {
         <div>
           <div className="flex items-center gap-2 text-[13px] font-semibold text-ink-2 mb-1.5">
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sand text-ink text-[12px] font-bold">
-              Week {currentWeek} of {totalWeeks}
+              {t('plan.week_of', 'Week {cur} of {total}').replace('{cur}', String(currentWeek)).replace('{total}', String(totalWeeks))}
             </span>
             <span>·</span>
-            <span>Knee Rehabilitation & Hypertrophy</span>
+            <span>{t('today.active_protocol', 'Active Care Protocol')}</span>
           </div>
           <h2 className="h-display text-[28px] sm:text-[32px] tracking-tight text-ink">
-            Today · Tuesday, 14 October
+            {t('today.badge', 'Today')} · {t('today.title', "Today's Health & Training Dashboard")}
           </h2>
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
@@ -179,13 +181,13 @@ export default function ClientToday() {
             onClick={() => { setDraft(pain); setOpen(true) }}
             className="min-h-11 px-4 text-[14px]"
           >
-            <Activity size={17} className="text-recover" aria-hidden /> Log check-in
+            <Activity size={17} className="text-recover" aria-hidden /> {t('progress.log_vitals', 'Log check-in')}
           </Btn>
           <Btn
             onClick={() => nav('/session')}
             className="min-h-11 px-5 text-[14px]"
           >
-            <Play size={16} fill="currentColor" aria-hidden /> Start today's workout
+            <Play size={16} fill="currentColor" aria-hidden /> {t('today.start_session', "Start today's workout")}
           </Btn>
         </div>
       </div>
