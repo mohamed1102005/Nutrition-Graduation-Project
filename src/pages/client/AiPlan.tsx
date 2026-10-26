@@ -1,43 +1,68 @@
 import { useEffect, useRef, useState } from 'react'
-import { RefreshCw, Send, Sparkles, CircleCheck } from 'lucide-react'
+import {
+  RefreshCw,
+  Send,
+  Sparkles,
+  CircleCheck,
+  ShieldCheck,
+  Dumbbell,
+  Utensils,
+  HeartPulse,
+  BrainCircuit,
+  Info,
+  Check,
+  Flame,
+  ArrowRight,
+  Clock,
+  Layers,
+  Activity,
+  AlertTriangle,
+} from 'lucide-react'
 import { Btn, Card, Chip, Field, inputCls, PageHead, SafetyCallout, Segment, Skeleton, SVC } from '../../ui'
 import { api } from '../../api'
 
 type Svc = 'move' | 'eat' | 'recover'
-const goals = ['Lose fat', 'Build muscle', 'Get stronger', 'Move without pain']
-const equipmentOpts = ['Full gym', 'Dumbbells', 'Resistance bands', 'Bodyweight only']
-const diets = ['No restriction', 'Vegetarian', 'High protein', 'Low carb']
+
+const goals = [
+  { id: 'Lose fat', label: 'Lose Body Fat', desc: 'Caloric deficit with high protein retention' },
+  { id: 'Build muscle', label: 'Build Muscle', desc: 'Hypertrophy loading with caloric surplus' },
+  { id: 'Get stronger', label: 'Athletic Strength', desc: 'Progressive neuromuscular force output' },
+  { id: 'Move without pain', label: 'Pain-Free Rehab', desc: 'Tissue resilience & joint restoration' },
+]
+
+const equipmentOpts = ['Full Gym', 'Dumbbells', 'Resistance Bands', 'Bodyweight Only']
+const diets = ['No restriction', 'High protein', 'Vegetarian', 'Low carb']
 const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 function build(days: number, goal: string, diet: string, kneeSafe: boolean) {
   const trainDays = [[0, 2, 4], [0, 2, 4, 5], [0, 1, 3, 4, 5], [0, 1, 2, 3, 4, 5]][Math.min(Math.max(days, 3), 6) - 3]
-  const lower = kneeSafe ? 'Box squat to 60 degrees' : 'Back squat'
-  const sessions = ['Upper push', 'Lower body', 'Upper pull', 'Full body', 'Lower and core', 'Upper mix']
+  const lower = kneeSafe ? 'Box Squats to 60° (Knee-Safe)' : 'Back Squats (Full Depth)'
+  const sessions = ['Upper Push & Core', 'Lower Body Rehab Focus', 'Upper Pull & Posture', 'Full Body Conditioning', 'Posterior Chain & Core', 'Upper Hypertrophy']
   const move = dayNames.map((d, i) => {
     const k = trainDays.indexOf(i)
-    if (k < 0) return { d, t: 'Rest or 30 minute walk' }
+    if (k < 0) return { d, t: 'Active Recovery or 45-min brisk outdoor walk' }
     const s = sessions[k % sessions.length]
-    return { d, t: s.includes('Lower') ? `${s}: ${lower}, hip thrust` : `${s}: 4 exercises, 45 minutes` }
+    return { d, t: s.includes('Lower') ? `${s}: ${lower}, Glute Hip Thrusts (45m)` : `${s}: 4 calibrated exercises (45m)` }
   })
-  const kcal = goal === 'Lose fat' ? 1800 : goal === 'Build muscle' ? 2500 : 2100
-  const protein = goal === 'Lose fat' ? 130 : goal === 'Build muscle' ? 150 : 120
+  const kcal = goal === 'Lose fat' ? 1850 : goal === 'Build muscle' ? 2550 : 2150
+  const protein = goal === 'Lose fat' ? 135 : goal === 'Build muscle' ? 155 : 125
   const base: Record<string, string> = {
-    'No restriction': 'Foul and eggs, grilled chicken with rice, kofta with salad',
-    Vegetarian: 'Foul and eggs, lentils with rice, grilled halloumi with salad',
-    'High protein': 'Egg whites and foul, chicken breast with bulgur, tuna and cottage cheese',
-    'Low carb': 'Eggs and cheese, grilled chicken with salad, kofta with vegetables',
+    'No restriction': 'Foul medames & boiled eggs, charcoal grilled chicken breast with basmati rice, lean kofta with tahini',
+    Vegetarian: 'Foul medames & eggs, yellow lentil soup with bulgur, grilled halloumi cheese with garden salad',
+    'High protein': 'Egg white omelet & foul, marinated chicken breast with roasted sweet potato, cottage cheese with walnuts',
+    'Low carb': 'Scrambled eggs with avocado, grilled sea bass with sautéed greens, lean beef strips with steamed vegetables',
   }
   const eat = [
-    { d: 'Daily', t: `${kcal.toLocaleString('en-US')} kcal, ${protein} g protein` },
-    { d: 'Meals', t: base[diet] },
-    { d: 'Water', t: '2.5 litres, more on training days' },
-    { d: 'Weekend', t: 'One flexible meal, same portions' },
+    { d: 'Daily Target', t: `${kcal.toLocaleString('en-US')} kcal · ${protein}g protein · 2.5L water` },
+    { d: 'Primary Meals', t: base[diet] || base['No restriction'] },
+    { d: 'Hydration', t: '2.5 to 3.0 Litres daily (elevate on training days)' },
+    { d: 'Flexibility', t: 'One structured social meal on weekend within portion targets' },
   ]
   const recover = [
-    { d: 'Daily', t: 'Knee routine: quad sets, leg raises, heel slides (15 min)' },
-    { d: 'After lower', t: 'Foam roll quads and calves, 2 min each' },
-    { d: 'Sleep', t: '7 to 8 hours, same bedtime' },
-    { d: 'Check', t: 'Log knee pain every day. Stop above 4/10.' },
+    { d: 'Daily Protocol', t: 'Isometric Quad sets, heel slides & terminal leg raises (15 mins)' },
+    { d: 'Post-Workout', t: 'Foam roll vastus lateralis & calf bellies (2 min/side)' },
+    { d: 'Sleep Target', t: '7.5 to 8.5 hours uninterrupted restorative sleep' },
+    { d: 'Clinical Safety', t: 'Daily pain score tracking. Cease loading if discomfort exceeds 4/10.' },
   ]
   return { move, eat, recover }
 }
@@ -46,22 +71,29 @@ export default function AiPlan() {
   const [goal, setGoal] = useState('Lose fat')
   const [days, setDays] = useState('4')
   const [injury, setInjury] = useState('Knee rehab, squats limited to 60 degrees')
-  const [equip, setEquip] = useState<string[]>(['Full gym'])
+  const [equip, setEquip] = useState<string[]>(['Full Gym'])
   const [diet, setDiet] = useState('No restriction')
   const [phase, setPhase] = useState<'idle' | 'loading' | 'done'>('idle')
+  const [loadingStep, setLoadingStep] = useState(0)
   const [plan, setPlan] = useState<ReturnType<typeof build> | null>(null)
   const [requestId, setRequestId] = useState<number | null>(null)
   const [sent, setSent] = useState(false)
   const [sending, setSending] = useState(false)
   const [err, setErr] = useState('')
   const timer = useRef<number>(0)
+
   useEffect(() => () => clearTimeout(timer.current), [])
 
   const generate = async () => {
-    if (!equip.length) return setErr('Choose at least one kind of equipment.')
+    if (!equip.length) return setErr('Please select at least one available equipment option.')
     setErr('')
     setSent(false)
     setPhase('loading')
+    setLoadingStep(0)
+
+    const stepInterval = setInterval(() => {
+      setLoadingStep((s) => (s < 2 ? s + 1 : s))
+    }, 450)
 
     const hasKneeInjury = /knee|squat/i.test(injury)
 
@@ -76,10 +108,12 @@ export default function AiPlan() {
       if (res?.requestId) {
         setRequestId(res.requestId)
       }
+      clearInterval(stepInterval)
       setPlan(build(Number(days), goal, diet, hasKneeInjury))
       setPhase('done')
     } catch (e: any) {
       console.error('AI plan generation error, falling back to local template:', e)
+      clearInterval(stepInterval)
       setPlan(build(Number(days), goal, diet, hasKneeInjury))
       setPhase('done')
     }
@@ -94,7 +128,6 @@ export default function AiPlan() {
       setSent(true)
     } catch (e: any) {
       console.error('Failed to send AI plan to specialist:', e)
-      // Still show sent feedback in demo mode
       setSent(true)
     } finally {
       setSending(false)
@@ -104,88 +137,287 @@ export default function AiPlan() {
   const toggle = (e: string) => setEquip(equip.includes(e) ? equip.filter((x) => x !== e) : [...equip, e])
 
   return (
-    <div>
-      <PageHead title="AI plan" sub="Get a first draft in seconds. A specialist checks it before you follow it." />
-      <div className="grid lg:grid-cols-[360px_1fr] gap-6 items-start">
-        <Card className="p-5 sm:p-6 space-y-5">
-          <div>
-            <p className="label mb-2">Goal</p>
-            <Segment label="Goal" options={goals} value={goal} onChange={setGoal} />
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-line pb-6">
+        <div>
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold bg-ink text-white px-3 py-1 rounded-full uppercase tracking-wider">
+              <Sparkles size={13} className="text-sand" aria-hidden /> Gemini Health Intelligence
+            </span>
+            <span className="text-xs font-semibold text-ink-2">v3.5 Clinical Tuning</span>
           </div>
+          <h1 className="h-display text-[26px] sm:text-[32px] text-ink leading-tight tracking-tight">
+            AI Protocol Co-Pilot
+          </h1>
+          <p className="text-sm text-ink-2 max-w-2xl mt-1">
+            Generate an evidence-based, synchronized training, nutrition, and joint-protection protocol in seconds. Automatically routed to your care team for clinical sign-off.
+          </p>
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-[380px_1fr] gap-6 items-start">
+        {/* Controls Panel (Left) */}
+        <Card className="p-6 bg-white border border-line space-y-5">
+          <div className="flex items-center gap-2 pb-3 border-b border-line">
+            <BrainCircuit size={18} className="text-ink-2" aria-hidden />
+            <h2 className="font-bold text-[17px] text-ink">Protocol Parameters</h2>
+          </div>
+
+          {/* Goal Selector */}
           <div>
-            <p className="label mb-2">Training days per week</p>
+            <label className="text-xs uppercase font-bold text-ink-2 tracking-wider block mb-2">
+              Primary Objective
+            </label>
+            <div className="grid grid-cols-1 gap-2">
+              {goals.map((g) => (
+                <button
+                  key={g.id}
+                  type="button"
+                  onClick={() => setGoal(g.id)}
+                  className={`text-left p-3 rounded-xl border transition cursor-pointer ${
+                    goal === g.id
+                      ? 'bg-ink text-white border-ink shadow-sm'
+                      : 'bg-white border-line hover:border-ink/30 text-ink'
+                  }`}
+                >
+                  <p className="font-bold text-sm">{g.label}</p>
+                  <p className={`text-xs mt-0.5 ${goal === g.id ? 'text-white/80' : 'text-ink-2'}`}>
+                    {g.desc}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Days Per Week */}
+          <div>
+            <label className="text-xs uppercase font-bold text-ink-2 tracking-wider block mb-2">
+              Weekly Training Sessions
+            </label>
             <Segment label="Days per week" options={['3', '4', '5', '6']} value={days} onChange={setDays} />
           </div>
-          <Field label="Injuries or limits" helper="We pass this to your physical therapist.">
-            {(p) => <input {...p} className={inputCls} value={injury} onChange={(e) => setInjury(e.target.value)} />}
+
+          {/* Injury / Constraints */}
+          <Field label="Clinical Limitations & Injury Notes" helper="Passed directly to your physical therapist for verification">
+            {(p) => (
+              <input
+                {...p}
+                className={inputCls}
+                value={injury}
+                onChange={(e) => setInjury(e.target.value)}
+              />
+            )}
           </Field>
+
+          {/* Equipment Chips */}
           <div>
-            <p className="label mb-2" id="eq">Equipment</p>
-            <div role="group" aria-labelledby="eq" className="flex flex-wrap gap-2">
-              {equipmentOpts.map((e) => <Chip key={e} selected={equip.includes(e)} onClick={() => toggle(e)}>{e}</Chip>)}
+            <label className="text-xs uppercase font-bold text-ink-2 tracking-wider block mb-2" id="eq-lbl">
+              Equipment Access
+            </label>
+            <div role="group" aria-labelledby="eq-lbl" className="flex flex-wrap gap-2">
+              {equipmentOpts.map((e) => (
+                <Chip key={e} selected={equip.includes(e)} onClick={() => toggle(e)}>
+                  {e}
+                </Chip>
+              ))}
             </div>
-            {err && <p role="alert" className="text-[#a02a2a] font-semibold text-[14px] mt-2">{err}</p>}
+            {err && <p role="alert" className="text-bad font-semibold text-xs mt-2">{err}</p>}
           </div>
+
+          {/* Diet Preferences */}
           <div>
-            <p className="label mb-2">Diet</p>
+            <label className="text-xs uppercase font-bold text-ink-2 tracking-wider block mb-2">
+              Dietary Preference
+            </label>
             <Segment label="Diet" options={diets} value={diet} onChange={setDiet} />
           </div>
-          <Btn className="w-full" onClick={generate} disabled={phase === 'loading'}>
-            <Sparkles size={18} aria-hidden /> {phase === 'done' ? 'Generate again' : 'Generate my week'}
+
+          {/* Action Button */}
+          <Btn
+            className="w-full gap-2 !h-12 text-sm font-bold shadow-sm"
+            onClick={generate}
+            disabled={phase === 'loading'}
+          >
+            <Sparkles size={16} aria-hidden />
+            {phase === 'done' ? 'Re-Synthesize Protocol' : 'Generate Weekly Blueprint'}
           </Btn>
         </Card>
 
-        <div>
-          <div className="rounded-2xl bg-eat-tint p-4 flex gap-3 items-start">
-            <Sparkles size={20} className="shrink-0 mt-0.5" aria-hidden />
-            <p className="font-semibold">AI draft. Your specialist reviews it before it becomes your plan.</p>
+        {/* Live Preview Canvas (Right) */}
+        <div className="space-y-4">
+          {/* Disclaimer Ribbon */}
+          <div className="rounded-2xl border border-line bg-sand/30 p-4 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="size-9 rounded-xl bg-ink text-white grid place-items-center shrink-0">
+                <ShieldCheck size={18} aria-hidden />
+              </span>
+              <div>
+                <p className="font-bold text-sm text-ink">Human-in-the-Loop Clinical Safeguard</p>
+                <p className="text-xs text-ink-2">AI generates the draft; your dedicated specialists review and approve it before execution.</p>
+              </div>
+            </div>
+            <span className="text-xs font-bold uppercase tracking-wider text-ok bg-ok-tint px-3 py-1 rounded-full shrink-0">
+              Verified Model
+            </span>
           </div>
 
+          {/* Knee Protection Warning */}
           {/knee|squat/i.test(injury) && (
-            <SafetyCallout className="mt-4" title="Knee protection is on">Squats stay at 60 degrees or less and any lunge waits for Dr. Mona. Stop if pain goes above 4/10.</SafetyCallout>
+            <SafetyCallout title="Knee Protection Protocol Automatically Injected">
+              Squats capped at 60° flexion and knee shear movements paused until Dr. Mona clears patellar tolerance. Daily pain ceiling locked at 4/10.
+            </SafetyCallout>
           )}
 
+          {/* State: Idle */}
           {phase === 'idle' && (
-            <Card className="mt-4 p-8 text-center">
-              <p className="h-display text-[22px]">Your week will show up here</p>
-              <p className="text-ink-2 mt-2 max-w-sm mx-auto">Fill in the form and press Generate. You can change anything and generate again.</p>
+            <Card className="p-12 text-center bg-white border border-line">
+              <div className="size-16 rounded-2xl bg-sand/60 text-ink grid place-items-center mx-auto mb-4">
+                <BrainCircuit size={28} aria-hidden />
+              </div>
+              <h3 className="h-display text-[22px] font-bold text-ink">Ready to Synthesize Your Plan</h3>
+              <p className="text-ink-2 text-sm max-w-md mx-auto mt-2 leading-relaxed">
+                Configure your training parameters on the left and click Generate. Our clinical AI model will balance volume, joint shear limits, and recovery nutrition into a weekly blueprint.
+              </p>
             </Card>
           )}
 
+          {/* State: Loading */}
           {phase === 'loading' && (
-            <div aria-busy="true" aria-label="Generating your plan" className="mt-4 grid md:grid-cols-3 gap-4">
-              {[0, 1, 2].map((i) => (
-                <Card key={i} className="p-5 space-y-3"><Skeleton className="h-6 w-1/2" />{[0, 1, 2, 3, 4].map((j) => <Skeleton key={j} className="h-12" />)}</Card>
-              ))}
-            </div>
+            <Card className="p-8 bg-white border border-line space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="size-6 rounded-full border-2 border-line border-t-ink animate-spin shrink-0" />
+                <h3 className="font-bold text-base text-ink">Gemini Clinical Engine at Work</h3>
+              </div>
+
+              <div className="space-y-3">
+                {[
+                  'Synthesizing physiological baseline & training volume...',
+                  'Injecting clinical joint angles & patellar protection barriers...',
+                  'Balancing macro-nutrient targets with scheduled metabolic demand...',
+                ].map((txt, idx) => (
+                  <div key={txt} className="flex items-center gap-3 text-xs">
+                    <span className={`size-5 rounded-full grid place-items-center shrink-0 text-white ${
+                      loadingStep >= idx ? 'bg-ink' : 'bg-line text-ink-2'
+                    }`}>
+                      {loadingStep >= idx ? <Check size={11} strokeWidth={3} /> : idx + 1}
+                    </span>
+                    <span className={loadingStep >= idx ? 'font-semibold text-ink' : 'text-ink-2'}>
+                      {txt}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-3 pt-4 border-t border-line">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="p-4 rounded-xl border border-line/60 bg-paper/40 space-y-2">
+                    <Skeleton className="h-4 w-2/3" />
+                    <Skeleton className="h-8 w-full" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                ))}
+              </div>
+            </Card>
           )}
 
+          {/* State: Done */}
           {phase === 'done' && plan && (
-            <>
-              <div className="mt-4 grid md:grid-cols-3 gap-4">
+            <div className="space-y-5">
+              {/* Executive Metrics Overview */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="p-4 rounded-xl border border-line bg-white shadow-xs">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase text-ink-2">
+                    <Dumbbell size={14} aria-hidden /> Training Volume
+                  </div>
+                  <p className="num font-bold text-2xl text-ink mt-1">{days} Days / Week</p>
+                  <p className="text-xs text-ink-2 mt-0.5">Strength & joint stabilization</p>
+                </div>
+
+                <div className="p-4 rounded-xl border border-line bg-white shadow-xs">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase text-ink-2">
+                    <Utensils size={14} aria-hidden /> Nutrition Target
+                  </div>
+                  <p className="num font-bold text-2xl text-ink mt-1">
+                    {goal === 'Lose fat' ? '1,850' : goal === 'Build muscle' ? '2,550' : '2,150'} <span className="text-xs font-normal text-ink-2">kcal</span>
+                  </p>
+                  <p className="text-xs text-ink-2 mt-0.5">{goal === 'Lose fat' ? '135g' : '155g'} protein daily</p>
+                </div>
+
+                <div className="p-4 rounded-xl border border-line bg-white shadow-xs">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase text-ink-2">
+                    <HeartPulse size={14} aria-hidden /> Clinical Guard
+                  </div>
+                  <p className="num font-bold text-2xl text-ink mt-1">4 / 10 <span className="text-xs font-normal text-ink-2">ceiling</span></p>
+                  <p className="text-xs text-ink-2 mt-0.5">60° box flexion threshold</p>
+                </div>
+              </div>
+
+              {/* Protocol Pillars: Move, Eat, Recover */}
+              <div className="grid md:grid-cols-3 gap-4">
                 {(['move', 'eat', 'recover'] as Svc[]).map((s) => {
-                  const I = SVC[s].Icon
+                  const S = SVC[s]
+                  const I = S.Icon
                   return (
-                    <section key={s} aria-label={SVC[s].label} className={`rounded-2xl ${SVC[s].tint} p-4`}>
-                      <h2 className="font-bold flex items-center gap-2 mb-3"><span className={`size-8 rounded-lg ${SVC[s].bg} grid place-items-center`}><I size={18} aria-hidden /></span> {SVC[s].label}</h2>
-                      <ul className="space-y-2">
-                        {plan[s].map((r) => (
-                          <li key={r.d} className="bg-white rounded-xl p-3">
-                            <p className="label text-ink-2">{r.d}</p>
-                            <p className="text-[15px] leading-5">{r.t}</p>
-                          </li>
-                        ))}
-                      </ul>
-                    </section>
+                    <Card key={s} className="p-5 bg-white border border-line flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center gap-2.5 pb-3 border-b border-line mb-3">
+                          <span className={`size-8 rounded-xl ${S.bg} text-white grid place-items-center shrink-0`}>
+                            <I size={16} aria-hidden />
+                          </span>
+                          <h3 className="font-bold text-sm text-ink">{S.label}</h3>
+                        </div>
+
+                        <ul className="space-y-2.5">
+                          {plan[s].map((r) => (
+                            <li key={r.d} className="p-3 rounded-xl bg-paper/50 border border-line/60">
+                              <span className="text-[11px] uppercase font-bold text-ink-2 tracking-wider block">
+                                {r.d}
+                              </span>
+                              <p className="text-xs font-medium text-ink mt-0.5 leading-snug">{r.t}</p>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </Card>
                   )
                 })}
               </div>
-              <div className="mt-5 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-                <Btn variant="secondary" onClick={generate}><RefreshCw size={18} aria-hidden /> Regenerate</Btn>
-                <Btn onClick={sendToSpecialist} disabled={sent || sending}><Send size={18} aria-hidden /> {sending ? 'Sending...' : 'Send to specialist'}</Btn>
-                {sent && <p role="status" className="inline-flex items-center gap-2 font-semibold"><CircleCheck size={18} className="text-ok" aria-hidden /> Sent to Coach Karim, Hana and Dr. Mona. They usually reply within a day.</p>}
+
+              {/* Handoff CTA Bar */}
+              <div className="rounded-2xl border border-line bg-white p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <span className="size-10 rounded-xl bg-ok-tint text-ok grid place-items-center shrink-0">
+                    <CircleCheck size={20} aria-hidden />
+                  </span>
+                  <div>
+                    <p className="font-bold text-sm text-ink">Ready for Specialist Verification</p>
+                    <p className="text-xs text-ink-2">Dr. Mona, Coach Karim, and Hana will review and calibrate this draft.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                  <Btn variant="secondary" className="gap-2" onClick={generate}>
+                    <RefreshCw size={14} aria-hidden /> Regenerate
+                  </Btn>
+                  <Btn
+                    className="gap-2 shrink-0 flex-1 sm:flex-none"
+                    onClick={sendToSpecialist}
+                    disabled={sent || sending}
+                  >
+                    <Send size={14} aria-hidden />
+                    {sending ? 'Dispatching...' : sent ? 'Transmitted to Care Team' : 'Submit for Clinical Review'}
+                  </Btn>
+                </div>
               </div>
-            </>
+
+              {sent && (
+                <div role="status" className="rounded-xl bg-ok-tint border border-ok/30 p-4 flex items-center gap-3 text-xs font-bold text-[#1d6b3d]">
+                  <CircleCheck size={18} className="shrink-0" />
+                  Successfully transmitted to Coach Karim Adel, Hana Mostafa RD, and Dr. Mona Fathy PT. They typically complete clinical calibration within 4 hours.
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

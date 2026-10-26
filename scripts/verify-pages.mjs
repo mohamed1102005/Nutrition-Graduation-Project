@@ -30,6 +30,7 @@ const ROUTES_TO_TEST = [
   { path: '/app/specialists', name: 'client-specialists', role: 'Client' },
   { path: '/app/my-specialists', name: 'client-my-specialists', role: 'Client' },
   { path: '/app/bookings', name: 'client-bookings', role: 'Client' },
+  { path: '/app/bookings/checkout', name: 'client-checkout', role: 'Client' },
   { path: '/app/plan', name: 'client-plan', role: 'Client' },
   { path: '/app/progress', name: 'client-progress', role: 'Client' },
   { path: '/app/ai-plan', name: 'client-ai-plan', role: 'Client' },
@@ -126,7 +127,7 @@ async function run() {
       }
 
       // Take screenshot of dashboards and redesigned key pages
-      if (item.name.includes('dashboard') || item.name === 'landing' || item.name === 'client-plan' || item.name === 'specialist-client-detail') {
+      if (item.name.includes('dashboard') || item.name === 'landing' || item.name.includes('client-') || item.name.includes('specialist-')) {
         const screenshotPath = join(SCREENSHOT_DIR, `${item.name}.jpeg`);
         await page.screenshot({ path: screenshotPath, quality: 80 });
         console.log(`   📸 Screenshot saved: ${screenshotPath}`);
