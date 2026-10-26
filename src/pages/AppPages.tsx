@@ -11,6 +11,7 @@ import {
   Activity,
   UserCheck,
   FileText,
+  ShieldCheck,
 } from 'lucide-react'
 import { Card, PageHead, Btn, Avatar } from '../ui'
 import { useRole } from './Shell'

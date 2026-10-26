@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { DollarSign, TrendingUp, CreditCard, Coins, ArrowRight, ReceiptText, ShieldCheck, Wallet, ArrowUpRight } from 'lucide-react'
-import { Card, PageHead, Skeleton, SVC, Gate, type DemoState } from '../../ui'
+import { Card, PageHead, Skeleton, SVC, Gate, Btn, type DemoState } from '../../ui'
 import { api } from '../../api'
 import { LineChart } from '@/components/charts/LineChart'
 
