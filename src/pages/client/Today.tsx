@@ -1,14 +1,30 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { Check, Flame, Play, Video, CalendarClock, Dumbbell, Quote } from 'lucide-react'
+import {
+  Check,
+  Flame,
+  Play,
+  Video,
+  CalendarClock,
+  Dumbbell,
+  Quote,
+  Activity,
+  ChevronRight,
+  ShieldCheck,
+  Calendar,
+  Sparkles,
+  ArrowRight,
+  Clock,
+  UserCheck,
+} from 'lucide-react'
 import { Avatar, Btn, Card, Dialog, PainChip, Skeleton, SVC } from '../../ui'
 import type { Svc } from '../../data'
 import { api, getStoredUser } from '../../api'
 
 const fallbackPlan: { id: string; svc: Svc; time: string; title: string; meta: string; action: string }[] = [
-  { id: 'a', svc: 'eat', time: '2:00 PM', title: 'Lunch: grilled chicken with rice', meta: '620 kcal · 42 g protein', action: 'Swap meal' },
-  { id: 'b', svc: 'move', time: '6:00 PM', title: 'Lower body, knee-safe', meta: '45 min · 5 exercises', action: 'Preview' },
-  { id: 'c', svc: 'recover', time: '9:00 PM', title: 'Knee mobility', meta: '10 min · 3 exercises', action: 'Watch demo' },
+  { id: 'a', svc: 'eat', time: '2:00 PM', title: 'Lunch: Grilled chicken with rice', meta: '620 kcal · 42 g protein', action: 'Swap meal' },
+  { id: 'b', svc: 'move', time: '6:00 PM', title: 'Lower body, knee-safe progression', meta: '45 min · 5 exercises', action: 'Preview routine' },
+  { id: 'c', svc: 'recover', time: '9:00 PM', title: 'Knee mobility & joint decompression', meta: '10 min · 3 exercises', action: 'Watch demo' },
 ]
 
 function formatTime12(t: string) {
@@ -25,13 +41,6 @@ function getActionLabel(svc: Svc) {
   if (svc === 'eat') return 'Swap meal'
   if (svc === 'move') return 'Preview'
   return 'Watch demo'
-}
-
-function getGreeting(name: string) {
-  const hour = new Date().getHours()
-  const part = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening'
-  const firstName = name.trim().split(' ')[0] || 'there'
-  return `Good ${part}, ${firstName}`
 }
 
 export default function ClientToday() {
@@ -65,7 +74,6 @@ export default function ClientToday() {
       })
       .catch((err) => {
         console.error('Failed to load today dashboard:', err)
-        // Keep fallback values
       })
       .finally(() => {
         if (active) setLoading(false)
@@ -101,8 +109,8 @@ export default function ClientToday() {
       await api.logProgress({ painLevel: draft, date: todayStr })
       setPain(draft)
       setOpen(false)
-      setToast('Check-in saved. Dr. Mona can see it.')
-      setTimeout(() => setToast(''), 4000)
+      setToast('Check-in saved. Dr. Mona & Coach Karim have been notified.')
+      setTimeout(() => setToast(''), 4500)
     } catch (err: any) {
       console.error('Failed to log checkin:', err)
       alert(err.message || 'Failed to save check-in')
@@ -133,165 +141,365 @@ export default function ClientToday() {
   const sessionSvc: Svc = nextSession?.specialist?.type === 'trainer' ? 'move' : nextSession?.specialist?.type === 'nutritionist' ? 'eat' : 'recover'
   const sessionInitials = sessionName.replace(/^(Dr\.|Coach)\s+/i, '').split(/\s+/).slice(0, 2).map((w: string) => w[0]?.toUpperCase()).join('') || 'MF'
   const sessionWhen = nextSession?.startsAt
-    ? `${new Date(nextSession.startsAt).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })} · ${new Date(nextSession.startsAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })} · Video`
-    : 'Thu 16 Oct · 6:30 PM · Video'
+    ? `${new Date(nextSession.startsAt).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })} · ${new Date(nextSession.startsAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`
+    : 'Thu 16 Oct · 6:30 PM'
   const rescheduleUrl = nextSession
     ? `/app/specialists/${nextSession.specialist.id}/book?reschedule=${nextSession.bookingId}`
     : '/app/specialists/mona/book?reschedule=1'
 
   // Latest specialist note
   const latestNote = dashboard?.latestNote
-  const noteFrom = latestNote?.from || 'Dr. Mona'
+  const noteFrom = latestNote?.from || 'Dr. Mona Fathy, PT'
   const noteBody = latestNote?.body || "Good news on the knee. Keep box squats at 60 degrees one more week, then we test a little deeper on Thursday. If today's pain climbs above 4, skip the squats and do the mobility only."
   const noteDate = latestNote?.createdAt
     ? `Sent ${new Date(latestNote.createdAt).toLocaleDateString('en-GB', { weekday: 'long', hour: 'numeric', minute: '2-digit', hour12: true })}`
-    : 'Sent Monday, 9:12 PM'
+    : 'Monday, 9:12 PM'
+
+  const completedCount = items.filter((p: any) => done.includes(p.id)).length
 
   return (
     <div>
-      <div className="mb-6">
-        <h2 className="h-display text-[28px] lg:text-[32px]" style={{ letterSpacing: '-0.025em' }}>
-          {getGreeting(userName)}
-        </h2>
-        <p className="text-ink-2 mt-1">Tuesday, 14 October · Week {currentWeek} of {totalWeeks} of your knee plan</p>
+      {/* Top Header & Immediate Action */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+        <div>
+          <div className="flex items-center gap-2 text-[13px] font-semibold text-ink-2 mb-1.5">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sand text-ink text-[12px] font-bold">
+              Week {currentWeek} of {totalWeeks}
+            </span>
+            <span>·</span>
+            <span>Knee Rehabilitation & Hypertrophy</span>
+          </div>
+          <h2 className="h-display text-[28px] sm:text-[32px] tracking-tight text-ink">
+            Today · Tuesday, 14 October
+          </h2>
+        </div>
+        <div className="flex flex-wrap items-center gap-2.5">
+          <Btn
+            variant="secondary"
+            onClick={() => { setDraft(pain); setOpen(true) }}
+            className="min-h-11 px-4 text-[14px]"
+          >
+            <Activity size={17} className="text-recover" aria-hidden /> Log check-in
+          </Btn>
+          <Btn
+            onClick={() => nav('/session')}
+            className="min-h-11 px-5 text-[14px]"
+          >
+            <Play size={16} fill="currentColor" aria-hidden /> Start today's workout
+          </Btn>
+        </div>
       </div>
 
+      {/* Status Toast */}
       {toast && (
-        <p role="status" className="mb-4 rounded-xl bg-ok-tint text-[#1d6b3d] font-semibold px-4 py-3 flex gap-2 items-center">
-          <Check size={18} aria-hidden /> {toast}
-        </p>
+        <div role="status" className="mb-6 rounded-2xl bg-ok-tint text-ok font-semibold px-4 py-3 flex gap-2.5 items-center border border-ok/20">
+          <Check size={18} aria-hidden />
+          <span>{toast}</span>
+        </div>
       )}
 
-      <Card className="grid md:grid-cols-[1.4fr_1fr_1.2fr] md:divide-x divide-y md:divide-y-0 divide-line">
+      {/* Unified Metrics Row (Clean, Neutral Flat Surface, Color on Data Only) */}
+      <Card className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-line mb-8">
+        {/* Metric 1: Workouts This Week */}
         <div className="p-6">
-          <p className="label text-ink-2 uppercase">Workouts this week</p>
-          <p className="num text-[56px] leading-none mt-3">
-            {workoutsThisWeek}<span className="text-ink-2 text-[32px]">/{workoutsTarget}</span>
-          </p>
-          <div className="flex gap-2 mt-4" aria-hidden>
+          <div className="flex items-center justify-between text-ink-2 text-[13px] font-semibold uppercase tracking-wider">
+            <span>Workouts this week</span>
+            <Dumbbell size={16} className="text-move" aria-hidden />
+          </div>
+          <div className="flex items-baseline gap-2 mt-2">
+            <span className="num text-[44px] font-bold text-ink leading-none">{workoutsThisWeek}</span>
+            <span className="text-[20px] font-semibold text-ink-2">/ {workoutsTarget}</span>
+          </div>
+          <div className="grid grid-cols-4 gap-1.5 mt-3.5" aria-label={`${workoutsThisWeek} of ${workoutsTarget} workouts completed`}>
             {Array.from({ length: workoutsTarget }).map((_, i) => (
-              <span key={i} className={`h-2 flex-1 rounded-full ${i < workoutsThisWeek ? 'bg-move' : 'bg-line'}`} />
+              <span
+                key={i}
+                className={`h-2 rounded-full transition-colors ${
+                  i < workoutsThisWeek ? 'bg-move' : 'bg-line'
+                }`}
+              />
             ))}
           </div>
-          <p className="text-[14px] text-ink-2 mt-3">
+          <p className="text-[13px] text-ink-2 mt-2.5">
             {workoutsTarget - workoutsThisWeek > 0
-              ? `${workoutsTarget - workoutsThisWeek} left this week.`
-              : 'Weekly target reached!'}
+              ? `${workoutsTarget - workoutsThisWeek} session remaining before Sunday.`
+              : 'Weekly target achieved! Outstanding adherence.'}
           </p>
         </div>
+
+        {/* Metric 2: Consistency Streak */}
         <div className="p-6">
-          <p className="label text-ink-2 uppercase">Day streak</p>
-          <p className="num text-[56px] leading-none mt-3">{streak}</p>
-          <p className="text-[14px] text-ink-2 flex items-center gap-2 mt-4">
-            <Flame size={16} aria-hidden /> Best: {Math.max(streak, 9)} days
+          <div className="flex items-center justify-between text-ink-2 text-[13px] font-semibold uppercase tracking-wider">
+            <span>Daily habit streak</span>
+            <Flame size={16} className="text-warn" aria-hidden />
+          </div>
+          <div className="flex items-baseline gap-2 mt-2">
+            <span className="num text-[44px] font-bold text-ink leading-none">{streak}</span>
+            <span className="text-[16px] font-semibold text-ink-2">days active</span>
+          </div>
+          <div className="mt-3.5 flex items-center gap-2">
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-warn-tint text-warn text-[12px] font-bold">
+              <Flame size={12} aria-hidden /> Streak Active
+            </span>
+            <span className="text-[13px] text-ink-2 font-medium">Best: {Math.max(streak, 9)} days</span>
+          </div>
+          <p className="text-[13px] text-ink-2 mt-2.5">
+            Daily logs build stable recovery patterns.
           </p>
         </div>
-        <div className="p-6 bg-recover-tint md:rounded-r-2xl">
-          <p className="label uppercase">Knee pain today</p>
-          <div className="mt-3"><PainChip n={pain} /></div>
-          <p className="text-[14px] mt-3">Stop and message Dr. Mona above 4/10.</p>
-          <Btn variant="secondary" className="mt-3 w-full md:w-auto" onClick={() => { setDraft(pain); setOpen(true) }}>
-            Log check-in
-          </Btn>
+
+        {/* Metric 3: Joint Pain Status */}
+        <div className="p-6">
+          <div className="flex items-center justify-between text-ink-2 text-[13px] font-semibold uppercase tracking-wider">
+            <span>Knee joint status</span>
+            <Activity size={16} className="text-recover" aria-hidden />
+          </div>
+          <div className="mt-2 flex items-center justify-between">
+            <PainChip n={pain} />
+            <button
+              type="button"
+              onClick={() => { setDraft(pain); setOpen(true) }}
+              className="text-[13px] font-bold text-ink underline underline-offset-4 hover:text-ink-2 cursor-pointer"
+            >
+              Update
+            </button>
+          </div>
+          <div className="mt-3.5 flex items-center gap-2 text-[13px] text-ink-2">
+            <ShieldCheck size={16} className="text-ok shrink-0" aria-hidden />
+            <span>Safety threshold: <b>4/10</b>. Swaps to mobility if higher.</span>
+          </div>
+          <p className="text-[13px] text-ink-2 mt-2.5">
+            Monitored by Dr. Mona Fathy, PT.
+          </p>
         </div>
       </Card>
 
-      <div className="grid lg:grid-cols-[1.6fr_1fr] gap-6 mt-8 items-start">
-        <section aria-labelledby="plan-h">
-          <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-            <h3 id="plan-h" className="h-display text-[24px]" style={{ letterSpacing: '-0.02em' }}>
-              Today's plan
-            </h3>
-            <Btn onClick={() => nav('/session')} className="w-full sm:w-auto">
-              <Play size={18} aria-hidden /> Start today's workout
-            </Btn>
+      {/* Main Content Grid: Schedule (Left) & Care Team Context (Right) */}
+      <div className="grid lg:grid-cols-[1.6fr_1fr] gap-8 items-start">
+        {/* Left Column: Today's Plan Timeline */}
+        <section aria-labelledby="plan-heading">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 id="plan-heading" className="h-display text-[22px] tracking-tight">
+                Today's Care Plan
+              </h3>
+              <p className="text-[13px] text-ink-2 mt-0.5">
+                {completedCount} of {items.length} completed
+              </p>
+            </div>
+            <span className="text-[13px] font-semibold text-ink-2">
+              All 3 specialists aligned
+            </span>
           </div>
-          <ul className="space-y-3">
-            {loading
-              ? [0, 1, 2].map((i) => <Skeleton key={i} className="h-24" />)
-              : items.map((p: any) => {
-                  const s = SVC[p.svc as Svc] || SVC.move
-                  const d = done.includes(p.id)
-                  return (
-                    <li key={p.id} className={`${s.tint} rounded-2xl p-4 sm:p-5`}>
-                      <div className="flex items-center gap-4">
-                        <span className={`${s.bg} size-12 rounded-xl grid place-items-center shrink-0`}>
-                          <s.Icon size={22} aria-hidden />
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <p className="label uppercase">
-                            {s.label} · <span className="num text-[14px]">{p.time}</span>
-                          </p>
-                          <p className={`font-bold leading-6 ${d ? 'line-through decoration-2' : ''}`}>{p.title}</p>
-                          <p className="text-[14px] text-ink-2">{p.meta}</p>
+
+          <div className="space-y-3">
+            {loading ? (
+              [0, 1, 2].map((i) => <Skeleton key={i} className="h-28 rounded-2xl" />)
+            ) : (
+              items.map((p: any) => {
+                const s = SVC[p.svc as Svc] || SVC.move
+                const d = done.includes(p.id)
+                return (
+                  <div
+                    key={p.id}
+                    className={`bg-white rounded-2xl border border-line p-5 transition ${
+                      d ? 'bg-paper/70 opacity-75' : 'hover:border-ink/30'
+                    }`}
+                  >
+                    <div className="flex items-start gap-4">
+                      {/* Checkbox Trigger */}
+                      <button
+                        type="button"
+                        role="checkbox"
+                        aria-checked={d}
+                        aria-label={`Mark "${p.title}" as ${d ? 'incomplete' : 'complete'}`}
+                        onClick={() => toggleItem(p.id)}
+                        className={`size-7 rounded-lg border-2 mt-0.5 grid place-items-center cursor-pointer transition shrink-0 ${
+                          d
+                            ? 'bg-ink border-ink text-white'
+                            : 'border-line hover:border-ink bg-white'
+                        }`}
+                      >
+                        {d && <Check size={16} strokeWidth={3} />}
+                      </button>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[12px] font-bold ${s.tint} text-ink`}>
+                            <s.Icon size={12} strokeWidth={2.4} aria-hidden />
+                            {s.label}
+                          </span>
+                          <span className="text-[13px] font-semibold text-ink-2 num">{p.time}</span>
+                          {d && (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-ok bg-ok-tint px-2 py-0.5 rounded-full">
+                              Completed
+                            </span>
+                          )}
                         </div>
+                        <h4 className={`text-[17px] font-bold text-ink leading-snug ${d ? 'line-through text-ink-2' : ''}`}>
+                          {p.title}
+                        </h4>
+                        <p className="text-[14px] text-ink-2 mt-1">{p.meta}</p>
+                      </div>
+
+                      {/* Action Button */}
+                      <div className="shrink-0">
                         <button
-                          aria-pressed={d}
-                          aria-label={`Mark "${p.title}" as done`}
-                          onClick={() => toggleItem(p.id)}
-                          className={`size-11 rounded-full border-2 border-ink grid place-items-center cursor-pointer shrink-0 ${d ? 'bg-ink text-white' : 'bg-white'}`}
+                          type="button"
+                          onClick={() => {
+                            if (p.svc === 'move') nav('/session')
+                            else if (p.svc === 'eat') nav('/app/plan')
+                            else nav('/app/plan')
+                          }}
+                          className="min-h-10 px-3.5 rounded-xl border border-line bg-paper hover:bg-sand/60 text-ink text-[13px] font-bold inline-flex items-center gap-1.5 cursor-pointer transition"
                         >
-                          {d && <Check size={20} strokeWidth={3} />}
+                          {p.action} <ChevronRight size={14} className="text-ink-2" aria-hidden />
                         </button>
                       </div>
-                      <div className="mt-2 pl-16">
-                        <button className="min-h-11 font-semibold text-[15px] underline underline-offset-4 cursor-pointer">{p.action}</button>
-                      </div>
-                    </li>
-                  )
-                })}
-          </ul>
+                    </div>
+                  </div>
+                )
+              })
+            )}
+          </div>
         </section>
 
+        {/* Right Column: Specialist Consultation & Chart Notes */}
         <aside className="space-y-4">
+          {/* Card 1: Next Video Consultation */}
           <Card className="p-6">
-            <p className="label text-ink-2 uppercase">Next session</p>
-            <div className="flex items-center gap-4 mt-3">
+            <div className="flex items-center justify-between text-ink-2 text-[13px] font-semibold uppercase tracking-wider mb-3">
+              <span>Next consultation</span>
+              <span className="text-[12px] font-bold text-move bg-move-tint px-2.5 py-0.5 rounded-full">
+                Video Call
+              </span>
+            </div>
+            <div className="flex items-center gap-4">
               <Avatar initials={sessionInitials} svc={sessionSvc} />
               <div>
-                <p className="font-bold">{sessionName}</p>
-                <p className="text-[14px] text-ink-2">{sessionWhen}</p>
+                <p className="font-bold text-[17px] text-ink">{sessionName}</p>
+                <p className="text-[13px] text-ink-2 font-medium flex items-center gap-1.5 mt-0.5">
+                  <Clock size={14} aria-hidden /> {sessionWhen}
+                </p>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3 mt-4">
-              <Btn variant="secondary" onClick={() => nav('/session')} className="px-3">
-                <Video size={18} aria-hidden /> Join
+            <div className="grid grid-cols-2 gap-3 mt-5">
+              <Btn
+                variant="primary"
+                onClick={() => nav('/session')}
+                className="min-h-11 px-3 text-[14px]"
+              >
+                <Video size={16} aria-hidden /> Join call
               </Btn>
-              <Btn variant="secondary" onClick={() => nav(rescheduleUrl)} className="px-3">
-                <CalendarClock size={18} aria-hidden /> Reschedule
+              <Btn
+                variant="secondary"
+                onClick={() => nav(rescheduleUrl)}
+                className="min-h-11 px-3 text-[14px]"
+              >
+                <CalendarClock size={16} aria-hidden /> Reschedule
               </Btn>
             </div>
           </Card>
-          <Card className="p-6 bg-recover-tint border-recover/40">
-            <p className="label uppercase flex items-center gap-2">
-              <Quote size={16} aria-hidden /> Note from {noteFrom}
+
+          {/* Card 2: Clinical Chart Note from PT */}
+          <Card className="p-6 border-l-4 border-l-recover">
+            <div className="flex items-center justify-between text-[13px] text-ink-2 font-semibold mb-3">
+              <span className="flex items-center gap-1.5 font-bold text-ink">
+                <Quote size={14} className="text-recover" aria-hidden /> Clinical note
+              </span>
+              <span>{noteDate}</span>
+            </div>
+            <p className="text-[15px] leading-relaxed text-ink font-medium">
+              "{noteBody}"
             </p>
-            <p className="mt-3 leading-6">
-              {noteBody}
-            </p>
-            <p className="text-[14px] text-ink-2 mt-3">{noteDate}</p>
+            <div className="mt-4 pt-3 border-t border-line flex items-center justify-between text-[12px] text-ink-2">
+              <span className="font-semibold">{noteFrom}</span>
+              <span className="inline-flex items-center gap-1 text-ok font-semibold">
+                <UserCheck size={13} aria-hidden /> Cross-shared with team
+              </span>
+            </div>
           </Card>
-          <Card className="p-5 flex gap-4 items-center">
-            <span className="size-12 rounded-xl bg-move-tint grid place-items-center shrink-0">
-              <Dumbbell size={22} aria-hidden />
+
+          {/* Card 3: Upcoming Program Forecast */}
+          <Card className="p-5 flex items-center gap-4 bg-sand/30">
+            <span className="size-11 rounded-xl bg-move-tint text-move grid place-items-center shrink-0">
+              <Dumbbell size={20} aria-hidden />
             </span>
-            <p className="text-[15px]">Next workout after today: <b>Upper pull</b>, Thursday.</p>
+            <div>
+              <p className="text-[13px] text-ink-2 font-semibold uppercase">Coming up next</p>
+              <p className="text-[15px] font-bold text-ink">Thursday · Upper Body Pull & Posterior Chain</p>
+            </div>
           </Card>
         </aside>
       </div>
 
-      <Dialog open={open} onClose={() => setOpen(false)} title="How does your knee feel?">
-        <label htmlFor="ci" className="text-[14px] font-semibold">Pain right now</label>
-        <input id="ci" type="range" min={0} max={10} value={draft} onChange={(e) => setDraft(+e.target.value)} className="w-full h-11 accent-ink mt-1" aria-valuetext={`${draft} out of 10`} />
-        <div className="flex justify-between text-[13px] text-ink-2 font-medium mb-3">
-          <span>0 No pain</span>
-          <span>10 Worst pain</span>
+      {/* Ergonomic Pain Check-in Dialog */}
+      <Dialog open={open} onClose={() => setOpen(false)} title="Log knee joint check-in">
+        <p className="text-[14px] text-ink-2 mb-5">
+          Report your current knee discomfort level so your team can fine-tune today's load.
+        </p>
+
+        <label htmlFor="pain-slider" className="text-[14px] font-semibold text-ink block mb-2">
+          Discomfort level (0–10 scale)
+        </label>
+        
+        <div className="bg-paper rounded-2xl p-4 border border-line mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[13px] font-bold text-ink-2">Current rating:</span>
+            <PainChip n={draft} />
+          </div>
+          <input
+            id="pain-slider"
+            type="range"
+            min={0}
+            max={10}
+            value={draft}
+            onChange={(e) => setDraft(+e.target.value)}
+            className="w-full h-11 accent-ink cursor-pointer"
+            aria-valuetext={`${draft} out of 10`}
+          />
+          <div className="flex justify-between text-[12px] text-ink-2 font-semibold">
+            <span>0 · Pain-free</span>
+            <span>4 · Threshold</span>
+            <span>10 · Severe pain</span>
+          </div>
         </div>
-        <PainChip n={draft} />
-        {draft > 4 && <p className="mt-3 text-[14px] font-semibold">Above 4: do mobility only today and message Dr. Mona.</p>}
+
+        {/* Clinical Advisory */}
+        <div className={`p-4 rounded-xl text-[13px] font-medium flex gap-3 items-start ${
+          draft <= 3
+            ? 'bg-ok-tint text-ok'
+            : draft <= 6
+            ? 'bg-warn-tint text-warn'
+            : 'bg-bad-tint text-bad'
+        }`}>
+          <ShieldCheck size={18} className="shrink-0 mt-0.5" aria-hidden />
+          <div>
+            <p className="font-bold">
+              {draft <= 3
+                ? 'Safe for loaded squats'
+                : draft <= 6
+                ? 'Limit flexion to 60°'
+                : 'Rest recommended'}
+            </p>
+            <p className="mt-0.5 text-[12px] leading-relaxed">
+              {draft <= 3
+                ? 'Proceed with the scheduled 60° box squats and full protein lunch.'
+                : draft <= 6
+                ? 'Squats will be modified to knee-friendly isometric holds and mobility drills.'
+                : 'Dr. Mona will be flagged immediately. Skip squats and focus on passive knee decompression.'}
+            </p>
+          </div>
+        </div>
+
         <div className="flex justify-end gap-3 mt-6">
-          <Btn variant="secondary" onClick={() => setOpen(false)}>Cancel</Btn>
-          <Btn onClick={saveCheckin}>Save check-in</Btn>
+          <Btn variant="secondary" onClick={() => setOpen(false)}>
+            Cancel
+          </Btn>
+          <Btn onClick={saveCheckin}>
+            Confirm check-in
+          </Btn>
         </div>
       </Dialog>
     </div>

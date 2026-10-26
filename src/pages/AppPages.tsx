@@ -64,9 +64,9 @@ function SpecialistToday() {
   const rows = bookedSessions.length > 0 ? bookedSessions : defaultRows
 
   const st = {
-    ok: ['Mild', 'bg-ok-tint text-[#1d6b3d]', CircleCheck],
-    warn: ['Moderate', 'bg-warn-tint text-[#7a5200]', TriangleAlert],
-    bad: ['Needs doctor', 'bg-bad-tint text-[#a02a2a]', OctagonAlert],
+    ok: ['Mild', 'bg-ok-tint text-ok', CircleCheck],
+    warn: ['Moderate', 'bg-warn-tint text-warn', TriangleAlert],
+    bad: ['Needs doctor', 'bg-bad-tint text-bad', OctagonAlert],
   } as const
 
   const needsAttention = rows.filter((r) => r[4] === 'warn' || r[4] === 'bad').length
