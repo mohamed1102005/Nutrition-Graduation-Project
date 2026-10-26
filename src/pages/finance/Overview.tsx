@@ -104,11 +104,37 @@ export default function FinanceOverview() {
   const recentTxs = data?.recentTransactions || []
 
   return (
-    <div>
-      <PageHead
-        title="Financial Overview"
-        sub="Platform collections, recurring revenue, and specialist disbursements."
-      />
+    <div className="space-y-8">
+      {/* Executive Financial Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 text-[13px] font-semibold text-ink-2 mb-1.5">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sand text-ink text-[12px] font-bold">
+              Treasury & Settlement
+            </span>
+            <span>·</span>
+            <span>Recurring Revenue & Egyptian Gateway Inflow</span>
+          </div>
+          <h1 className="h-display text-[28px] sm:text-[32px] tracking-tight text-ink font-bold">
+            Financial Health & Revenue Inflow
+          </h1>
+        </div>
+        <div className="flex items-center gap-3">
+          <Btn
+            variant="secondary"
+            to="/app/finance/transactions"
+            className="min-h-11 px-4 text-[14px]"
+          >
+            <ReceiptText size={16} aria-hidden /> Full Ledger
+          </Btn>
+          <Btn
+            to="/app/finance/payouts"
+            className="min-h-11 px-5 text-[14px]"
+          >
+            <Coins size={16} aria-hidden /> Specialist Disbursements
+          </Btn>
+        </div>
+      </div>
 
       <Gate
         state={state}
