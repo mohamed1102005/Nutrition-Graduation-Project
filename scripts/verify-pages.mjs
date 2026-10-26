@@ -38,6 +38,7 @@ const ROUTES_TO_TEST = [
   // Specialist Dashboard & Pages
   { path: '/app/today', name: 'specialist-dashboard-today', role: 'Specialist' },
   { path: '/app/clients', name: 'specialist-clients', role: 'Specialist' },
+  { path: '/app/clients/sara', name: 'specialist-client-detail', role: 'Specialist' },
   { path: '/app/schedule', name: 'specialist-schedule', role: 'Specialist' },
 
   // Platform Admin Dashboard & Pages
@@ -124,8 +125,8 @@ async function run() {
         console.log(`✅ PASSED: ${item.path} (Heading: "${state.headingText}")`);
       }
 
-      // Take screenshot of dashboards
-      if (item.name.includes('dashboard') || item.name === 'landing') {
+      // Take screenshot of dashboards and redesigned key pages
+      if (item.name.includes('dashboard') || item.name === 'landing' || item.name === 'client-plan' || item.name === 'specialist-client-detail') {
         const screenshotPath = join(SCREENSHOT_DIR, `${item.name}.jpeg`);
         await page.screenshot({ path: screenshotPath, quality: 80 });
         console.log(`   📸 Screenshot saved: ${screenshotPath}`);

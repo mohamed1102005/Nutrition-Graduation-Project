@@ -1,35 +1,58 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router'
-import { ArrowLeft, Plus, ShieldCheck, Hourglass, Trash2, CircleCheck, Mail, Phone, Users } from 'lucide-react'
+import {
+  ArrowLeft,
+  Plus,
+  ShieldCheck,
+  Hourglass,
+  Trash2,
+  CircleCheck,
+  Mail,
+  Phone,
+  Users,
+  AlertTriangle,
+  Activity,
+  HeartPulse,
+  Dumbbell,
+  FileText,
+  Sliders,
+  Calendar,
+  Video,
+  CheckCircle2,
+  Lock,
+  Eye,
+  Info,
+} from 'lucide-react'
 import { Avatar, Btn, Card, Dialog, EmptyState, Field, inputCls, SafetyCallout, Segment, Tabs } from '../../ui'
 import { clients, painTrend } from '../../data'
 import { LineChart, BarChart, Flag, PainTrend } from '@/components'
 import { labels } from '../client/Progress'
 import { api } from '../../api'
 
-type Ex = { id: number; name: string; sets: number; reps: number; cleared: boolean }
+type Ex = { id: number; name: string; sets: number; reps: number; cleared: boolean; notes?: string }
+
 const templates: Record<string, Ex[]> = {
   knee: [
-    { id: 1, name: 'Box squat to 60 degrees', sets: 4, reps: 8, cleared: true },
-    { id: 2, name: 'Leg press, 0 to 60 degrees', sets: 4, reps: 10, cleared: true },
-    { id: 3, name: 'Straight leg raise', sets: 3, reps: 12, cleared: true },
-    { id: 4, name: 'Walking lunges', sets: 3, reps: 10, cleared: false },
+    { id: 1, name: 'Box Squat to 60° Knee Angle', sets: 4, reps: 8, cleared: true, notes: 'Stop at 60° box flexion. No bouncing.' },
+    { id: 2, name: 'Leg Press (0° to 60° Mechanical Stop)', sets: 4, reps: 10, cleared: true, notes: 'Mechanical pin safety stop at 60° strictly.' },
+    { id: 3, name: 'Terminal Straight Leg Raise', sets: 3, reps: 12, cleared: true, notes: 'Lock quad prior to elevation.' },
+    { id: 4, name: 'Bodyweight Walking Lunges', sets: 3, reps: 10, cleared: false, notes: 'Held back until patellar shear stabilizes.' },
   ],
   back: [
-    { id: 1, name: 'Bird dog', sets: 3, reps: 10, cleared: true },
-    { id: 2, name: 'Dead bug', sets: 3, reps: 12, cleared: true },
-    { id: 3, name: 'Hip hinge with dowel', sets: 3, reps: 10, cleared: true },
-    { id: 4, name: 'Romanian deadlift', sets: 3, reps: 8, cleared: false },
+    { id: 1, name: 'Bird Dog with Core Brace', sets: 3, reps: 10, cleared: true, notes: 'Neutral lumbar alignment throughout.' },
+    { id: 2, name: 'Dead Bug Anti-Extension', sets: 3, reps: 12, cleared: true, notes: 'Low back glued to mat.' },
+    { id: 3, name: 'Hip Hinge with Dowel', sets: 3, reps: 10, cleared: true, notes: 'Maintain 3 points of contact.' },
+    { id: 4, name: 'Romanian Deadlift (Barbell)', sets: 3, reps: 8, cleared: false, notes: 'Waiting for lumbar shear tolerance test.' },
   ],
   shoulder: [
-    { id: 1, name: 'Pendulum swings', sets: 2, reps: 20, cleared: true },
-    { id: 2, name: 'Band external rotation', sets: 3, reps: 15, cleared: true },
-    { id: 3, name: 'Scapular wall slides', sets: 3, reps: 12, cleared: true },
-    { id: 4, name: 'Overhead press', sets: 3, reps: 8, cleared: false },
+    { id: 1, name: 'Codman Pendulum Swings', sets: 2, reps: 20, cleared: true, notes: 'Gentle passive decompression.' },
+    { id: 2, name: 'Band External Rotation at 0°', sets: 3, reps: 15, cleared: true, notes: 'Towel roll pinned under elbow.' },
+    { id: 3, name: 'Scapular Wall Slides', sets: 3, reps: 12, cleared: true, notes: 'Upward rotation focus, no shrug.' },
+    { id: 4, name: 'Standing Overhead Press', sets: 3, reps: 8, cleared: false, notes: 'Impingement risk until scapular clearance.' },
   ],
 }
 
-type Note = { id: number; text: string; when: string; shared: boolean }
+type Note = { id: number; text: string; when: string; shared: boolean; author?: string; role?: string }
 
 export default function ClientDetail() {
   const { id } = useParams()
@@ -39,7 +62,7 @@ export default function ClientDetail() {
 function Inner({ id }: { id?: string }) {
   const fallbackClient = clients.find((x) => x.id === id || x.name.toLowerCase().includes(String(id).toLowerCase())) || clients[0]
   const [c, setC] = useState<any>(fallbackClient)
-  const [tab, setTab] = useState('Profile')
+  const [tab, setTab] = useState('Overview')
   const [ex, setEx] = useState<Ex[]>(() => templates[fallbackClient?.area ?? 'knee'].map((e) => ({ ...e })))
   const [limit, setLimit] = useState(String(fallbackClient?.limit ?? 4))
   const [angle, setAngle] = useState(fallbackClient?.area === 'knee' ? '60' : '')
@@ -48,11 +71,12 @@ function Inner({ id }: { id?: string }) {
   const [toast, setToast] = useState('')
   const [rm, setRm] = useState<Ex | null>(null)
   const [add, setAdd] = useState(false)
-  const [nf, setNf] = useState({ name: '', sets: '3', reps: '10' })
+  const [nf, setNf] = useState({ name: '', sets: '3', reps: '10', notes: '' })
   const [nerr, setNerr] = useState<Record<string, string>>({})
   const [notes, setNotes] = useState<Note[]>([
-    { id: 1, text: 'Good form on the box squat. Keep the depth cap until the next review.', when: 'Tue 7 Oct', shared: true },
-    { id: 2, text: 'Reports morning stiffness. Added 5 minutes of heel slides before training.', when: 'Tue 30 Sep', shared: false },
+    { id: 1, text: 'Clean squat mechanics observed at 60° box depth. Patellar tendon showed zero reactive warmth post-session. Maintain depth cap for another 10 days.', when: 'Tue 7 Oct', shared: true, author: 'Dr. Mona Fathy', role: 'Physical Therapist' },
+    { id: 2, text: 'Client experienced mild early-morning knee stiffness on colder days. Prescribed 5 minutes of warm-up heel slides before any training load.', when: 'Tue 30 Sep', shared: false, author: 'Dr. Mona Fathy', role: 'Physical Therapist' },
+    { id: 3, text: 'Coordinated with Coach Karim: swapped conventional deadlifts for Romanian deadlifts to minimize anterior tibial translation.', when: 'Fri 26 Sep', shared: true, author: 'Coach Karim Adel', role: 'Strength Coach' },
   ])
   const [draft, setDraft] = useState('')
   const [shared, setShared] = useState(true)
@@ -70,18 +94,18 @@ function Inner({ id }: { id?: string }) {
             id: String(cl.id),
             name: cl.name,
             initials: cl.name.replace(/^(Dr\.|Coach)\s+/i, '').split(/\s+/).slice(0, 2).map((w: string) => w[0]?.toUpperCase()).join('') || 'SH',
-            goal: cl.goal || 'Knee rehab & strength',
+            goal: cl.goal || 'Patellar Tendon Rehabilitation & Functional Strength',
             week: cl.week || 3,
             of: cl.of || 8,
             age: cl.age || 29,
             email: cl.email,
             phone: cl.phone || '01012345678',
-            injury: res.injuries?.[0]?.note || 'Right knee patellar tendinopathy',
+            injury: res.injuries?.[0]?.note || 'Right knee patellar tendinopathy (Grade 1)',
             area,
             limit: cl.safeLimit || 4,
             pain: res.progress?.pain?.map((p: any) => p.value) || fallbackClient.pain,
             workouts: res.progress?.workouts?.map((w: any) => w.count) || fallbackClient.workouts,
-            lastCheckin: 'Today',
+            lastCheckin: 'Today, 11:20 AM',
           })
           if (res.notes && res.notes.length > 0) {
             setNotes(res.notes.map((n: any) => ({
@@ -89,6 +113,7 @@ function Inner({ id }: { id?: string }) {
               text: n.body,
               when: n.created_at ? new Date(n.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : 'Recently',
               shared: Boolean(n.visible_to_client),
+              author: 'Specialist Note',
             })))
           }
         })
@@ -102,7 +127,7 @@ function Inner({ id }: { id?: string }) {
   if (!c)
     return (
       <Card>
-        <EmptyState title="We could not find that client" text="They may have ended their plan, or the link is wrong." action={<Btn to="/app/clients">Back to clients</Btn>} />
+        <EmptyState title="Client Record Not Found" text="This patient may have been archived or transferred." action={<Btn to="/app/clients">Return to Patient Directory</Btn>} />
       </Card>
     )
 
@@ -122,214 +147,520 @@ function Inner({ id }: { id?: string }) {
           reps: String(e.reps),
           ptCleared: e.cleared,
           painLimit: Number(limit) || 4,
-          safetyNote: c.area === 'knee' ? `Knee angle limit: ${angle} deg` : undefined,
+          safetyNote: c.area === 'knee' ? `Knee angle limit: ${angle}°` : undefined,
         }))
         await api.updateSpecialistPlan(id, 'recover', {
           status: 'active',
           items,
-          summary: `Updated plan with safe pain limit ${limit}/10 and ${ex.length} exercises.`,
+          summary: `Updated plan with safe pain limit ${limit}/10 and ${ex.length} calibrated exercises.`,
         }).catch(() => {})
       }
       setSaved(true)
-      setToast(`Saved. ${c.name.split(' ')[0]} sees the changes the next time they open their plan.`)
+      setToast(`Protocol changes published. ${c.name.split(' ')[0]}'s active client dashboard is updated.`)
     } catch {
       setSaved(true)
-      setToast(`Saved. ${c.name.split(' ')[0]} sees the changes the next time they open their plan.`)
+      setToast(`Protocol changes published. ${c.name.split(' ')[0]}'s active client dashboard is updated.`)
     }
   }
 
   const addEx = (e: FormEvent) => {
     e.preventDefault()
     const v: Record<string, string> = {}
-    if (nf.name.trim().length < 3) v.name = 'Give the exercise a name.'
+    if (nf.name.trim().length < 3) v.name = 'Specify the exercise protocol name.'
     if (!(Number(nf.sets) >= 1 && Number(nf.sets) <= 10)) v.sets = 'Sets: 1 to 10.'
     if (!(Number(nf.reps) >= 1 && Number(nf.reps) <= 60)) v.reps = 'Reps: 1 to 60.'
     setNerr(v)
     if (Object.keys(v).length) return
-    dirty(() => setEx([...ex, { id: Date.now(), name: nf.name.trim(), sets: Number(nf.sets), reps: Number(nf.reps), cleared: false }]))
-    setNf({ name: '', sets: '3', reps: '10' })
+    dirty(() => setEx([...ex, { id: Date.now(), name: nf.name.trim(), sets: Number(nf.sets), reps: Number(nf.reps), cleared: false, notes: nf.notes.trim() }]))
+    setNf({ name: '', sets: '3', reps: '10', notes: '' })
     setAdd(false)
   }
 
   const addNote = async (e: FormEvent) => {
     e.preventDefault()
-    if (draft.trim().length < 3) return setNoteErr('Write a short note first.')
+    if (draft.trim().length < 3) return setNoteErr('Enter clinical observation details.')
     setNoteErr('')
     try {
       if (id) {
         await api.addSpecialistNote(id, { body: draft.trim(), visibleToClient: shared })
       }
-      setNotes([{ id: Date.now(), text: draft.trim(), when: 'Today', shared }, ...notes])
+      setNotes([{ id: Date.now(), text: draft.trim(), when: 'Today', shared, author: 'Dr. Mona Fathy', role: 'Physical Therapist' }, ...notes])
       setDraft('')
     } catch {
-      setNotes([{ id: Date.now(), text: draft.trim(), when: 'Today', shared }, ...notes])
+      setNotes([{ id: Date.now(), text: draft.trim(), when: 'Today', shared, author: 'Dr. Mona Fathy', role: 'Physical Therapist' }, ...notes])
       setDraft('')
     }
   }
 
   const L = labels.slice(-8)
+  const isPainCritical = t.now > Number(limit)
 
   return (
-    <div>
-      <Link to="/app/clients" className="inline-flex items-center gap-2 min-h-11 font-semibold mb-2"><ArrowLeft size={18} aria-hidden /> All clients</Link>
-      <div className="flex flex-wrap items-center gap-4 mb-6">
-        <Avatar initials={c.initials} svc="recover" size={64} />
-        <div className="flex-1 min-w-[200px]">
-          <h2 className="h-display text-[26px] lg:text-[30px]" style={{ letterSpacing: '-0.02em' }}>{c.name}</h2>
-          <p className="text-ink-2">{c.goal} · week {c.week} of {c.of}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3"><PainTrend c={c} /><Flag c={c} /></div>
+    <div className="space-y-6">
+      {/* Back to Client Directory */}
+      <div>
+        <Link
+          to="/app/clients"
+          className="inline-flex items-center gap-2 text-sm font-bold text-ink-2 hover:text-ink transition cursor-pointer"
+        >
+          <ArrowLeft size={16} aria-hidden /> All Patient Charts
+        </Link>
       </div>
 
-      {t.now > c.limit && (
-        <SafetyCallout className="mb-6" title={`Pain ${t.now}/10 is above ${c.name.split(' ')[0]}'s safe limit of ${c.limit}`}>
-          Check the plan below. Consider pausing the exercises that load the {c.area}, and message {c.name.split(' ')[0]} today.
+      {/* Clinical Patient Summary Header */}
+      <Card className="p-6 bg-white border border-line">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="flex items-start gap-4">
+            <div className="size-16 rounded-2xl bg-recover-tint text-[#3b2d60] font-bold text-xl grid place-items-center shrink-0 border border-line">
+              {c.initials}
+            </div>
+
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="h-display text-[24px] sm:text-[28px] font-bold text-ink leading-tight">
+                  {c.name}
+                </h1>
+                <span className="text-xs uppercase font-bold px-2.5 py-0.5 rounded-full bg-paper text-ink border border-line">
+                  Patient ID #{c.id}
+                </span>
+                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-ok-tint text-[#1d6b3d]">
+                  Active Rehab
+                </span>
+              </div>
+
+              <p className="text-sm text-ink-2 font-medium">
+                {c.injury} · Week <strong className="text-ink num">{c.week}</strong> of {c.of} ({c.goal})
+              </p>
+
+              <div className="flex flex-wrap items-center gap-4 text-xs text-ink-2 pt-1">
+                <span>Age: <strong className="text-ink">{c.age} yrs</strong></span>
+                <span>·</span>
+                <span>Last Activity: <strong className="text-ink">{c.lastCheckin}</strong></span>
+                <span>·</span>
+                <span>Contact: <strong className="text-ink">{c.phone}</strong></span>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Metrics & Actions */}
+          <div className="flex flex-wrap items-center gap-3 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-line">
+            <div className="px-4 py-2.5 rounded-xl border border-line bg-paper/60 text-center">
+              <span className="text-[11px] font-semibold text-ink-2 uppercase tracking-wider block">Pain Score</span>
+              <span className="num font-bold text-[20px] text-ink leading-none mt-0.5 block">
+                {t.now} <span className="text-xs font-normal text-ink-2">/ 10</span>
+              </span>
+            </div>
+
+            <div className="px-4 py-2.5 rounded-xl border border-line bg-paper/60 text-center">
+              <span className="text-[11px] font-semibold text-ink-2 uppercase tracking-wider block">Safe Threshold</span>
+              <span className="num font-bold text-[20px] text-ink leading-none mt-0.5 block">
+                {limit} <span className="text-xs font-normal text-ink-2">/ 10</span>
+              </span>
+            </div>
+
+            <Btn to="/session" className="gap-2">
+              <Video size={16} aria-hidden /> Launch Video Consult
+            </Btn>
+          </div>
+        </div>
+      </Card>
+
+      {/* Critical Safety Callout if Pain Exceeds Threshold */}
+      {isPainCritical && (
+        <SafetyCallout title={`CLINICAL ALERT: Current pain (${t.now}/10) exceeds client safe threshold (${limit}/10)`}>
+          Patient reported elevated patellar pain following recent loading. All contraindicated Quad loading protocols should be paused immediately. Review the updated protocol below and message {c.name.split(' ')[0]}.
         </SafetyCallout>
       )}
 
-      <Tabs label="Client sections" value={tab} onChange={setTab} tabs={['Profile', 'Plan editor', 'Progress', 'Notes'].map((x) => ({ id: x, label: x }))} />
+      {/* Clinical Section Tabs */}
+      <Tabs
+        label="Clinical Chart Sections"
+        value={tab}
+        onChange={setTab}
+        tabs={[
+          { id: 'Overview', label: 'Patient Vitals & Care Team' },
+          { id: 'Protocol', label: 'Exercise Prescription (EHR Editor)' },
+          { id: 'Progress', label: 'Longitudinal Recovery Curves' },
+          { id: 'Notes', label: `Interdisciplinary Notes (${notes.length})` },
+        ]}
+      />
 
-      <div className="mt-6">
-        {tab === 'Profile' && (
-          <div className="grid md:grid-cols-2 gap-4">
-            <Card className="p-6">
-              <h3 className="font-bold mb-3">About</h3>
-              <dl className="divide-y divide-line text-[15px]">
-                {[['Age', String(c.age)], ['Goal', c.goal], ['Injury', c.injury], ['Plan length', `${c.of} weeks`], ['Safe pain limit', `${c.limit}/10`]].map(([k, v]) => (
-                  <div key={k} className="py-3 flex justify-between gap-4"><dt className="text-ink-2">{k}</dt><dd className="font-semibold text-right">{v}</dd></div>
-                ))}
-              </dl>
-            </Card>
-            <div className="space-y-4">
-              <Card className="p-6">
-                <h3 className="font-bold mb-3">Contact</h3>
-                <p className="flex items-center gap-3 min-h-11"><Mail size={18} aria-hidden /> {c.email}</p>
-                <p className="flex items-center gap-3 min-h-11"><Phone size={18} aria-hidden /> {c.phone}</p>
-              </Card>
-              <Card className="p-6">
-                <h3 className="font-bold mb-3 flex items-center gap-2"><Users size={18} aria-hidden /> Care team</h3>
-                <ul className="space-y-3">
-                  {[['MF', 'You, physical therapist', 'recover'], ['KA', 'Coach Karim Adel, trainer', 'move'], ['HM', 'Hana Mostafa, dietitian', 'eat']].map(([i, n, s]) => (
-                    <li key={i} className="flex items-center gap-3"><Avatar initials={i} svc={s as 'move'} size={40} /> <span className="font-semibold">{n}</span></li>
-                  ))}
-                </ul>
-              </Card>
+      {/* TAB 1: PATIENT VITALS & CARE TEAM */}
+      {tab === 'Overview' && (
+        <div className="grid md:grid-cols-2 gap-6">
+          <Card className="p-6 bg-white border border-line space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-line">
+              <Activity size={18} className="text-ink-2" aria-hidden />
+              <h2 className="font-bold text-[17px] text-ink">Clinical Profile & Intake Vitals</h2>
             </div>
-          </div>
-        )}
 
-        {tab === 'Plan editor' && (
-          <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
-            <Card className="p-5 sm:p-6">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <h3 className="font-bold text-[18px]">Exercises</h3>
-                <Btn variant="secondary" className="min-h-11 h-11 px-4" onClick={() => setAdd(true)}><Plus size={18} aria-hidden /> Add exercise</Btn>
+            <dl className="divide-y divide-line/60 text-sm">
+              {[
+                ['Full Legal Name', c.name],
+                ['Chronological Age', `${c.age} years`],
+                ['Primary Medical Diagnosis', c.injury],
+                ['Affected Anatomical Area', c.area.toUpperCase()],
+                ['Prescribed Protocol Length', `${c.of} weeks total`],
+                ['Safe Pain Ceiling', `${limit} / 10 maximum tolerance`],
+                ['Mechanical Angle Limiter', c.area === 'knee' ? `${angle || '60'}° flexion cap` : 'N/A'],
+                ['Email Address', c.email],
+                ['Direct Phone', c.phone],
+              ].map(([k, v]) => (
+                <div key={k} className="py-2.5 flex items-center justify-between gap-4">
+                  <dt className="text-ink-2 font-medium">{k}</dt>
+                  <dd className="font-semibold text-ink text-right num">{v}</dd>
+                </div>
+              ))}
+            </dl>
+          </Card>
+
+          <div className="space-y-4">
+            <Card className="p-6 bg-white border border-line">
+              <div className="flex items-center gap-2 pb-2 border-b border-line mb-4">
+                <Users size={18} className="text-ink-2" aria-hidden />
+                <h2 className="font-bold text-[17px] text-ink">Interdisciplinary Care Team</h2>
               </div>
-              {ex.length === 0 ? (
-                <EmptyState title="No exercises yet" text="Add the first exercise for this client." />
-              ) : (
-                <ul className="mt-3">
-                  {ex.map((e) => (
-                    <li key={e.id} className="py-4 border-b border-line last:border-0 flex flex-wrap items-center gap-3">
-                      <div className="flex-1 min-w-[180px]">
-                        <p className="font-bold">{e.name}</p>
-                        <span className={`mt-1 inline-flex items-center gap-1 rounded-full h-6 px-2.5 text-[13px] font-bold ${e.cleared ? 'bg-recover-tint' : 'bg-warn-tint'}`}>
-                          {e.cleared ? <ShieldCheck size={13} aria-hidden /> : <Hourglass size={13} aria-hidden />} {e.cleared ? 'Cleared by you' : 'Waiting for PT'}
+
+              <ul className="space-y-3">
+                {[
+                  { initial: 'MF', name: 'Dr. Mona Fathy, PT', role: 'Lead Physical Therapist (You)', svc: 'recover' },
+                  { initial: 'KA', name: 'Coach Karim Adel', role: 'Strength & Conditioning Coach', svc: 'move' },
+                  { initial: 'HM', name: 'Hana Mostafa, RD', role: 'Clinical Sports Dietitian', svc: 'eat' },
+                ].map((spec) => (
+                  <li key={spec.name} className="flex items-center justify-between p-3 rounded-xl border border-line/60 bg-paper/30">
+                    <div className="flex items-center gap-3">
+                      <div className="size-10 rounded-xl bg-ink text-white font-bold text-sm grid place-items-center">
+                        {spec.initial}
+                      </div>
+                      <div>
+                        <p className="font-bold text-sm text-ink">{spec.name}</p>
+                        <p className="text-xs text-ink-2">{spec.role}</p>
+                      </div>
+                    </div>
+                    <span className="text-xs font-semibold text-ok bg-ok-tint px-2.5 py-0.5 rounded-full">
+                      Synced
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+
+            <Card className="p-6 bg-sand/30 border border-line">
+              <div className="flex items-center gap-2 mb-2">
+                <Info size={16} className="text-ink" aria-hidden />
+                <h3 className="font-bold text-sm text-ink">Multi-Disciplinary Coordination Status</h3>
+              </div>
+              <p className="text-xs leading-relaxed text-ink/80">
+                Any modifications made to {c.name.split(' ')[0]}'s exercise clearance automatically alert Coach Karim and Hana Mostafa, ensuring unified workout loading and nutrition recovery timing.
+              </p>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: EXERCISE PROTOCOL EDITOR */}
+      {tab === 'Protocol' && (
+        <div className="grid lg:grid-cols-[1fr_360px] gap-6 items-start">
+          <Card className="p-6 bg-white border border-line space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-line">
+              <div>
+                <h2 className="font-bold text-[18px] text-ink">Prescribed Exercise Protocols</h2>
+                <p className="text-xs text-ink-2">Control clinical clearance, set volumes, and movement depth</p>
+              </div>
+              <Btn variant="secondary" className="gap-2 shrink-0" onClick={() => setAdd(true)}>
+                <Plus size={16} aria-hidden /> Add New Movement
+              </Btn>
+            </div>
+
+            {ex.length === 0 ? (
+              <EmptyState title="No active exercises prescribed" text="Add standard rehabilitation movements to initiate client program." />
+            ) : (
+              <ul className="space-y-3">
+                {ex.map((e) => (
+                  <li
+                    key={e.id}
+                    className="p-4 rounded-xl border border-line bg-paper/20 hover:bg-white transition flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-bold text-[15px] text-ink">{e.name}</h3>
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+                            e.cleared ? 'bg-ok-tint text-[#1d6b3d]' : 'bg-warn-tint text-[#7a5200]'
+                          }`}
+                        >
+                          {e.cleared ? <ShieldCheck size={12} aria-hidden /> : <Hourglass size={12} aria-hidden />}
+                          {e.cleared ? 'Cleared for Load' : 'Held / Awaiting Clearance'}
                         </span>
                       </div>
-                      <label className="text-[13px] text-ink-2">Sets
-                        <input type="number" min={1} max={10} className={`${inputCls} !w-20 mt-1 num`} value={e.sets} onChange={(ev) => dirty(() => setEx(ex.map((x) => (x.id === e.id ? { ...x, sets: Number(ev.target.value) } : x))))} />
-                      </label>
-                      <label className="text-[13px] text-ink-2">Reps
-                        <input type="number" min={1} max={60} className={`${inputCls} !w-20 mt-1 num`} value={e.reps} onChange={(ev) => dirty(() => setEx(ex.map((x) => (x.id === e.id ? { ...x, reps: Number(ev.target.value) } : x))))} />
-                      </label>
-                      <Btn variant="secondary" className="min-h-11 h-11 px-4" aria-pressed={e.cleared} onClick={() => dirty(() => setEx(ex.map((x) => (x.id === e.id ? { ...x, cleared: !x.cleared } : x))))}>
-                        {e.cleared ? 'Pause' : 'Clear it'}
+                      {e.notes && <p className="text-xs text-ink-2 mt-1">{e.notes}</p>}
+                    </div>
+
+                    <div className="flex items-center gap-3 shrink-0">
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs text-ink-2 font-medium">
+                          Sets
+                          <input
+                            type="number"
+                            min={1}
+                            max={10}
+                            className={`${inputCls} !w-16 !h-9 text-xs mt-0.5 num`}
+                            value={e.sets}
+                            onChange={(ev) => dirty(() => setEx(ex.map((x) => (x.id === e.id ? { ...x, sets: Number(ev.target.value) } : x))))}
+                          />
+                        </label>
+                        <label className="text-xs text-ink-2 font-medium">
+                          Reps
+                          <input
+                            type="number"
+                            min={1}
+                            max={60}
+                            className={`${inputCls} !w-16 !h-9 text-xs mt-0.5 num`}
+                            value={e.reps}
+                            onChange={(ev) => dirty(() => setEx(ex.map((x) => (x.id === e.id ? { ...x, reps: Number(ev.target.value) } : x))))}
+                          />
+                        </label>
+                      </div>
+
+                      <Btn
+                        variant={e.cleared ? 'secondary' : 'default'}
+                        className="!h-9 text-xs px-3"
+                        onClick={() => dirty(() => setEx(ex.map((x) => (x.id === e.id ? { ...x, cleared: !x.cleared } : x))))}
+                      >
+                        {e.cleared ? 'Pause' : 'Clear'}
                       </Btn>
-                      <button aria-label={`Remove ${e.name}`} onClick={() => setRm(e)} className="size-11 grid place-items-center rounded-xl hover:bg-bad-tint text-bad cursor-pointer"><Trash2 size={18} /></button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </Card>
 
-            <Card className="p-5 sm:p-6 space-y-5 lg:sticky lg:top-24">
-              <h3 className="font-bold text-[18px]">Limits</h3>
-              <div>
-                <p className="label mb-2" id="lim">Safe pain limit (out of 10)</p>
-                <Segment label="Safe pain limit" options={['2', '3', '4', '5']} value={limit} onChange={(v) => dirty(() => setLimit(v))} />
-                {Number(limit) > 4 && <p className="mt-3 rounded-xl bg-warn-tint p-3 text-[14px]">A limit above 4/10 is higher than the Rebound default. Add a reason in Notes.</p>}
-              </div>
-              {c.area === 'knee' && (
-                <Field label="Maximum knee angle (degrees)" helper="Squats and presses stop here." error={angleErr}>
-                  {(p) => <input {...p} inputMode="numeric" className={`${inputCls} num`} value={angle} onChange={(e) => dirty(() => setAngle(e.target.value.replace(/\D/g, '').slice(0, 3)))} />}
-                </Field>
-              )}
-              <Btn className="w-full" onClick={save} disabled={saved}>Save plan</Btn>
-              {toast && <p role="status" className="flex gap-2 items-start text-[14px] font-semibold"><CircleCheck size={18} className="text-ok shrink-0" aria-hidden /> {toast}</p>}
-              {!saved && <p className="text-[14px] text-ink-2">You have unsaved changes.</p>}
-            </Card>
-          </div>
-        )}
+                      <button
+                        type="button"
+                        aria-label={`Remove ${e.name}`}
+                        onClick={() => setRm(e)}
+                        className="size-9 rounded-lg hover:bg-bad-tint text-bad grid place-items-center transition cursor-pointer"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
 
-        {tab === 'Progress' && (
-          <div className="grid gap-4">
-            <Card className="p-5 sm:p-6">
-              <h3 className="font-bold text-[18px] mb-4">Pain, last 8 weeks</h3>
-              <LineChart labels={L} data={c.pain} min={0} max={10} ticks={[0, 2, 4, 6, 8, 10]} unit="/10" color="#14161A" safeBelow={c.limit} desc={`${c.name} pain went from ${c.pain[0]} to ${t.now} out of 10.`} />
-            </Card>
-            <Card className="p-5 sm:p-6">
-              <h3 className="font-bold text-[18px] mb-4">Workouts per week</h3>
-              <BarChart labels={L} data={c.workouts} target={4} />
-            </Card>
-          </div>
-        )}
+          {/* Clinical Limits Configurator */}
+          <Card className="p-6 bg-white border border-line space-y-5 lg:sticky lg:top-24">
+            <div className="flex items-center gap-2 pb-2 border-b border-line">
+              <Sliders size={18} className="text-ink-2" aria-hidden />
+              <h2 className="font-bold text-[17px] text-ink">Safety Tolerances & Limits</h2>
+            </div>
 
-        {tab === 'Notes' && (
-          <div className="grid lg:grid-cols-[1fr_360px] gap-6 items-start">
             <div>
-              {notes.length === 0 ? (
-                <Card><EmptyState title="No notes yet" text="Notes you write here stay with this client's record." /></Card>
-              ) : (
-                <ul className="space-y-3">
-                  {notes.map((n) => (
-                    <li key={n.id}><Card className="p-5"><p className="leading-6">{n.text}</p><p className="text-[13px] text-ink-2 mt-2">{n.when} · {n.shared ? 'Shared with Karim and Hana' : 'Only you'}</p></Card></li>
-                  ))}
-                </ul>
+              <label className="text-xs uppercase font-bold text-ink-2 tracking-wider block mb-2">
+                Safe Pain Threshold (Out of 10)
+              </label>
+              <Segment
+                label="Safe pain limit"
+                options={['2', '3', '4', '5']}
+                value={limit}
+                onChange={(v) => dirty(() => setLimit(v))}
+              />
+              {Number(limit) > 4 && (
+                <p className="mt-2.5 rounded-xl bg-warn-tint p-3 text-xs leading-relaxed text-[#7a5200]">
+                  Ceiling above 4/10 exceeds clinic default baseline. Document reasoning in Care Notes.
+                </p>
               )}
             </div>
-            <Card className="p-5 sm:p-6">
-              <form onSubmit={addNote} noValidate className="space-y-4">
-                <Field label="New note" error={noteErr}>
-                  {(p) => <textarea {...p} rows={4} className={`${inputCls} h-auto py-3`} value={draft} onChange={(e) => setDraft(e.target.value)} />}
-                </Field>
-                <label className="flex items-center gap-3 min-h-11 font-semibold cursor-pointer">
-                  <input type="checkbox" className="size-5 accent-[#14161A]" checked={shared} onChange={(e) => setShared(e.target.checked)} /> Share with Karim and Hana
-                </label>
-                <Btn type="submit" className="w-full">Save note</Btn>
-              </form>
-            </Card>
-          </div>
-        )}
-      </div>
 
-      <Dialog open={!!rm} onClose={() => setRm(null)} title="Remove this exercise?">
-        <p className="text-ink-2">{rm?.name} will be taken out of {c.name.split(' ')[0]}'s plan once you save.</p>
+            {c.area === 'knee' && (
+              <Field label="Maximum Knee Flexion Cap (Degrees)" helper="All squatting & leg pressing must stay within this angle" error={angleErr}>
+                {(p) => (
+                  <input
+                    {...p}
+                    inputMode="numeric"
+                    className={`${inputCls} num`}
+                    value={angle}
+                    onChange={(e) => dirty(() => setAngle(e.target.value.replace(/\D/g, '').slice(0, 3)))}
+                  />
+                )}
+              </Field>
+            )}
+
+            <div className="pt-2">
+              <Btn className="w-full" onClick={save} disabled={saved}>
+                Publish Protocol Changes
+              </Btn>
+
+              {toast && (
+                <p role="status" className="flex items-start gap-2 text-xs font-semibold text-ok mt-3">
+                  <CircleCheck size={16} className="shrink-0 mt-0.5" aria-hidden /> {toast}
+                </p>
+              )}
+              {!saved && (
+                <p className="text-xs text-ink-2 text-center mt-2">
+                  Unsaved draft changes pending publication.
+                </p>
+              )}
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* TAB 3: LONGITUDINAL RECOVERY CURVES */}
+      {tab === 'Progress' && (
+        <div className="grid gap-6">
+          <Card className="p-6 bg-white border border-line">
+            <div className="flex items-center justify-between pb-4 border-b border-line mb-4">
+              <div>
+                <h2 className="font-bold text-[18px] text-ink">Pain Trajectory Over Time (Last 8 Weeks)</h2>
+                <p className="text-xs text-ink-2">Weekly patient-reported symptom scale vs. safe ceiling of {limit}/10</p>
+              </div>
+              <span className="text-xs font-semibold bg-paper px-3 py-1 rounded-full border border-line">
+                Net Change: <strong className="text-ok">-3.0 pts</strong>
+              </span>
+            </div>
+
+            <LineChart
+              labels={L}
+              data={c.pain}
+              min={0}
+              max={10}
+              ticks={[0, 2, 4, 6, 8, 10]}
+              unit="/10"
+              color="#14161A"
+              safeBelow={Number(limit)}
+              desc={`${c.name} pain trajectory charted over 8 weeks.`}
+            />
+          </Card>
+
+          <Card className="p-6 bg-white border border-line">
+            <div className="flex items-center justify-between pb-4 border-b border-line mb-4">
+              <div>
+                <h2 className="font-bold text-[18px] text-ink">Session Adherence & Workouts Logged</h2>
+                <p className="text-xs text-ink-2">Weekly completed training sessions vs. prescribed target of 4/week</p>
+              </div>
+              <span className="text-xs font-semibold bg-ok-tint text-[#1d6b3d] px-3 py-1 rounded-full">
+                Compliance: 88%
+              </span>
+            </div>
+
+            <BarChart labels={L} data={c.workouts} target={4} />
+          </Card>
+        </div>
+      )}
+
+      {/* TAB 4: INTERDISCIPLINARY CARE NOTES */}
+      {tab === 'Notes' && (
+        <div className="grid lg:grid-cols-[1fr_360px] gap-6 items-start">
+          <div className="space-y-3">
+            {notes.length === 0 ? (
+              <Card className="p-8">
+                <EmptyState title="No clinical notes recorded" text="Clinical observations logged here persist in the permanent client record." />
+              </Card>
+            ) : (
+              notes.map((n) => (
+                <Card key={n.id} className="p-5 bg-white border border-line space-y-2">
+                  <div className="flex items-center justify-between gap-3 text-xs text-ink-2 border-b border-line/60 pb-2">
+                    <span className="font-bold text-ink flex items-center gap-1.5">
+                      {n.author || 'Clinical Specialist'} · {n.role || 'Care Team'}
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1">
+                        {n.shared ? <Eye size={12} /> : <Lock size={12} />}
+                        {n.shared ? 'Shared with Care Team' : 'Internal Clinician Note'}
+                      </span>
+                      <span>·</span>
+                      <span>{n.when}</span>
+                    </span>
+                  </div>
+                  <p className="text-sm leading-relaxed text-ink/90 pt-1">{n.text}</p>
+                </Card>
+              ))
+            )}
+          </div>
+
+          <Card className="p-6 bg-white border border-line space-y-4 lg:sticky lg:top-24">
+            <h2 className="font-bold text-[17px] text-ink pb-2 border-b border-line">Log Clinical Observation</h2>
+            <form onSubmit={addNote} noValidate className="space-y-4">
+              <Field label="Clinical Note Entry" error={noteErr}>
+                {(p) => (
+                  <textarea
+                    {...p}
+                    rows={5}
+                    placeholder="Document joint palpation findings, ROM improvements, or load adjustments..."
+                    className={`${inputCls} h-auto py-3 text-sm leading-relaxed`}
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                  />
+                )}
+              </Field>
+
+              <label className="flex items-center gap-2.5 text-xs font-semibold text-ink cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="size-4 rounded accent-ink"
+                  checked={shared}
+                  onChange={(e) => setShared(e.target.checked)}
+                />
+                Share note with Karim (Trainer) & Hana (Dietitian)
+              </label>
+
+              <Btn type="submit" className="w-full">
+                Append to Clinical Record
+              </Btn>
+            </form>
+          </Card>
+        </div>
+      )}
+
+      {/* Remove Confirmation Dialog */}
+      <Dialog open={Boolean(rm)} onClose={() => setRm(null)} title="Confirm Protocol Deletion">
+        <p className="text-sm text-ink-2 leading-relaxed">
+          Are you sure you want to remove <strong>{rm?.name}</strong> from {c.name.split(' ')[0]}'s active rehabilitation protocol?
+        </p>
         <div className="flex flex-col-reverse sm:flex-row gap-3 mt-6 sm:justify-end">
-          <Btn variant="secondary" onClick={() => setRm(null)}>Keep it</Btn>
-          <Btn className="!bg-[#a02a2a]" onClick={() => { dirty(() => setEx(ex.filter((x) => x.id !== rm!.id))); setRm(null) }}>Remove exercise</Btn>
+          <Btn variant="secondary" onClick={() => setRm(null)}>
+            Retain Movement
+          </Btn>
+          <Btn
+            className="!bg-[#a02a2a] text-white"
+            onClick={() => {
+              dirty(() => setEx(ex.filter((x) => x.id !== rm!.id)))
+              setRm(null)
+            }}
+          >
+            Confirm Removal
+          </Btn>
         </div>
       </Dialog>
 
-      <Dialog open={add} onClose={() => setAdd(false)} title="Add an exercise">
+      {/* Add Movement Dialog */}
+      <Dialog open={add} onClose={() => setAdd(false)} title="Prescribe New Exercise Protocol">
         <form onSubmit={addEx} noValidate className="space-y-4">
-          <Field label="Name" error={nerr.name}>{(p) => <input {...p} className={inputCls} value={nf.name} onChange={(e) => setNf({ ...nf, name: e.target.value })} />}</Field>
+          <Field label="Movement Name & Variation" error={nerr.name}>
+            {(p) => <input {...p} placeholder="e.g. Spanish Squats with Heavy Rig Band" className={inputCls} value={nf.name} onChange={(e) => setNf({ ...nf, name: e.target.value })} />}
+          </Field>
+
           <div className="grid grid-cols-2 gap-4">
-            <Field label="Sets" error={nerr.sets}>{(p) => <input {...p} inputMode="numeric" className={`${inputCls} num`} value={nf.sets} onChange={(e) => setNf({ ...nf, sets: e.target.value })} />}</Field>
-            <Field label="Reps" error={nerr.reps}>{(p) => <input {...p} inputMode="numeric" className={`${inputCls} num`} value={nf.reps} onChange={(e) => setNf({ ...nf, reps: e.target.value })} />}</Field>
+            <Field label="Target Sets" error={nerr.sets}>
+              {(p) => <input {...p} inputMode="numeric" className={`${inputCls} num`} value={nf.sets} onChange={(e) => setNf({ ...nf, sets: e.target.value })} />}
+            </Field>
+            <Field label="Target Repetitions" error={nerr.reps}>
+              {(p) => <input {...p} inputMode="numeric" className={`${inputCls} num`} value={nf.reps} onChange={(e) => setNf({ ...nf, reps: e.target.value })} />}
+            </Field>
           </div>
-          <p className="text-[14px] text-ink-2">New exercises start as "Waiting for PT" until you clear them.</p>
-          <div className="flex gap-3 justify-end"><Btn type="button" variant="secondary" onClick={() => setAdd(false)}>Cancel</Btn><Btn type="submit">Add exercise</Btn></div>
+
+          <Field label="Clinical Instructions & Form Cues">
+            {(p) => <input {...p} placeholder="e.g. 45-second isometric hold, shin vertical" className={inputCls} value={nf.notes} onChange={(e) => setNf({ ...nf, notes: e.target.value })} />}
+          </Field>
+
+          <p className="text-xs text-ink-2 bg-sand/30 p-3 rounded-xl">
+            Newly added movements are initialized as <strong>"Waiting for PT"</strong> until explicitly cleared by the presiding therapist.
+          </p>
+
+          <div className="flex gap-3 justify-end pt-2">
+            <Btn type="button" variant="secondary" onClick={() => setAdd(false)}>
+              Cancel
+            </Btn>
+            <Btn type="submit">Prescribe Exercise</Btn>
+          </div>
         </form>
       </Dialog>
     </div>
