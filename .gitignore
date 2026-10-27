@@ -21,5 +21,13 @@ logs/
 # beside it.
 /.plugins/
 /.opencode-skills/
+/.agents/
+/.claude/
+/.agent/skills/
+skills-lock.json
 screenshots-test/
+
+# Local utility scripts
+scripts/optimize-image.ps1
+
 
