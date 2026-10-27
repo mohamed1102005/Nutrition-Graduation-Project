@@ -115,8 +115,8 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Common
     'common.language': 'Language',
-    'common.switch_to_arabic': 'العربية 🇪🇬',
-    'common.switch_to_english': 'English 🇬🇧',
+    'common.switch_to_arabic': 'العربية',
+    'common.switch_to_english': 'English',
     'common.back': 'Back',
     'common.close': 'Close',
     'common.cancel': 'Cancel',
@@ -498,8 +498,8 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Common
     'common.language': 'اللغة',
-    'common.switch_to_arabic': 'العربية 🇪🇬',
-    'common.switch_to_english': 'English 🇬🇧',
+    'common.switch_to_arabic': 'العربية',
+    'common.switch_to_english': 'English',
     'common.back': 'رجوع',
     'common.close': 'إغلاق',
     'common.cancel': 'إلغاء',

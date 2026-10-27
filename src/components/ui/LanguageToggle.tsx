@@ -10,7 +10,7 @@ interface LanguageToggleProps {
 export function LanguageToggle({ className = '', variant = 'button' }: LanguageToggleProps) {
   const { lang, toggleLang, t } = useLanguage()
 
-  const label = lang === 'en' ? 'العربية 🇪🇬' : 'English 🇬🇧'
+  const label = lang === 'en' ? 'العربية' : 'English'
   const altLang = lang === 'en' ? 'ar' : 'en'
 
   if (variant === 'pill') {

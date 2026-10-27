@@ -90,6 +90,11 @@ async function run() {
           // Count arabic characters vs total characters
           const arabicMatches = bodyText.match(/[\u0600-\u06FF]/g) || [];
 
+          // Language Switch button check
+          const switchBtn = document.querySelector('button[aria-label*="Switch language"]');
+          const switchLabel = switchBtn ? switchBtn.textContent.trim() : '';
+          const hasEgOrGb = /🇪🇬|🇬🇧|\bEG\b|\bGB\b/.test(switchLabel);
+
           return {
             docLang,
             docDir,
@@ -98,19 +103,23 @@ async function run() {
             hasErrorBoundary,
             hasArabicText,
             arabicCharCount: arabicMatches.length,
+            switchLabel,
+            hasEgOrGb,
           };
         });
 
         const errors = [...page.consoleErrors];
         const isArabicCheck = lang === 'ar' ? (info.docDir === 'rtl' && info.hasArabicText && info.arabicCharCount > 50) : true;
-        const passed = errors.length === 0 && !info.hasErrorBoundary && isArabicCheck;
+        const noEgGb = !info.hasEgOrGb;
+        const passed = errors.length === 0 && !info.hasErrorBoundary && isArabicCheck && noEgGb;
 
         if (passed) {
           totalPassed++;
-          console.log(`✅ [${lang.toUpperCase()}] ${item.path} (${item.name}): dir=${info.docDir}, h1="${info.h1.slice(0, 35)}" (AR chars: ${info.arabicCharCount})`);
+          console.log(`✅ [${lang.toUpperCase()}] ${item.path} (${item.name}): dir=${info.docDir}, switchBtn="${info.switchLabel}", h1="${info.h1.slice(0, 30)}"`);
         } else {
           totalFailed++;
           console.error(`❌ [${lang.toUpperCase()}] FAILED: ${item.path} (${item.name})`);
+          if (info.hasEgOrGb) console.error(`   Switch button still contains EG/GB or flag: "${info.switchLabel}"`);
           if (errors.length) console.error('   Console errors:', errors);
           if (info.hasErrorBoundary) console.error('   Error boundary tripped!');
           if (lang === 'ar' && (!info.hasArabicText || info.docDir !== 'rtl' || info.arabicCharCount <= 50)) {
