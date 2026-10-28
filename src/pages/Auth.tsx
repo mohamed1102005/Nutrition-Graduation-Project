@@ -16,25 +16,27 @@ import {
   Plus,
   Copy,
 } from 'lucide-react'
-import { Btn, Field, PasswordInput, inputCls, Wordmark, SVC, Tag } from '../ui'
+import { Btn, Field, PasswordInput, inputCls, Wordmark, SVC, Tag, LanguageToggle } from '../ui'
 import type { Svc } from '../data'
 import { api, ApiError } from '../api'
+import { useLanguage } from '../context/LanguageContext'
 
 function AuthLayout({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
+  const { t } = useLanguage()
   const serviceText = {
     move: 'text-move',
     eat: 'text-eat',
     recover: 'text-recover',
   } as const
   const bands: [Svc, string, string][] = [
-    ['move', 'Workouts that fit your week.', 'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?auto=format&fit=crop&w=900&q=85'],
-    ['eat', 'Meals made from real Egyptian food.', 'https://images.unsplash.com/photo-1568625357288-d3b0051abf0e?auto=format&fit=crop&w=700&q=85'],
-    ['recover', 'Rehab your trainer can see.', 'https://images.unsplash.com/photo-1645005512942-a17817fb7c11?auto=format&fit=crop&w=700&q=85'],
+    ['move', t('auth.banner_move', 'Workouts that fit your week.'), 'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?auto=format&fit=crop&w=900&q=85'],
+    ['eat', t('auth.banner_eat', 'Meals made from real Egyptian food.'), 'https://images.unsplash.com/photo-1568625357288-d3b0051abf0e?auto=format&fit=crop&w=700&q=85'],
+    ['recover', t('auth.banner_recover', 'Rehab your trainer can see.'), 'https://images.unsplash.com/photo-1645005512942-a17817fb7c11?auto=format&fit=crop&w=700&q=85'],
   ]
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
       <div className="hidden lg:flex flex-col" aria-hidden>
-        {bands.map(([k, t, image]) => {
+        {bands.map(([k, text, image]) => {
           const s = SVC[k]
           return (
             <div key={k} className="relative flex flex-1 flex-col justify-end overflow-hidden bg-ink p-8 xl:p-12">
@@ -43,7 +45,7 @@ function AuthLayout({ children, wide = false }: { children: ReactNode; wide?: bo
               <div className={`relative ${serviceText[k]}`}>
                 <s.Icon size={32} strokeWidth={2.4} />
                 <p className="h-display mt-3 text-[40px] xl:text-[56px]">{s.label}</p>
-                <p className="mt-1 font-bold xl:text-[18px]">{t}</p>
+                <p className="mt-1 font-bold xl:text-[18px]">{text}</p>
               </div>
               <div className="pointer-events-none absolute inset-0 bg-ink/15" />
             </div>
@@ -56,9 +58,12 @@ function AuthLayout({ children, wide = false }: { children: ReactNode; wide?: bo
         ))}
       </div>
       <main className="flex flex-col px-5 sm:px-12 py-8 lg:py-12">
-        <Link to="/" aria-label="Rebound home">
-          <Wordmark />
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link to="/" aria-label="Rebound home">
+            <Wordmark />
+          </Link>
+          <LanguageToggle />
+        </div>
         <div className="flex-1 flex items-center">
           <div className={`w-full ${wide ? 'max-w-[560px]' : 'max-w-[440px]'} mx-auto py-10 transition-[max-width,opacity]`}>{children}</div>
         </div>
@@ -71,13 +76,14 @@ const emailOk = (v: string) => /^\S+@\S+\.\S+$/.test(v)
 
 export function Login() {
   const nav = useNavigate()
+  const { t } = useLanguage()
   const [f, setF] = useState({ email: '', password: '' })
   const [err, setErr] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
 
   const validate = (x = f) => ({
-    email: !x.email ? 'Enter your email.' : !emailOk(x.email) ? 'That email looks incomplete. Try name@example.com.' : '',
-    password: !x.password ? 'Enter your password.' : '',
+    email: !x.email ? t('auth.err_enter_email', 'Enter your email.') : !emailOk(x.email) ? t('auth.err_incomplete_email', 'That email looks incomplete. Try name@example.com.') : '',
+    password: !x.password ? t('auth.err_enter_pw', 'Enter your password.') : '',
   })
 
   const submit = async (e: FormEvent) => {
@@ -107,7 +113,7 @@ export function Login() {
       }
     } catch (error: any) {
       setErr({
-        password: error?.message || 'Login failed. Check your email and password.',
+        password: error?.message || t('auth.err_login_failed', 'Login failed. Check your email and password.'),
       })
     } finally {
       setLoading(false)
@@ -116,30 +122,30 @@ export function Login() {
 
   return (
     <AuthLayout>
-      <h1 className="h-display text-[32px]">Welcome back</h1>
-      <p className="text-ink-2 mt-2">Log in to see today's plan.</p>
+      <h1 className="h-display text-[32px]">{t('auth.welcome_back', 'Welcome back')}</h1>
+      <p className="text-ink-2 mt-2">{t('auth.login_sub', "Log in to see today's plan.")}</p>
       <form onSubmit={submit} noValidate className="mt-8 space-y-5">
-        <Field label="Email" error={err.email}>
+        <Field label={t('auth.email', 'Email')} error={err.email}>
           {(p) => (
             <input {...p} type="email" autoComplete="email" className={inputCls} value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} onBlur={() => setErr({ ...err, email: validate().email })} />
           )}
         </Field>
-        <Field label="Password" error={err.password}>
+        <Field label={t('auth.password', 'Password')} error={err.password}>
           {(p) => <PasswordInput {...p} autoComplete="current-password" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} />}
         </Field>
         <div className="flex justify-end -mt-2">
           <a href="#" className="font-semibold underline underline-offset-4 min-h-11 inline-flex items-center">
-            Forgot password?
+            {t('auth.forgot_pw', 'Forgot password?')}
           </a>
         </div>
         <Btn type="submit" className="w-full" disabled={loading}>
-          {loading ? 'Logging in...' : 'Log in'}
+          {loading ? t('auth.logging_in', 'Logging in...') : t('auth.login_btn', 'Log in')}
         </Btn>
       </form>
       <p className="mt-8 text-ink-2">
-        New to Rebound?{' '}
+        {t('auth.new_to_rebound', 'New to Rebound?')}{' '}
         <Link to="/signup" className="font-bold text-ink underline underline-offset-4">
-          Create an account
+          {t('auth.create_account', 'Create an account')}
         </Link>
       </p>
     </AuthLayout>
@@ -156,6 +162,7 @@ const FOCUS_SUGGESTIONS: Record<string, string[]> = {
 
 export function Signup() {
   const nav = useNavigate()
+  const { t } = useLanguage()
   const [params] = useSearchParams()
   const specialist = params.get('role') === 'specialist'
   const [step, setStep] = useState<1 | 2 | 3>(1)
@@ -191,9 +198,9 @@ export function Signup() {
   const [loading, setLoading] = useState(false)
 
   const rules = [
-    ['At least 8 characters', f.password.length >= 8],
-    ['One number', /\d/.test(f.password)],
-    ['One letter', /[a-zA-Z]/.test(f.password)],
+    [t('auth.min_chars', 'At least 8 characters'), f.password.length >= 8],
+    [t('auth.one_number', 'One number'), /\d/.test(f.password)],
+    [t('auth.one_letter', 'One letter'), /[a-zA-Z]/.test(f.password)],
   ] as const
 
   const validateStep1 = () => {
@@ -378,12 +385,12 @@ export function Signup() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="h-display text-[30px] sm:text-[34px]">
-            {specialist ? 'Join as a verified specialist' : 'Create your account'}
+            {specialist ? t('auth.join_specialist_title', 'Join as a verified specialist') : t('auth.signup_title', 'Create your account')}
           </h1>
           <p className="text-ink-2 mt-1.5 text-[15px]">
             {specialist
-              ? 'Trainers, dietitians, and physical therapists. Submit credentials and legal papers for medical licensing review.'
-              : 'Free to start. Pick specialists after your assessment.'}
+              ? t('auth.join_specialist_sub', 'Trainers, dietitians, and physical therapists. Submit credentials and legal papers for medical licensing review.')
+              : t('auth.signup_sub', 'Free to start. Pick specialists after your assessment.')}
           </p>
         </div>
       </div>
@@ -391,9 +398,9 @@ export function Signup() {
       {specialist && (
         <div className="mt-6 mb-8 bg-paper border border-line rounded-2xl p-4">
           <div className="flex items-center justify-between text-[13px] font-semibold text-ink-2 mb-2.5">
-            <span className={step === 1 ? 'text-ink font-bold' : ''}>1. Account & Specialty</span>
-            <span className={step === 2 ? 'text-ink font-bold' : ''}>2. Legal Papers & Licensure</span>
-            <span className={step === 3 ? 'text-ink font-bold' : ''}>3. Practice & Rates</span>
+            <span className={step === 1 ? 'text-ink font-bold' : ''}>{t('auth.step1_title', '1. Account & Specialty')}</span>
+            <span className={step === 2 ? 'text-ink font-bold' : ''}>{t('auth.step2_title', '2. Legal Papers & Licensure')}</span>
+            <span className={step === 3 ? 'text-ink font-bold' : ''}>{t('auth.step3_title', '3. Practice & Rates')}</span>
           </div>
           <div className="grid grid-cols-3 gap-2">
             <div className={`h-2 rounded-full transition-all ${step >= 1 ? 'bg-ink' : 'bg-line'}`} />
@@ -412,7 +419,7 @@ export function Signup() {
       {/* CLIENT SIGNUP OR SPECIALIST STEP 1 */}
       {(!specialist || step === 1) && (
         <form onSubmit={specialist ? handleNextStep : submit} noValidate className="space-y-5">
-          <Field label="Full legal name" error={err.name}>
+          <Field label={t('auth.legal_name', 'Full legal name')} error={err.name}>
             {(p) => (
               <input
                 {...p}
@@ -426,7 +433,7 @@ export function Signup() {
           </Field>
 
           {specialist && (
-            <Field label="Clinical / Coaching Profession" error={err.profession}>
+            <Field label={t('auth.specialist_prof', 'Clinical / Coaching Profession')} error={err.profession}>
               {(p) => (
                 <select
                   {...p}
@@ -445,10 +452,10 @@ export function Signup() {
           {specialist && (
             <div>
               <label className="label block text-ink mb-1.5 font-semibold text-[14px]">
-                Specialization & Focus Areas
+                {t('auth.focus_areas', 'Specialization & Focus Areas')}
               </label>
               <p className="text-[13px] text-ink-2 mb-2.5">
-                Select areas matching your clinical practice:
+                {t('auth.focus_areas_sub', 'Select areas matching your clinical practice:')}
               </p>
               <div className="flex flex-wrap gap-2">
                 {(FOCUS_SUGGESTIONS[f.profession] || []).map((tag) => {
@@ -474,7 +481,7 @@ export function Signup() {
               <div className="mt-3 flex gap-2">
                 <input
                   type="text"
-                  placeholder="Add custom specialty tag..."
+                  placeholder={t('auth.add_focus_tag', 'Add custom specialty tag...')}
                   className={`${inputCls} text-[14px]`}
                   value={f.customFocus}
                   onChange={(e) => setF({ ...f, customFocus: e.target.value })}
@@ -490,13 +497,13 @@ export function Signup() {
                   onClick={() => addCustomFocus()}
                   className="px-4 py-2 bg-paper border border-line rounded-xl text-[14px] font-bold text-ink hover:border-ink cursor-pointer"
                 >
-                  Add
+                  {t('auth.add_btn', 'Add')}
                 </button>
               </div>
             </div>
           )}
 
-          <Field label="Email address" error={err.email}>
+          <Field label={t('auth.email_addr', 'Email address')} error={err.email}>
             {(p) => (
               <input
                 {...p}
@@ -511,7 +518,7 @@ export function Signup() {
           </Field>
 
           <div>
-            <Field label="Password" error={err.password}>
+            <Field label={t('auth.password', 'Password')} error={err.password}>
               {(p) => (
                 <PasswordInput
                   {...p}
@@ -522,15 +529,15 @@ export function Signup() {
               )}
             </Field>
             <ul className="-mt-1 space-y-1" aria-label="Password rules">
-              {rules.map(([t, ok]) => (
+              {rules.map(([tText, ok]) => (
                 <li
-                  key={t}
+                  key={tText}
                   className={`flex items-center gap-2 text-[14px] ${
                     ok ? 'text-[#1d6b3d] font-semibold' : 'text-ink-2'
                   }`}
                 >
                   {ok ? <Check size={16} strokeWidth={3} aria-hidden /> : <Circle size={16} aria-hidden />}
-                  {t}
+                  {tText}
                   <span className="sr-only">{ok ? ', done' : ', not yet'}</span>
                 </li>
               ))}
@@ -540,12 +547,12 @@ export function Signup() {
           <Btn type="submit" className="w-full" disabled={loading}>
             {specialist ? (
               <span className="flex items-center justify-center gap-2">
-                Next: Legal Papers & Licensure <ArrowRight size={18} />
+                {t('auth.next_legal', 'Next: Legal Papers & Licensure')} <ArrowRight size={18} />
               </span>
             ) : loading ? (
-              'Creating account...'
+              t('auth.creating_btn', 'Creating account...')
             ) : (
-              'Create account'
+              t('auth.create_btn', 'Create account')
             )}
           </Btn>
         </form>
@@ -558,15 +565,15 @@ export function Signup() {
             <ShieldCheck size={24} className="text-ink shrink-0 mt-0.5" />
             <div className="text-[13px] leading-relaxed text-ink-2">
               <strong className="text-ink block font-semibold text-[14px]">
-                Medical Syndicate & Licensing Compliance
+                {t('auth.compliance_notice_title', 'Medical Syndicate & Licensing Compliance')}
               </strong>
-              Egyptian Ministry of Health and applicable professional syndicate regulations require verifying national identity and clinical accreditation before accepting client bookings.
+              {t('auth.compliance_notice_desc', 'Egyptian Ministry of Health and applicable professional syndicate regulations require verifying national identity and clinical accreditation before accepting client bookings.')}
             </div>
           </div>
 
           <Field
-            label="National ID or Passport Number"
-            helper="14-digit Egyptian National ID or valid passport number"
+            label={t('auth.national_id', 'National ID or Passport Number')}
+            helper={t('auth.national_id_helper', '14-digit Egyptian National ID or valid passport number')}
             error={err.nationalId}
           >
             {(p) => (
@@ -581,8 +588,8 @@ export function Signup() {
           </Field>
 
           <Field
-            label="Syndicate / Practice License Registration Number"
-            helper="Registration ID with the Syndicate of Physical Therapy, Doctors, or Sports Syndicate"
+            label={t('auth.syndicate_id', 'Syndicate / Practice License Registration Number')}
+            helper={t('auth.syndicate_id_helper', 'Registration ID with the Syndicate of Physical Therapy, Doctors, or Sports Syndicate')}
             error={err.syndicateId}
           >
             {(p) => (
@@ -597,8 +604,8 @@ export function Signup() {
           </Field>
 
           <Field
-            label="Academic Qualifications & Degree"
-            helper="Degrees, issuing universities, fellowships and clinical certifications"
+            label={t('auth.credentials', 'Academic Qualifications & Degree')}
+            helper={t('auth.credentials_helper', 'Degrees, issuing universities, fellowships and clinical certifications')}
             error={err.credentials}
           >
             {(p) => (
@@ -614,10 +621,10 @@ export function Signup() {
 
           <div>
             <label className="label block text-ink mb-1.5 font-semibold text-[14px]">
-              Legal Credential Documents & Certificates
+              {t('auth.documents_title', 'Legal Credential Documents & Certificates')}
             </label>
             <p className="text-[13px] text-ink-2 mb-3">
-              Attach Syndicate license, university certificate, and national ID copies for administration review:
+              {t('auth.documents_sub', 'Attach Syndicate license, university certificate, and national ID copies for administration review:')}
             </p>
 
             {err.documents && (
@@ -634,7 +641,7 @@ export function Signup() {
                     <FileText size={20} className="text-ink-2" />
                     <div>
                       <p className="font-semibold text-[14px] text-ink">{doc.name}</p>
-                      <p className="text-[12px] text-ink-2">{doc.size} · Verified format</p>
+                      <p className="text-[12px] text-ink-2">{doc.size} · {t('auth.verified_format', 'Verified format')}</p>
                     </div>
                   </div>
                   <button
@@ -652,7 +659,7 @@ export function Signup() {
             <div className="flex gap-2">
               <input
                 type="text"
-                placeholder="Add other document (e.g. First_Aid_Cert.pdf)..."
+                placeholder={t('auth.add_doc_placeholder', 'Add other document (e.g. First_Aid_Cert.pdf)...')}
                 className={`${inputCls} text-[14px]`}
                 value={f.newDocName}
                 onChange={(e) => setF({ ...f, newDocName: e.target.value })}
@@ -668,7 +675,7 @@ export function Signup() {
                 onClick={() => addDocument()}
                 className="px-4 py-2 bg-paper border border-line rounded-xl text-[14px] font-bold text-ink hover:border-ink shrink-0 cursor-pointer flex items-center gap-1.5"
               >
-                <Plus size={16} /> Attach
+                <Plus size={16} /> {t('auth.attach_btn', 'Attach')}
               </button>
             </div>
           </div>
@@ -680,10 +687,10 @@ export function Signup() {
               className="flex-1"
               onClick={() => setStep(1)}
             >
-              <ArrowLeft size={18} /> Back
+              <ArrowLeft size={18} /> {t('common.back', 'Back')}
             </Btn>
             <Btn type="submit" className="flex-[2]">
-              Next: Practice & Rates <ArrowRight size={18} />
+              {t('auth.next_practice', 'Next: Practice & Rates')} <ArrowRight size={18} />
             </Btn>
           </div>
         </form>
@@ -693,7 +700,7 @@ export function Signup() {
       {specialist && step === 3 && (
         <form onSubmit={submit} noValidate className="space-y-5">
           <div className="grid sm:grid-cols-2 gap-4">
-            <Field label="City / Governorate" error={err.city}>
+            <Field label={t('auth.city', 'City / Governorate')} error={err.city}>
               {(p) => (
                 <select
                   {...p}
@@ -710,7 +717,7 @@ export function Signup() {
               )}
             </Field>
 
-            <Field label="Years of Experience" error={err.yearsExperience}>
+            <Field label={t('auth.years_experience', 'Years of Experience')} error={err.yearsExperience}>
               {(p) => (
                 <input
                   {...p}
@@ -727,8 +734,8 @@ export function Signup() {
 
           <div className="grid sm:grid-cols-2 gap-4">
             <Field
-              label="Session Rate (EGP)"
-              helper="Price charged per standard 30-min session"
+              label={t('auth.session_rate', 'Session Rate (EGP)')}
+              helper={t('auth.session_rate_helper', 'Price charged per standard 30-min session')}
               error={err.rateEgp}
             >
               {(p) => (
@@ -757,8 +764,8 @@ export function Signup() {
             </Field>
 
             <Field
-              label="4-Session Package (EGP)"
-              helper="Bundle package price with recommended 10% discount"
+              label={t('auth.package_rate', '4-Session Package (EGP)')}
+              helper={t('auth.package_rate_helper', 'Bundle package price with recommended 10% discount')}
             >
               {(p) => (
                 <div className="relative">
@@ -779,7 +786,7 @@ export function Signup() {
             </Field>
           </div>
 
-          <Field label="Languages spoken">
+          <Field label={t('auth.languages', 'Languages spoken')}>
             {(p) => (
               <input
                 {...p}
@@ -792,8 +799,8 @@ export function Signup() {
           </Field>
 
           <Field
-            label="Professional Bio & Clinical Philosophy"
-            helper="Brief summary visible on your public specialist profile"
+            label={t('auth.bio', 'Professional Bio & Clinical Philosophy')}
+            helper={t('auth.bio_helper', 'Brief summary visible on your public specialist profile')}
           >
             {(p) => (
               <textarea
@@ -815,10 +822,10 @@ export function Signup() {
               onClick={() => setStep(2)}
               disabled={loading}
             >
-              <ArrowLeft size={18} /> Back
+              <ArrowLeft size={18} /> {t('common.back', 'Back')}
             </Btn>
             <Btn type="submit" className="flex-[2]" disabled={loading}>
-              {loading ? 'Submitting Application...' : 'Submit for Verification'}
+              {loading ? t('auth.submitting_app', 'Submitting Application...') : t('auth.submit_verification', 'Submit for Verification')}
             </Btn>
           </div>
         </form>
@@ -826,31 +833,31 @@ export function Signup() {
 
       <div className="mt-8 space-y-1 text-ink-2">
         <p>
-          Already have an account?{' '}
+          {t('auth.have_account', 'Already have an account?')}{' '}
           <Link to="/login" className="font-bold text-ink underline underline-offset-4">
-            Log in
+            {t('auth.login_btn', 'Log in')}
           </Link>
         </p>
         <p>
-          Have an invite code?{' '}
+          {t('auth.have_invite', 'Have an invite code?')}{' '}
           <Link to="/join" className="font-bold text-ink underline underline-offset-4">
-            Join your team
+            {t('auth.join_team', 'Join your team')}
           </Link>
         </p>
         <p>
-          Looking to sponsor your team?{' '}
+          {t('auth.sponsor_team', 'Looking to sponsor your team?')}{' '}
           <Link to="/register-org" className="font-bold text-ink underline underline-offset-4">
-            Register an organization
+            {t('auth.register_org', 'Register an organization')}
           </Link>
         </p>
         <p>
           {specialist ? (
             <Link to="/signup" className="font-bold text-ink underline underline-offset-4">
-              Sign up as a client instead
+              {t('auth.signup_client_instead', 'Sign up as a client instead')}
             </Link>
           ) : (
             <Link to="/signup?role=specialist" className="font-bold text-ink underline underline-offset-4">
-              Join as a specialist
+              {t('auth.join_specialist', 'Join as a specialist')}
             </Link>
           )}
         </p>
@@ -865,6 +872,7 @@ export function Signup() {
  */
 export function JoinOrg() {
   const nav = useNavigate()
+  const { t } = useLanguage()
   const [f, setF] = useState({
     inviteCode: '',
     name: '',
@@ -915,12 +923,12 @@ export function JoinOrg() {
           <Building2 size={22} />
         </div>
         <span className="text-xs font-bold tracking-wider uppercase bg-sand px-2.5 py-1 rounded-full text-ink">
-          Sponsored Access
+          {t('auth.sponsored_access', 'Sponsored Access')}
         </span>
       </div>
-      <h1 className="h-display text-[32px]">Join your organization</h1>
+      <h1 className="h-display text-[32px]">{t('auth.join_title', 'Join your organization')}</h1>
       <p className="text-ink-2 mt-2">
-        Enter the invite code provided by your company, university, or club to get sponsored wellness access.
+        {t('auth.join_sub', 'Enter the invite code provided by your company, university, or club to get sponsored wellness access.')}
       </p>
 
       {err.global && (
@@ -931,8 +939,8 @@ export function JoinOrg() {
 
       <form onSubmit={submit} noValidate className="mt-8 space-y-5">
         <Field
-          label="Organization Invite Code"
-          helper="8-character uppercase code (e.g. APEX2026)"
+          label={t('auth.invite_code', 'Organization Invite Code')}
+          helper={t('auth.invite_code_helper', '8-character uppercase code (e.g. APEX2026)')}
           error={err.inviteCode}
         >
           {(p) => (
@@ -948,7 +956,7 @@ export function JoinOrg() {
           )}
         </Field>
 
-        <Field label="Full name" error={err.name}>
+        <Field label={t('auth.legal_name', 'Full name')} error={err.name}>
           {(p) => (
             <input
               {...p}
@@ -962,7 +970,7 @@ export function JoinOrg() {
           )}
         </Field>
 
-        <Field label="Work / Personal Email" error={err.email}>
+        <Field label={t('auth.work_email', 'Work / Personal Email')} error={err.email}>
           {(p) => (
             <input
               {...p}
@@ -976,7 +984,7 @@ export function JoinOrg() {
           )}
         </Field>
 
-        <Field label="Create Password" error={err.password}>
+        <Field label={t('auth.create_pw', 'Create Password')} error={err.password}>
           {(p) => (
             <PasswordInput
               {...p}
@@ -988,21 +996,21 @@ export function JoinOrg() {
         </Field>
 
         <Btn type="submit" className="w-full" disabled={loading}>
-          {loading ? 'Joining organization...' : 'Join with invite code'}
+          {loading ? t('auth.joining_btn', 'Joining organization...') : t('auth.join_btn', 'Join with invite code')}
         </Btn>
       </form>
 
       <div className="mt-8 space-y-1 text-ink-2">
         <p>
-          Already have an account?{' '}
+          {t('auth.have_account', 'Already have an account?')}{' '}
           <Link to="/login" className="font-bold text-ink underline underline-offset-4">
-            Log in
+            {t('auth.login_btn', 'Log in')}
           </Link>
         </p>
         <p>
-          Individual member without a team code?{' '}
+          {t('auth.individual_signup', 'Individual member without a team code?')}{' '}
           <Link to="/signup" className="font-bold text-ink underline underline-offset-4">
-            Individual sign up
+            {t('auth.individual_signup_link', 'Individual sign up')}
           </Link>
         </p>
       </div>
@@ -1015,6 +1023,7 @@ export function JoinOrg() {
  * Displays the unique invite code immediately upon registration with copy functionality.
  */
 export function RegisterOrg() {
+  const { t } = useLanguage()
   const [f, setF] = useState({
     organizationName: '',
     type: 'company' as 'company' | 'university' | 'gym' | 'other',
@@ -1093,14 +1102,14 @@ export function RegisterOrg() {
           <div className="size-16 rounded-2xl bg-ok/10 text-ok flex items-center justify-center mx-auto mb-4">
             <Check size={32} strokeWidth={2.5} />
           </div>
-          <h1 className="h-display text-[32px]">Organization Registered!</h1>
+          <h1 className="h-display text-[32px]">{t('auth.org_registered_title', 'Organization Registered!')}</h1>
           <p className="text-ink-2 mt-2 max-w-md mx-auto">
-            <strong>{createdOrg.name}</strong> has been registered with {createdOrg.seatLimit} sponsored member seats.
+            <strong>{createdOrg.name}</strong> {t('auth.org_registered_sub', 'has been registered with sponsored member seats.')}
           </p>
 
           <div className="mt-8 p-6 bg-paper rounded-2xl border border-line text-left">
             <span className="text-xs font-bold uppercase tracking-wider text-ink-2 block mb-2">
-              Your Team Invite Code
+              {t('auth.team_invite_code', 'Your Team Invite Code')}
             </span>
             <div className="flex items-center justify-between gap-3 bg-white p-4 rounded-xl border border-line">
               <span className="font-mono text-2xl font-bold tracking-widest text-ink select-all">
@@ -1114,17 +1123,17 @@ export function RegisterOrg() {
               >
                 {copied ? (
                   <>
-                    <Check size={16} className="text-ok" /> Copied!
+                    <Check size={16} className="text-ok" /> {t('auth.copied', 'Copied!')}
                   </>
                 ) : (
                   <>
-                    <Copy size={16} /> Copy code
+                    <Copy size={16} /> {t('auth.copy_code', 'Copy code')}
                   </>
                 )}
               </Btn>
             </div>
             <p className="text-xs text-ink-2 mt-3 leading-relaxed">
-              Share this code with your members. They will enter it on the join page to activate their sponsored membership immediately without payment.
+              {t('auth.invite_code_instruction', 'Share this code with your members. They will enter it on the join page to activate their sponsored membership immediately without payment.')}
             </p>
           </div>
 
@@ -1133,7 +1142,7 @@ export function RegisterOrg() {
               to="/app/org"
               className="w-full text-base py-3.5 gap-2"
             >
-              Continue to organization dashboard <ArrowRight size={18} />
+              {t('auth.continue_org_dashboard', 'Continue to organization dashboard')} <ArrowRight size={18} />
             </Btn>
           </div>
         </div>
@@ -1148,12 +1157,12 @@ export function RegisterOrg() {
           <Building2 size={22} />
         </div>
         <span className="text-xs font-bold tracking-wider uppercase bg-sand px-2.5 py-1 rounded-full text-ink">
-          B2B Organization Portal
+          {t('auth.b2b_portal', 'B2B Organization Portal')}
         </span>
       </div>
-      <h1 className="h-display text-[32px]">Register your organization</h1>
+      <h1 className="h-display text-[32px]">{t('auth.reg_org_title', 'Register your organization')}</h1>
       <p className="text-ink-2 mt-2">
-        Equip your team with personalized nutrition, training, and recovery. Bring your own specialists or use ours.
+        {t('auth.reg_org_sub', 'Equip your team with personalized nutrition, training, and recovery. Bring your own specialists or use ours.')}
       </p>
 
       {err.global && (
@@ -1164,7 +1173,7 @@ export function RegisterOrg() {
 
       <form onSubmit={submit} noValidate className="mt-8 space-y-5">
         <div className="grid sm:grid-cols-2 gap-4">
-          <Field label="Organization Name" error={err.organizationName}>
+          <Field label={t('auth.org_name', 'Organization Name')} error={err.organizationName}>
             {(p) => (
               <input
                 {...p}
@@ -1176,7 +1185,7 @@ export function RegisterOrg() {
             )}
           </Field>
 
-          <Field label="Organization Type">
+          <Field label={t('auth.org_type', 'Organization Type')}>
             {(p) => (
               <select
                 {...p}
@@ -1189,18 +1198,18 @@ export function RegisterOrg() {
                   })
                 }
               >
-                <option value="company">Corporate / Company</option>
-                <option value="university">University / School</option>
-                <option value="gym">Gym / Fitness Club</option>
-                <option value="other">Other Community</option>
+                <option value="company">{t('auth.org_type_company', 'Corporate / Company')}</option>
+                <option value="university">{t('auth.org_type_university', 'University / School')}</option>
+                <option value="gym">{t('auth.org_type_gym', 'Gym / Fitness Club')}</option>
+                <option value="other">{t('auth.org_type_other', 'Other Community')}</option>
               </select>
             )}
           </Field>
         </div>
 
         <Field
-          label="Seat Limit"
-          helper="Total number of client members your organization will sponsor (1 to 500)"
+          label={t('auth.seat_limit', 'Seat Limit')}
+          helper={t('auth.seat_limit_helper', 'Total number of client members your organization will sponsor (1 to 500)')}
           error={err.seatLimit}
         >
           {(p) => (
@@ -1218,10 +1227,10 @@ export function RegisterOrg() {
 
         <div className="pt-2 border-t border-line">
           <h2 className="text-sm font-bold text-ink uppercase tracking-wider mb-3">
-            Lead Administrator Account
+            {t('auth.lead_admin_section', 'Lead Administrator Account')}
           </h2>
           <div className="space-y-4">
-            <Field label="Admin Full Name" error={err.adminName}>
+            <Field label={t('auth.admin_name_field', 'Admin Full Name')} error={err.adminName}>
               {(p) => (
                 <input
                   {...p}
@@ -1235,7 +1244,7 @@ export function RegisterOrg() {
             </Field>
 
             <div className="grid sm:grid-cols-2 gap-4">
-              <Field label="Admin Email" error={err.email}>
+              <Field label={t('auth.admin_email_field', 'Admin Email')} error={err.email}>
                 {(p) => (
                   <input
                     {...p}
@@ -1249,7 +1258,7 @@ export function RegisterOrg() {
                 )}
               </Field>
 
-              <Field label="Admin Password" error={err.password}>
+              <Field label={t('auth.admin_pw_field', 'Admin Password')} error={err.password}>
                 {(p) => (
                   <PasswordInput
                     {...p}
@@ -1264,21 +1273,21 @@ export function RegisterOrg() {
         </div>
 
         <Btn type="submit" className="w-full mt-4" disabled={loading}>
-          {loading ? 'Creating organization...' : 'Create organization & get invite code'}
+          {loading ? t('auth.reg_org_creating', 'Creating organization...') : t('auth.reg_org_btn', 'Create organization & get invite code')}
         </Btn>
       </form>
 
       <div className="mt-8 space-y-1 text-ink-2">
         <p>
-          Already registered?{' '}
+          {t('auth.have_account', 'Already registered?')}{' '}
           <Link to="/login" className="font-bold text-ink underline underline-offset-4">
-            Log in to dashboard
+            {t('auth.login_btn', 'Log in to dashboard')}
           </Link>
         </p>
         <p>
-          Have an invite code instead?{' '}
+          {t('auth.have_invite', 'Have an invite code instead?')}{' '}
           <Link to="/join" className="font-bold text-ink underline underline-offset-4">
-            Join your organization
+            {t('auth.join_team', 'Join your organization')}
           </Link>
         </p>
       </div>

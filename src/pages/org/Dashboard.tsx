@@ -233,56 +233,56 @@ export default function OrgDashboard() {
         {/* Total Members */}
         <Card className="p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between text-ink-2 mb-3">
-            <span className="text-xs font-semibold uppercase text-ink-2">Total Members</span>
+            <span className="text-xs font-semibold uppercase text-ink-2">{t('org.stat_members', 'Total Members')}</span>
             <Users size={18} className="text-ink-2" aria-hidden />
           </div>
           <div>
             <span className="num text-3xl font-bold text-ink">
               {stats?.totalMembers ?? 0}
             </span>
-            <p className="text-xs text-ink-2 mt-1">Enrolled accounts</p>
+            <p className="text-xs text-ink-2 mt-1">{t('org.stat_members_sub', 'Enrolled accounts')}</p>
           </div>
         </Card>
 
         {/* Members With Care Team */}
         <Card className="p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between text-ink-2 mb-3">
-            <span className="text-xs font-semibold uppercase text-ink-2">Assigned</span>
+            <span className="text-xs font-semibold uppercase text-ink-2">{t('org.stat_assigned', 'Assigned')}</span>
             <UserCheck size={18} className="text-move" aria-hidden />
           </div>
           <div>
             <span className="num text-3xl font-bold text-ink">
               {stats?.membersWithAssignment ?? 0}
             </span>
-            <p className="text-xs text-ink-2 mt-1">Paired with specialist</p>
+            <p className="text-xs text-ink-2 mt-1">{t('org.stat_assigned_sub', 'Paired with specialist')}</p>
           </div>
         </Card>
 
         {/* Members Pending Match */}
         <Card className="p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between text-ink-2 mb-3">
-            <span className="text-xs font-semibold uppercase text-ink-2">Unassigned</span>
+            <span className="text-xs font-semibold uppercase text-ink-2">{t('org.stat_unassigned', 'Unassigned')}</span>
             <UserMinus size={18} className="text-warn" aria-hidden />
           </div>
           <div>
             <span className="num text-3xl font-bold text-ink">
               {stats?.membersWithoutAssignment ?? 0}
             </span>
-            <p className="text-xs text-ink-2 mt-1">Awaiting specialist pairing</p>
+            <p className="text-xs text-ink-2 mt-1">{t('org.stat_unassigned_sub', 'Awaiting specialist pairing')}</p>
           </div>
         </Card>
 
         {/* Active Members (Last 7 Days) */}
         <Card className="p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between text-ink-2 mb-3">
-            <span className="text-xs font-semibold uppercase text-ink-2">7d Active</span>
+            <span className="text-xs font-semibold uppercase text-ink-2">{t('org.stat_active', '7d Active')}</span>
             <Activity size={18} className="text-ok" aria-hidden />
           </div>
           <div>
             <span className="num text-3xl font-bold text-ink">
               {stats?.activeMembersLast7Days ?? 0}
             </span>
-            <p className="text-xs text-ink-2 mt-1">Logged activity this week</p>
+            <p className="text-xs text-ink-2 mt-1">{t('org.stat_active_sub', 'Logged activity this week')}</p>
           </div>
         </Card>
       </div>
@@ -293,13 +293,13 @@ export default function OrgDashboard() {
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-base font-bold text-ink">Assignments by Care Pillar</h2>
+              <h2 className="text-base font-bold text-ink">{t('org.pillar_assignments', 'Assignments by Care Pillar')}</h2>
               <p className="text-xs text-ink-2 mt-0.5">
-                Specialist distribution across Move, Eat, and Recover
+                {t('org.pillar_sub', 'Specialist distribution across Move, Eat, and Recover')}
               </p>
             </div>
             <span className="text-xs font-bold bg-sand px-2.5 py-1 rounded-full text-ink num">
-              {totalAssignments} Active Links
+              {totalAssignments} {t('org.active_links', 'Active Links')}
             </span>
           </div>
 
@@ -366,9 +366,9 @@ export default function OrgDashboard() {
         {/* Operational Roster Shortcuts */}
         <Card className="p-6 flex flex-col justify-between">
           <div>
-            <h2 className="text-base font-bold text-ink">Organization Operations</h2>
+            <h2 className="text-base font-bold text-ink">{t('org.operations_title', 'Organization Operations')}</h2>
             <p className="text-xs text-ink-2 mt-0.5 mb-5">
-              Direct access to your corporate team and health specialists.
+              {t('org.operations_sub', 'Direct access to your corporate team and health specialists.')}
             </p>
 
             <div className="space-y-3">
@@ -410,7 +410,7 @@ export default function OrgDashboard() {
           <div className="mt-6 pt-4 border-t border-line text-[12px] text-ink-2 flex items-center gap-2">
             <ShieldCheck size={15} className="shrink-0 text-ok" aria-hidden />
             <span>
-              Clinical privacy protection: Individual medical details, injury history, and chat logs remain confidential between member and physician.
+              {t('org.privacy_note', 'Clinical privacy protection: Individual medical details, injury history, and chat logs remain confidential between member and physician.')}
             </span>
           </div>
         </Card>

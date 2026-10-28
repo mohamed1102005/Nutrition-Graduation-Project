@@ -236,13 +236,13 @@ export default function FinanceOverview() {
         {/* Breakdown row: Revenue Streams & Payment Methods */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <Card className="p-6">
-            <p className="font-bold text-[18px] mb-1">Income Streams</p>
-            <p className="text-[14px] text-ink-2 mb-5">Subscription plans vs individual consultations</p>
+            <p className="font-bold text-[18px] mb-1">{t('finance.income_streams', 'Income Streams')}</p>
+            <p className="text-[14px] text-ink-2 mb-5">{t('finance.income_streams_sub', 'Subscription plans vs individual consultations')}</p>
 
             <div className="space-y-4">
               <div>
                 <div className="flex justify-between text-[14px] font-semibold mb-1">
-                  <span>Recurring Subscriptions</span>
+                  <span>{t('finance.recurring_subs', 'Recurring Subscriptions')}</span>
                   <span>{(streams?.subscriptions?.amount ?? 0).toLocaleString('en-US')} EGP ({streams?.subscriptions?.percentage ?? 0}%)</span>
                 </div>
                 <div className="w-full h-3 bg-paper rounded-full overflow-hidden border border-line">
@@ -252,11 +252,11 @@ export default function FinanceOverview() {
 
               <div>
                 <div className="flex justify-between text-[14px] font-semibold mb-1">
-                  <span>1-on-1 Consultations</span>
+                  <span>{t('finance.consultations', '1-on-1 Consultations')}</span>
                   <span>{(streams?.sessions?.amount ?? 0).toLocaleString('en-US')} EGP ({streams?.sessions?.percentage ?? 0}%)</span>
                 </div>
                 <div className="w-full h-3 bg-paper rounded-full overflow-hidden border border-line">
-                  <div className="h-full bg-move rounded-full" style={{ width: `${streams.sessions.percentage}%` }} />
+                  <div className="h-full bg-move rounded-full" style={{ width: `${streams?.sessions?.percentage ?? 0}%` }} />
                 </div>
               </div>
             </div>
@@ -270,8 +270,8 @@ export default function FinanceOverview() {
           </Card>
 
           <Card className="p-6">
-            <p className="font-bold text-[18px] mb-1">Payment Methods</p>
-            <p className="text-[14px] text-ink-2 mb-5">Distribution of collected payments in Egypt</p>
+            <p className="font-bold text-[18px] mb-1">{t('finance.payment_methods', 'Payment Methods')}</p>
+            <p className="text-[14px] text-ink-2 mb-5">{t('finance.payment_methods_sub', 'Distribution of collected payments in Egypt')}</p>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="p-3 bg-paper rounded-xl border border-line">
@@ -305,8 +305,8 @@ export default function FinanceOverview() {
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="font-bold text-[18px]">Recent Ledger Entries</p>
-              <p className="text-[14px] text-ink-2">Latest collections and consultations</p>
+              <p className="font-bold text-[18px]">{t('finance.recent_ledger', 'Recent Ledger Entries')}</p>
+              <p className="text-[14px] text-ink-2">{t('finance.recent_ledger_sub', 'Latest collections and consultations')}</p>
             </div>
             <Link to="/app/finance/transactions" className="font-bold text-[14px] text-ink hover:underline inline-flex items-center gap-1.5">
               Full Ledger <ArrowRight size={16} />
@@ -317,11 +317,11 @@ export default function FinanceOverview() {
             <table className="w-full text-left text-[14px]">
               <thead className="text-[12px] uppercase text-ink-2 border-b border-line">
                 <tr>
-                  <th className="pb-3 font-semibold">Reference</th>
-                  <th className="pb-3 font-semibold">Customer</th>
-                  <th className="pb-3 font-semibold">Description</th>
-                  <th className="pb-3 font-semibold">Method</th>
-                  <th className="pb-3 font-semibold text-right">Amount</th>
+                  <th className="pb-3 font-semibold">{t('finance.th_ref', 'Reference')}</th>
+                  <th className="pb-3 font-semibold">{t('finance.th_customer', 'Customer')}</th>
+                  <th className="pb-3 font-semibold">{t('finance.th_desc', 'Description')}</th>
+                  <th className="pb-3 font-semibold">{t('finance.th_method', 'Method')}</th>
+                  <th className="pb-3 font-semibold text-right">{t('finance.th_amount', 'Amount')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">

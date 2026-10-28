@@ -137,6 +137,7 @@ function ExerciseCard({
   onToggleComplete: () => void
   svc: Svc
 }) {
+  const { t } = useLanguage()
   const [open, setOpen] = useState(false)
 
   return (
@@ -173,11 +174,11 @@ function ExerciseCard({
             {svc !== 'eat' && (
               e.cleared ? (
                 <span className="inline-flex items-center gap-1 rounded-full bg-ok-tint text-[#1d6b3d] px-2.5 py-0.5 text-[11px] font-bold tracking-tight">
-                  <ShieldCheck size={12} aria-hidden /> Cleared
+                  <ShieldCheck size={12} aria-hidden /> {t('plan.cleared', 'Cleared')}
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1 rounded-full bg-warn-tint text-[#7a5200] px-2.5 py-0.5 text-[11px] font-bold tracking-tight">
-                  <Hourglass size={12} aria-hidden /> Waiting for PT
+                  <Hourglass size={12} aria-hidden /> {t('plan.waiting_pt', 'Waiting for PT')}
                 </span>
               )
             )}
@@ -189,18 +190,18 @@ function ExerciseCard({
             </span>
             <span className="size-1 rounded-full bg-line" aria-hidden />
             <span>
-              Tempo: <strong className="text-ink font-semibold">{e.tempo}</strong>
+              {t('plan.tempo', 'Tempo: ')}<strong className="text-ink font-semibold">{e.tempo}</strong>
             </span>
             <span className="size-1 rounded-full bg-line" aria-hidden />
             <span>
-              Rest: <strong className="text-ink font-semibold">{e.rest}</strong>
+              {t('plan.rest', 'Rest: ')}<strong className="text-ink font-semibold">{e.rest}</strong>
             </span>
           </div>
 
           {open && (
             <div className="mt-3.5 pt-3.5 border-t border-line text-[14px] leading-relaxed text-ink-2 bg-sand/30 p-3.5 rounded-xl">
               <p className="font-medium text-ink mb-1 flex items-center gap-1.5 text-xs uppercase tracking-wider">
-                <Info size={13} className="text-ink-2" aria-hidden /> Execution & Form Cues
+                <Info size={13} className="text-ink-2" aria-hidden /> {t('plan.cues_title', 'Execution & Form Cues')}
               </p>
               <p>{e.how}</p>
             </div>
@@ -211,7 +212,7 @@ function ExerciseCard({
           type="button"
           onClick={() => setOpen(!open)}
           aria-expanded={open}
-          aria-label={open ? 'Hide details' : 'Show details'}
+          aria-label={open ? t('plan.hide_details', 'Hide details') : t('plan.show_details', 'Show details')}
           className="size-8 rounded-lg hover:bg-paper grid place-items-center text-ink-2 transition shrink-0 cursor-pointer"
         >
           <ChevronDown size={18} className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
@@ -249,7 +250,7 @@ function MealCard({
             )}
           </div>
           <h3 className="font-bold text-[17px] text-ink mt-1">
-            {isAlt ? currentMeal.title : m.what}
+            {isAlt && 'title' in currentMeal ? currentMeal.title : m.what}
           </h3>
         </div>
 
@@ -585,18 +586,18 @@ export default function Plan() {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                       <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-ink-2 mb-1">
-                        <Calendar size={13} aria-hidden /> {day}'s Training Session · {currentMoveWorkout.duration}
+                        <Calendar size={13} aria-hidden /> {day}{t('plan.training_session', "'S TRAINING SESSION · ")}{currentMoveWorkout.duration}
                       </div>
                       <h2 className="h-display text-[22px] sm:text-[24px] font-bold text-ink">
                         {currentMoveWorkout.title}
                       </h2>
                       <p className="text-sm text-ink-2 mt-0.5">
-                        Focus: <strong className="text-ink font-semibold">{currentMoveWorkout.focus}</strong>
+                        {t('plan.focus', 'Focus: ')}<strong className="text-ink font-semibold">{currentMoveWorkout.focus}</strong>
                       </p>
                     </div>
 
                     <Btn to="/session" variant="secondary" className="gap-2 shrink-0">
-                      <Play size={14} fill="currentColor" aria-hidden /> Enter Guided Session
+                      <Play size={14} fill="currentColor" aria-hidden /> {t('plan.enter_session', 'Enter Guided Session')}
                     </Btn>
                   </div>
                 </Card>

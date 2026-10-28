@@ -178,10 +178,10 @@ export default function Overview() {
             </span>
             <div>
               <p className="font-bold text-ink text-[15px]">
-                {pendingCount} Specialist Credential{pendingCount === 1 ? '' : 's'} Awaiting Verification
+                {pendingCount} {t('admin.awaiting_verification', 'Specialist Credentials Awaiting Verification')}
               </p>
               <p className="text-xs text-ink-2 mt-0.5">
-                Physical therapy syndicate licenses and nutrition certifications require compliance sign-off prior to client booking.
+                {t('admin.license_signoff', 'Physical therapy syndicate licenses and nutrition certifications require compliance sign-off prior to client booking.')}
               </p>
             </div>
           </div>
@@ -189,7 +189,7 @@ export default function Overview() {
             to="/app/approvals"
             className="min-h-10 px-4 rounded-xl bg-ink text-white text-xs font-bold inline-flex items-center gap-1.5 self-end sm:self-auto hover:bg-ink/90 transition shrink-0"
           >
-            Review Queue <ArrowRight size={14} aria-hidden />
+            {t('admin.review_queue', 'Review Queue')} <ArrowRight size={14} aria-hidden />
           </Link>
         </div>
 
@@ -200,11 +200,11 @@ export default function Overview() {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="text-[18px] font-bold text-ink">Administrative Controls</h2>
-                  <p className="text-xs text-ink-2 mt-0.5">Platform governance, dispute resolution, and security.</p>
+                  <h2 className="text-[18px] font-bold text-ink">{t('admin.admin_controls', 'Administrative Controls')}</h2>
+                  <p className="text-xs text-ink-2 mt-0.5">{t('admin.admin_controls_sub', 'Platform governance, dispute resolution, and security.')}</p>
                 </div>
                 <span className="text-xs font-bold text-ok bg-ok-tint px-2.5 py-1 rounded-full">
-                  All Systems Normal
+                  {t('admin.systems_normal', 'All Systems Normal')}
                 </span>
               </div>
 
@@ -218,12 +218,12 @@ export default function Overview() {
                       <ShieldCheck size={20} aria-hidden />
                     </div>
                     <div>
-                      <strong className="text-sm font-bold text-ink block">Syndicate License Verification</strong>
-                      <span className="text-xs text-ink-2">Egyptian Medical Syndicate & PT licenses</span>
+                      <strong className="text-sm font-bold text-ink block">{t('admin.license_verification', 'Syndicate License Verification')}</strong>
+                      <span className="text-xs text-ink-2">{t('admin.license_sub', 'Egyptian Medical Syndicate & PT licenses')}</span>
                     </div>
                   </div>
                   <span className="num text-xs font-bold bg-sand px-2.5 py-1 rounded-full text-ink">
-                    {pendingCount} Pending
+                    {pendingCount} {t('common.pending', 'Pending')}
                   </span>
                 </Link>
 
@@ -273,8 +273,8 @@ export default function Overview() {
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-[18px] font-bold text-ink">Live Platform Activity</h2>
-                <p className="text-xs text-ink-2 mt-0.5">Real-time audit events across Move, Eat, and Recover.</p>
+                <h2 className="text-[18px] font-bold text-ink">{t('admin.live_activity', 'Live Platform Activity')}</h2>
+                <p className="text-xs text-ink-2 mt-0.5">{t('admin.live_activity_sub', 'Real-time audit events across Move, Eat, and Recover.')}</p>
               </div>
               <span className="text-xs font-semibold text-ink-2 flex items-center gap-1.5">
                 <span className="size-2 rounded-full bg-ok animate-pulse" aria-hidden /> Real-time

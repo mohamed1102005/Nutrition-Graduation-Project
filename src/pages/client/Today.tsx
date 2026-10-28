@@ -205,7 +205,7 @@ export default function ClientToday() {
         {/* Metric 1: Workouts This Week */}
         <div className="p-6">
           <div className="flex items-center justify-between text-ink-2 text-[13px] font-semibold uppercase tracking-wider">
-            <span>Workouts this week</span>
+            <span>{t('today.metric_workouts_title', 'Workouts this week')}</span>
             <Dumbbell size={16} className="text-move" aria-hidden />
           </div>
           <div className="flex items-baseline gap-2 mt-2">
@@ -224,36 +224,36 @@ export default function ClientToday() {
           </div>
           <p className="text-[13px] text-ink-2 mt-2.5">
             {workoutsTarget - workoutsThisWeek > 0
-              ? `${workoutsTarget - workoutsThisWeek} session remaining before Sunday.`
-              : 'Weekly target achieved! Outstanding adherence.'}
+              ? `${workoutsTarget - workoutsThisWeek} ${t('today.metric_workouts_remaining', 'session remaining before Sunday.')}`
+              : t('today.metric_target_achieved', 'Weekly target achieved! Outstanding adherence.')}
           </p>
         </div>
 
         {/* Metric 2: Consistency Streak */}
         <div className="p-6">
           <div className="flex items-center justify-between text-ink-2 text-[13px] font-semibold uppercase tracking-wider">
-            <span>Daily habit streak</span>
+            <span>{t('today.metric_streak_title', 'Daily habit streak')}</span>
             <Flame size={16} className="text-warn" aria-hidden />
           </div>
           <div className="flex items-baseline gap-2 mt-2">
             <span className="num text-[44px] font-bold text-ink leading-none">{streak}</span>
-            <span className="text-[16px] font-semibold text-ink-2">days active</span>
+            <span className="text-[16px] font-semibold text-ink-2">{t('today.metric_days_active', 'days active')}</span>
           </div>
           <div className="mt-3.5 flex items-center gap-2">
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-warn-tint text-warn text-[12px] font-bold">
-              <Flame size={12} aria-hidden /> Streak Active
+              <Flame size={12} aria-hidden /> {t('today.metric_streak_active', 'Streak Active')}
             </span>
-            <span className="text-[13px] text-ink-2 font-medium">Best: {Math.max(streak, 9)} days</span>
+            <span className="text-[13px] text-ink-2 font-medium">{t('today.metric_best', 'Best:')} {Math.max(streak, 9)} {t('common.days', 'days')}</span>
           </div>
           <p className="text-[13px] text-ink-2 mt-2.5">
-            Daily logs build stable recovery patterns.
+            {t('today.metric_streak_msg', 'Daily logs build stable recovery patterns.')}
           </p>
         </div>
 
         {/* Metric 3: Joint Pain Status */}
         <div className="p-6">
           <div className="flex items-center justify-between text-ink-2 text-[13px] font-semibold uppercase tracking-wider">
-            <span>Knee joint status</span>
+            <span>{t('today.metric_joint_title', 'Knee joint status')}</span>
             <Activity size={16} className="text-recover" aria-hidden />
           </div>
           <div className="mt-2 flex items-center justify-between">
@@ -263,15 +263,15 @@ export default function ClientToday() {
               onClick={() => { setDraft(pain); setOpen(true) }}
               className="text-[13px] font-bold text-ink underline underline-offset-4 hover:text-ink-2 cursor-pointer"
             >
-              Update
+              {t('common.details', 'Update')}
             </button>
           </div>
           <div className="mt-3.5 flex items-center gap-2 text-[13px] text-ink-2">
             <ShieldCheck size={16} className="text-ok shrink-0" aria-hidden />
-            <span>Safety threshold: <b>4/10</b>. Swaps to mobility if higher.</span>
+            <span>{t('today.metric_joint_sub', 'Safety threshold: 4/10. Swaps to mobility if higher.')}</span>
           </div>
           <p className="text-[13px] text-ink-2 mt-2.5">
-            Monitored by Dr. Mona Fathy, PT.
+            {t('today.metric_joint_doc', 'Monitored by Dr. Mona Fathy, PT.')}
           </p>
         </div>
       </Card>
@@ -283,14 +283,14 @@ export default function ClientToday() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 id="plan-heading" className="h-display text-[22px] tracking-tight">
-                Today's Care Plan
+                {t('today.care_plan_header', "Today's Care Plan")}
               </h3>
               <p className="text-[13px] text-ink-2 mt-0.5">
-                {completedCount} of {items.length} completed
+                {completedCount} {t('onboarding.of', 'of')} {items.length} {t('today.completed_of', 'completed')}
               </p>
             </div>
             <span className="text-[13px] font-semibold text-ink-2">
-              All 3 specialists aligned
+              {t('today.all_aligned', 'All 3 specialists aligned')}
             </span>
           </div>
 
@@ -335,7 +335,7 @@ export default function ClientToday() {
                           <span className="text-[13px] font-semibold text-ink-2 num">{p.time}</span>
                           {d && (
                             <span className="inline-flex items-center gap-1 text-[11px] font-bold text-ok bg-ok-tint px-2 py-0.5 rounded-full">
-                              Completed
+                              {t('common.completed', 'Completed')}
                             </span>
                           )}
                         </div>
@@ -372,9 +372,9 @@ export default function ClientToday() {
           {/* Card 1: Next Video Consultation */}
           <Card className="p-6">
             <div className="flex items-center justify-between text-ink-2 text-[13px] font-semibold uppercase tracking-wider mb-3">
-              <span>Next consultation</span>
+              <span>{t('today.next_consultation', 'Next consultation')}</span>
               <span className="text-[12px] font-bold text-move bg-move-tint px-2.5 py-0.5 rounded-full">
-                Video Call
+                {t('today.video_call', 'Video Call')}
               </span>
             </div>
             <div className="flex items-center gap-4">
@@ -392,14 +392,14 @@ export default function ClientToday() {
                 onClick={() => nav('/session')}
                 className="min-h-11 px-3 text-[14px]"
               >
-                <Video size={16} aria-hidden /> Join call
+                <Video size={16} aria-hidden /> {t('today.join_call', 'Join call')}
               </Btn>
               <Btn
                 variant="secondary"
                 onClick={() => nav(rescheduleUrl)}
                 className="min-h-11 px-3 text-[14px]"
               >
-                <CalendarClock size={16} aria-hidden /> Reschedule
+                <CalendarClock size={16} aria-hidden /> {t('today.reschedule', 'Reschedule')}
               </Btn>
             </div>
           </Card>
@@ -408,7 +408,7 @@ export default function ClientToday() {
           <Card className="p-6 border-l-4 border-l-recover">
             <div className="flex items-center justify-between text-[13px] text-ink-2 font-semibold mb-3">
               <span className="flex items-center gap-1.5 font-bold text-ink">
-                <Quote size={14} className="text-recover" aria-hidden /> Clinical note
+                <Quote size={14} className="text-recover" aria-hidden /> {t('today.clinical_note', 'Clinical note')}
               </span>
               <span>{noteDate}</span>
             </div>
@@ -418,7 +418,7 @@ export default function ClientToday() {
             <div className="mt-4 pt-3 border-t border-line flex items-center justify-between text-[12px] text-ink-2">
               <span className="font-semibold">{noteFrom}</span>
               <span className="inline-flex items-center gap-1 text-ok font-semibold">
-                <UserCheck size={13} aria-hidden /> Cross-shared with team
+                <UserCheck size={13} aria-hidden /> {t('today.cross_shared', 'Cross-shared with team')}
               </span>
             </div>
           </Card>
@@ -429,7 +429,7 @@ export default function ClientToday() {
               <Dumbbell size={20} aria-hidden />
             </span>
             <div>
-              <p className="text-[13px] text-ink-2 font-semibold uppercase">Coming up next</p>
+              <p className="text-[13px] text-ink-2 font-semibold uppercase">{t('today.coming_up', 'Coming up next')}</p>
               <p className="text-[15px] font-bold text-ink">Thursday · Upper Body Pull & Posterior Chain</p>
             </div>
           </Card>
@@ -437,13 +437,13 @@ export default function ClientToday() {
       </div>
 
       {/* Ergonomic Pain Check-in Dialog */}
-      <Dialog open={open} onClose={() => setOpen(false)} title="Log knee joint check-in">
+      <Dialog open={open} onClose={() => setOpen(false)} title={t('today.dialog_title', 'Log knee joint check-in')}>
         <p className="text-[14px] text-ink-2 mb-5">
-          Report your current knee discomfort level so your team can fine-tune today's load.
+          {t('today.dialog_sub', "Report your current knee discomfort level so your team can fine-tune today's load.")}
         </p>
 
         <label htmlFor="pain-slider" className="text-[14px] font-semibold text-ink block mb-2">
-          Discomfort level (0–10 scale)
+          {t('today.dialog_discomfort', 'Discomfort level (0–10 scale)')}
         </label>
         
         <div className="bg-paper rounded-2xl p-4 border border-line mb-4">

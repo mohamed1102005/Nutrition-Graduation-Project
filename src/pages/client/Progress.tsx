@@ -172,14 +172,14 @@ export default function Progress() {
         <Card className="p-5 bg-white border border-line">
           <div className="flex items-center justify-between text-xs font-semibold text-ink-2 uppercase tracking-wider">
             <span className="flex items-center gap-1.5"><Scale size={14} /> {t('progress.current_weight', 'Current Weight')}</span>
-            <span className="text-ok font-bold">Trend Down</span>
+            <span className="text-ok font-bold">{t('progress.trend_down', 'Trend Down')}</span>
           </div>
           <div className="flex items-baseline gap-2 mt-2">
             <span className="num text-[32px] font-bold text-ink leading-none">{wt[wt.length - 1]}</span>
             <span className="text-sm text-ink-2 font-medium">kg</span>
           </div>
           <p className="text-xs text-ink-2 mt-1">
-            <strong className="text-ink num font-semibold">{Number(delta) > 0 ? `+${delta}` : delta} kg</strong> net change over {range}
+            <strong className="text-ink num font-semibold">{Number(delta) > 0 ? `+${delta}` : delta} kg</strong> {t('progress.net_change', 'net change over')} {range}
           </p>
         </Card>
 
@@ -187,14 +187,14 @@ export default function Progress() {
         <Card className="p-5 bg-white border border-line">
           <div className="flex items-center justify-between text-xs font-semibold text-ink-2 uppercase tracking-wider">
             <span className="flex items-center gap-1.5"><HeartPulse size={14} /> {t('progress.joint_symptoms', 'Joint Symptom Score')}</span>
-            <span className="text-ok font-bold">Protected</span>
+            <span className="text-ok font-bold">{t('progress.protected', 'Protected')}</span>
           </div>
           <div className="flex items-baseline gap-2 mt-2">
             <span className="num text-[32px] font-bold text-ink leading-none">{currentPain}</span>
             <span className="text-sm text-ink-2 font-medium">/ 10</span>
           </div>
           <p className="text-xs text-ink-2 mt-1">
-            Safe ceiling: <strong className="text-ink num font-semibold">{safeLimit}/10</strong> (Dr. Mona Protocol)
+            {t('progress.safe_ceiling', 'Safe ceiling: ')}<strong className="text-ink num font-semibold">{safeLimit}/10</strong> (Dr. Mona Protocol)
           </p>
         </Card>
 
@@ -206,10 +206,10 @@ export default function Progress() {
           </div>
           <div className="flex items-baseline gap-2 mt-2">
             <span className="num text-[32px] font-bold text-ink leading-none">{targetWorkoutsMet}</span>
-            <span className="text-sm text-ink-2 font-medium">of {wk.length} weeks on target</span>
+            <span className="text-sm text-ink-2 font-medium">{t('onboarding.of', 'of')} {wk.length} {t('progress.on_target', 'weeks on target')}</span>
           </div>
           <p className="text-xs text-ink-2 mt-1">
-            Target: 4 structured sessions weekly
+            {t('progress.target_sessions', 'Target: 4 structured sessions weekly')}
           </p>
         </Card>
       </div>
@@ -223,7 +223,7 @@ export default function Progress() {
           onChange={setRange}
         />
         <span className="text-xs font-semibold text-ink-2 bg-paper px-3 py-1.5 rounded-lg border border-line">
-          Reporting Window: <strong className="text-ink">{L[0]} — {L[L.length - 1]}</strong>
+          {t('progress.reporting_window', 'Reporting Window: ')}<strong className="text-ink">{L[0]} — {L[L.length - 1]}</strong>
         </span>
       </div>
 
@@ -248,15 +248,15 @@ export default function Progress() {
               <div>
                 <div className="flex items-center gap-2">
                   <TrendingDown size={18} className="text-ink-2" aria-hidden />
-                  <h2 className="font-bold text-[18px] text-ink">Body Mass Trajectory</h2>
+                  <h2 className="font-bold text-[18px] text-ink">{t('progress.body_mass', 'Body Mass Trajectory')}</h2>
                 </div>
-                <p className="text-xs text-ink-2">Calculated from calibrated morning weigh-ins</p>
+                <p className="text-xs text-ink-2">{t('progress.body_mass_sub', 'Calculated from calibrated morning weigh-ins')}</p>
               </div>
               <div className="text-right">
                 <span className="num font-bold text-[22px] text-ink">
                   {Number(delta) > 0 ? `+${delta}` : delta} kg
                 </span>
-                <span className="text-xs text-ink-2 block">since {L[0]}</span>
+                <span className="text-xs text-ink-2 block">{t('progress.since', 'since')} {L[0]}</span>
               </div>
             </div>
 
@@ -280,12 +280,12 @@ export default function Progress() {
                 <div>
                   <div className="flex items-center gap-2">
                     <Dumbbell size={18} className="text-ink-2" aria-hidden />
-                    <h2 className="font-bold text-[17px] text-ink">Training Volume (Sessions / Wk)</h2>
+                    <h2 className="font-bold text-[17px] text-ink">{t('progress.volume_title', 'Training Volume (Sessions / Wk)')}</h2>
                   </div>
-                  <p className="text-xs text-ink-2">Prescribed volume: 4 sessions weekly</p>
+                  <p className="text-xs text-ink-2">{t('progress.volume_sub', 'Prescribed volume: 4 sessions weekly')}</p>
                 </div>
                 <span className="text-xs font-bold text-ok bg-ok-tint px-2.5 py-1 rounded-full">
-                  Target Met: {targetWorkoutsMet} / {wk.length}
+                  {t('progress.target_met', 'Target Met: ')}{targetWorkoutsMet} / {wk.length}
                 </span>
               </div>
 
@@ -298,9 +298,9 @@ export default function Progress() {
                 <div>
                   <div className="flex items-center gap-2">
                     <HeartPulse size={18} className="text-ink-2" aria-hidden />
-                    <h2 className="font-bold text-[17px] text-ink">Knee Joint Symptom Trajectory</h2>
+                    <h2 className="font-bold text-[17px] text-ink">{t('progress.knee_trajectory', 'Knee Joint Symptom Trajectory')}</h2>
                   </div>
-                  <p className="text-xs text-ink-2">Hard safety threshold set at {safeLimit}/10</p>
+                  <p className="text-xs text-ink-2">{t('progress.hard_threshold', 'Hard safety threshold set at ')}{safeLimit}/10</p>
                 </div>
                 <PainChip n={currentPain} />
               </div>

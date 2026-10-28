@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Search, CircleCheck, Clock, Ban, UserPlus } from 'lucide-react'
 import { Avatar, Btn, Card, Dialog, EmptyState, Field, Gate, inputCls, PageHead, Segment, StateSwitcher, TableSkeleton, type DemoState } from '../../ui'
+import type { Svc } from '../../data'
 import { api } from '../../api'
 
 type Status = 'Active' | 'Pending' | 'Suspended'

@@ -255,18 +255,18 @@ export default function AiPlan() {
                 <ShieldCheck size={18} aria-hidden />
               </span>
               <div>
-                <p className="font-bold text-sm text-ink">Human-in-the-Loop Clinical Safeguard</p>
-                <p className="text-xs text-ink-2">AI generates the draft; your dedicated specialists review and approve it before execution.</p>
+                <p className="font-bold text-sm text-ink">{t('ai_plan.safeguard_title', 'Human-in-the-Loop Clinical Safeguard')}</p>
+                <p className="text-xs text-ink-2">{t('ai_plan.safeguard_sub', 'AI generates the draft; your dedicated specialists review and approve it before execution.')}</p>
               </div>
             </div>
             <span className="text-xs font-bold uppercase tracking-wider text-ok bg-ok-tint px-3 py-1 rounded-full shrink-0">
-              Verified Model
+              {t('ai_plan.verified_model', 'Verified Model')}
             </span>
           </div>
 
           {/* Knee Protection Warning */}
           {/knee|squat/i.test(injury) && (
-            <SafetyCallout title="Knee Protection Protocol Automatically Injected">
+            <SafetyCallout title={t('ai_plan.knee_injected', 'Knee Protection Protocol Automatically Injected')}>
               Squats capped at 60° flexion and knee shear movements paused until Dr. Mona clears patellar tolerance. Daily pain ceiling locked at 4/10.
             </SafetyCallout>
           )}

@@ -1,8 +1,9 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { ArrowLeft, ArrowRight, CircleCheck, TriangleAlert, OctagonAlert, Dumbbell, Utensils, HeartPulse, Scale, Flame, Bone, Sparkles } from 'lucide-react'
-import { Btn, Chip, Field, inputCls, SafetyCallout, Wordmark, Card, SVC } from '../ui'
+import { Btn, Chip, Field, inputCls, SafetyCallout, Wordmark, Card, SVC, LanguageToggle } from '../ui'
 import { api, getStoredUser } from '../api'
+import { useLanguage } from '../context/LanguageContext'
 
 const goalMap: Record<string, string> = {
   'Lose fat': 'lose_fat',
@@ -40,53 +41,85 @@ const dietMap: Record<string, string> = {
   'No preference': 'no_preference',
   'High protein': 'high_protein',
   'Vegetarian': 'vegetarian',
+  'Pescatarian': 'pescatarian',
   'Low carb': 'low_carb',
 }
 
 const goalsList = [
-  ['Lose fat', Flame],
-  ['Build muscle', Dumbbell],
-  ['Recover from injury', Bone],
-  ['Stay healthy', Sparkles],
+  ['Lose fat', Flame, 'onboarding.goal_lose_fat'],
+  ['Build muscle', Dumbbell, 'onboarding.goal_build_muscle'],
+  ['Recover from injury', Bone, 'onboarding.goal_recover_injury'],
+  ['Stay healthy', Sparkles, 'onboarding.goal_stay_healthy'],
 ] as const
-const areas = ['Neck', 'Shoulder', 'Upper back', 'Lower back', 'Elbow or wrist', 'Hip', 'Knee', 'Ankle or foot', 'Nothing hurts']
+
+const areas = [
+  ['Neck', 'onboarding.area_neck'],
+  ['Shoulder', 'onboarding.area_shoulder'],
+  ['Upper back', 'onboarding.area_upper_back'],
+  ['Lower back', 'onboarding.area_lower_back'],
+  ['Elbow or wrist', 'onboarding.area_elbow_wrist'],
+  ['Hip', 'onboarding.area_hip'],
+  ['Knee', 'onboarding.area_knee'],
+  ['Ankle or foot', 'onboarding.area_ankle_foot'],
+  ['Nothing hurts', 'onboarding.area_nothing_hurts'],
+] as const
+
 const activity = [
-  ['Mostly sitting', 'Desk or study, little exercise'],
-  ['Lightly active', 'Walks, 1 to 2 workouts a week'],
-  ['Active', '3 to 4 workouts a week'],
-  ['Very active', '5 or more workouts a week'],
+  ['Mostly sitting', 'onboarding.act_sitting', 'Desk or study, little exercise', 'onboarding.act_sitting_desc'],
+  ['Lightly active', 'onboarding.act_light', 'Walks, 1 to 2 workouts a week', 'onboarding.act_light_desc'],
+  ['Active', 'onboarding.act_active', '3 to 4 workouts a week', 'onboarding.act_active_desc'],
+  ['Very active', 'onboarding.act_very_active', '5 or more workouts a week', 'onboarding.act_very_active_desc'],
+] as const
+
+const durationOptions = [
+  { val: 'Less than 2 weeks', labelKey: 'onboarding.dur_less_2w', fb: 'Less than 2 weeks' },
+  { val: '2 to 6 weeks', labelKey: 'onboarding.dur_2_6w', fb: '2 to 6 weeks' },
+  { val: '2 to 6 months', labelKey: 'onboarding.dur_2_6m', fb: '2 to 6 months' },
+  { val: 'More than 6 months', labelKey: 'onboarding.dur_over_6m', fb: 'More than 6 months' },
 ]
-const titles = ['Goals', 'About you', 'Pain and injuries', 'Food']
+
+const dietOptions = [
+  { val: 'No preference', labelKey: 'onboarding.diet_no_pref', fb: 'No preference' },
+  { val: 'Vegetarian', labelKey: 'onboarding.diet_vegetarian', fb: 'Vegetarian' },
+  { val: 'Pescatarian', labelKey: 'onboarding.diet_pescatarian', fb: 'Pescatarian' },
+  { val: 'High protein', labelKey: 'onboarding.diet_high_protein', fb: 'High protein' },
+]
 
 type Pain = { level: number; time: string; doctor: string }
 
-function painInfo(n: number) {
-  if (n <= 3) return { Icon: CircleCheck, text: 'Mild', cls: 'bg-ok-tint text-[#1d6b3d]' }
-  if (n <= 6) return { Icon: TriangleAlert, text: 'Moderate', cls: 'bg-warn-tint text-[#7a5200]' }
-  return { Icon: OctagonAlert, text: 'Severe', cls: 'bg-bad-tint text-[#a02a2a]' }
+function painInfo(n: number, t: (k: string, fb: string) => string) {
+  if (n <= 3) return { Icon: CircleCheck, text: t('onboarding.pain_mild', 'Mild'), cls: 'bg-ok-tint text-[#1d6b3d]' }
+  if (n <= 6) return { Icon: TriangleAlert, text: t('onboarding.pain_moderate', 'Moderate'), cls: 'bg-warn-tint text-[#7a5200]' }
+  return { Icon: OctagonAlert, text: t('onboarding.pain_severe', 'Severe'), cls: 'bg-bad-tint text-[#a02a2a]' }
 }
 
-function Segment({ options, value, onChange, label }: { options: string[]; value: string; onChange: (v: string) => void; label: string }) {
+type SegmentOption = string | { val: string; label: string }
+
+function Segment({ options, value, onChange, label }: { options: SegmentOption[]; value: string; onChange: (v: string) => void; label: string }) {
   return (
     <div role="radiogroup" aria-label={label} className="flex flex-wrap gap-2">
-      {options.map((o) => (
-        <button
-          key={o}
-          type="button"
-          role="radio"
-          aria-checked={value === o}
-          onClick={() => onChange(o)}
-          className={`min-h-11 min-w-11 px-4 rounded-xl border font-semibold cursor-pointer ${value === o ? 'bg-ink text-white border-ink' : 'bg-white border-ink/25 hover:border-ink'}`}
-        >
-          {o}
-        </button>
-      ))}
+      {options.map((item) => {
+        const o = typeof item === 'string' ? { val: item, label: item } : item
+        return (
+          <button
+            key={o.val}
+            type="button"
+            role="radio"
+            aria-checked={value === o.val}
+            onClick={() => onChange(o.val)}
+            className={`min-h-11 min-w-11 px-4 rounded-xl border font-semibold cursor-pointer ${value === o.val ? 'bg-ink text-white border-ink' : 'bg-white border-ink/25 hover:border-ink'}`}
+          >
+            {o.label}
+          </button>
+        )
+      })}
     </div>
   )
 }
 
 export default function Onboarding() {
   const nav = useNavigate()
+  const { t } = useLanguage()
   const [step, setStep] = useState(0)
   const [saved, setSaved] = useState(false)
   const [goals, setGoals] = useState<string[]>(['Recover from injury'])
@@ -96,6 +129,13 @@ export default function Onboarding() {
   const [sel, setSel] = useState<string[]>(['Knee'])
   const [pain, setPain] = useState<Record<string, Pain>>({ Knee: { level: 4, time: '2 to 6 weeks', doctor: 'No' } })
   const [food, setFood] = useState({ diet: 'No preference', allergies: [] as string[], meals: '3', dislikes: 'Okra, liver' })
+
+  const titles = [
+    t('onboarding.step_goals', 'Goals'),
+    t('onboarding.step_about', 'About you'),
+    t('onboarding.step_injuries', 'Pain and injuries'),
+    t('onboarding.step_food', 'Food'),
+  ]
 
   useEffect(() => {
     const user = getStoredUser()
@@ -143,11 +183,11 @@ export default function Onboarding() {
         }
       }
       if (res?.injuries && res.injuries.length > 0) {
-        const areas = res.injuries.map((inj: any) => {
+        const mappedAreas = res.injuries.map((inj: any) => {
           const areaName = Object.entries(areaMap).find(([_, v]) => v === inj.body_area)?.[0] || 'Knee'
           return areaName
         })
-        setSel(areas)
+        setSel(mappedAreas)
         const painObj: Record<string, Pain> = {}
         res.injuries.forEach((inj: any) => {
           const areaName = Object.entries(areaMap).find(([_, v]) => v === inj.body_area)?.[0] || 'Knee'
@@ -160,14 +200,14 @@ export default function Onboarding() {
         setPain(painObj)
       }
     }).catch(() => {})
-  }, [])
+  }, [nav])
 
   const toggle = (arr: string[], v: string) => (arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v])
 
   const toggleArea = (a: string) => {
     if (a === 'Nothing hurts') return setSel(sel.includes(a) ? [] : [a])
-    const next = toggle(sel.filter((x) => x !== 'Nothing hurts'), a)
-    setSel(next)
+    const nextSel = toggle(sel.filter((x) => x !== 'Nothing hurts'), a)
+    setSel(nextSel)
     if (!pain[a]) setPain({ ...pain, [a]: { level: 3, time: 'Less than 2 weeks', doctor: 'No' } })
   }
 
@@ -205,21 +245,21 @@ export default function Onboarding() {
           dislikedFoods: food.dislikes ? food.dislikes.split(',').map((x) => x.trim()).filter(Boolean) : [],
         })
       }
-    } catch (err) {
-      console.error('Error saving onboarding step:', err)
+    } catch (saveErr) {
+      console.error('Error saving onboarding step:', saveErr)
     }
   }
 
   const next = async () => {
     const e: Record<string, string> = {}
-    if (step === 0 && goals.length === 0) e.goals = 'Choose at least one goal.'
+    if (step === 0 && goals.length === 0) e.goals = t('onboarding.choose_goal_err', 'Choose at least one goal.')
     if (step === 1) {
       const a = +about.age, h = +about.height, w = +about.weight
-      if (!(a >= 16 && a <= 80)) e.age = 'Enter an age between 16 and 80.'
-      if (!(h >= 120 && h <= 220)) e.height = 'Enter your height in cm, between 120 and 220.'
-      if (!(w >= 35 && w <= 250)) e.weight = 'Enter your weight in kg, between 35 and 250.'
+      if (!(a >= 16 && a <= 80)) e.age = t('onboarding.age_err', 'Enter an age between 16 and 80.')
+      if (!(h >= 120 && h <= 220)) e.height = t('onboarding.height_err', 'Enter your height in cm, between 120 and 220.')
+      if (!(w >= 35 && w <= 250)) e.weight = t('onboarding.weight_err', 'Enter your weight in kg, between 35 and 250.')
     }
-    if (step === 2 && sel.length === 0) e.pain = 'Choose an area, or tap "Nothing hurts".'
+    if (step === 2 && sel.length === 0) e.pain = t('onboarding.pain_err', 'Choose an area, or tap "Nothing hurts".')
     setErr(e)
     if (Object.keys(e).length === 0) {
       await saveCurrentStep(step)
@@ -235,6 +275,11 @@ export default function Onboarding() {
   const painAreas = sel.filter((s) => s !== 'Nothing hurts')
   const done = step === 4
 
+  const areaLabel = (a: string) => {
+    const entry = areas.find((item) => item[0] === a)
+    return entry ? t(entry[1], a) : a
+  }
+
   return (
     <div className="min-h-screen bg-paper">
       <header className="border-b border-line bg-paper sticky top-0 z-30">
@@ -242,21 +287,26 @@ export default function Onboarding() {
           <Link to="/" aria-label="Rebound home">
             <Wordmark />
           </Link>
-          <button
-            onClick={handleSaveLater}
-            className="min-h-11 px-3 font-semibold underline underline-offset-4 cursor-pointer"
-          >
-            Save and continue later
-          </button>
+          <div className="flex items-center gap-3">
+            <LanguageToggle />
+            <button
+              onClick={handleSaveLater}
+              className="min-h-11 px-3 font-semibold underline underline-offset-4 cursor-pointer"
+            >
+              {t('onboarding.save_later', 'Save and continue later')}
+            </button>
+          </div>
         </div>
       </header>
       {saved && (
         <div role="status" className="mx-auto max-w-[760px] px-5 mt-4">
           <div className="rounded-xl bg-ok-tint border border-ok/40 p-4 flex gap-3 items-center">
             <CircleCheck className="text-ok shrink-0" aria-hidden />
-            <p className="font-semibold flex-1">Saved. Log in any time to pick up at step {Math.min(step + 1, 4)}.</p>
+            <p className="font-semibold flex-1">
+              {t('onboarding.saved_banner', 'Saved. Log in any time to pick up at step')} {Math.min(step + 1, 4)}.
+            </p>
             <button className="min-h-11 px-3 font-bold underline cursor-pointer" onClick={() => setSaved(false)}>
-              Dismiss
+              {t('onboarding.dismiss', 'Dismiss')}
             </button>
           </div>
         </div>
@@ -266,9 +316,9 @@ export default function Onboarding() {
           <div className="mb-10">
             <div className="flex justify-between font-semibold text-[15px]">
               <span>
-                Step {step + 1} of 4: {titles[step]}
+                {t('onboarding.step_of', 'Step')} {step + 1} {t('onboarding.of', 'of')} 4: {titles[step]}
               </span>
-              <span className="text-ink-2">{step * 25}% done</span>
+              <span className="text-ink-2">{step * 25}% {t('onboarding.done', 'done')}</span>
             </div>
             <div
               className="mt-3 flex gap-2"
@@ -278,17 +328,20 @@ export default function Onboarding() {
               aria-valuenow={step + 1}
               aria-label={`Step ${step + 1} of 4`}
             >
-              {titles.map((t, i) => (
-                <span key={t} className={`h-2 flex-1 rounded-full ${i <= step ? 'bg-ink' : 'bg-line'}`} />
+              {titles.map((titleText, i) => (
+                <span key={i} className={`h-2 flex-1 rounded-full ${i <= step ? 'bg-ink' : 'bg-line'}`} />
               ))}
             </div>
           </div>
         )}
 
         {step === 0 && (
-          <Section title="What are you training for?" sub="Choose all that apply. You can change this later.">
+          <Section
+            title={t('onboarding.goal_training_for', 'What are you training for?')}
+            sub={t('onboarding.goal_training_sub', 'Choose all that apply. You can change this later.')}
+          >
             <div className="grid sm:grid-cols-2 gap-3" role="group" aria-label="Goals">
-              {goalsList.map(([g, Icon]) => {
+              {goalsList.map(([g, Icon, labelKey]) => {
                 const on = goals.includes(g)
                 return (
                   <button
@@ -300,28 +353,31 @@ export default function Onboarding() {
                     <span className={`size-12 rounded-xl grid place-items-center ${on ? 'bg-ink text-white' : 'bg-sand'}`}>
                       {on ? <CircleCheck size={24} aria-hidden /> : <Icon size={24} aria-hidden />}
                     </span>
-                    <span className="font-bold text-[17px]">{g}</span>
+                    <span className="font-bold text-[17px]">{t(labelKey, g)}</span>
                   </button>
                 )
               })}
             </div>
             {err.goals && <p className="text-[#a02a2a] font-semibold text-[14px] mt-3">{err.goals}</p>}
             <div className="mt-8">
-              <p className="text-[14px] font-semibold mb-2">Days per week you can train</p>
+              <p className="text-[14px] font-semibold mb-2">{t('onboarding.days_title', 'Days per week you can train')}</p>
               <Segment label="Days per week" options={['1', '2', '3', '4', '5', '6']} value={days} onChange={setDays} />
-              <p className="text-[14px] text-ink-2 mt-2">Be honest. Three steady days beat five you skip.</p>
+              <p className="text-[14px] text-ink-2 mt-2">{t('onboarding.days_steady', 'Be honest. Three steady days beat five you skip.')}</p>
             </div>
           </Section>
         )}
 
         {step === 1 && (
-          <Section title="A little about you" sub="This sets your starting loads and calories.">
+          <Section
+            title={t('onboarding.about_you_title', 'A little about you')}
+            sub={t('onboarding.about_you_sub', 'This sets your starting loads and calories.')}
+          >
             <div className="grid sm:grid-cols-3 gap-4">
               {(
                 [
-                  ['age', 'Age', 'Years'],
-                  ['height', 'Height', 'In cm'],
-                  ['weight', 'Weight', 'In kg'],
+                  ['age', t('onboarding.age', 'Age'), t('onboarding.years', 'Years')],
+                  ['height', t('onboarding.height', 'Height'), t('onboarding.in_cm', 'In cm')],
+                  ['weight', t('onboarding.weight', 'Weight'), t('onboarding.in_kg', 'In kg')],
                 ] as const
               ).map(([k, l, h]) => (
                 <Field key={k} label={l} helper={h} error={err[k]}>
@@ -330,17 +386,17 @@ export default function Onboarding() {
               ))}
             </div>
             <fieldset className="mt-8">
-              <legend className="text-[14px] font-semibold mb-3">How active are you now?</legend>
+              <legend className="text-[14px] font-semibold mb-3">{t('onboarding.activity_title', 'How active are you now?')}</legend>
               <div className="grid gap-3">
-                {activity.map(([a, d]) => (
+                {activity.map(([a, titleKey, defDesc, descKey]) => (
                   <label
                     key={a}
                     className={`flex items-center gap-4 min-h-16 px-5 rounded-2xl border-2 cursor-pointer bg-white ${about.act === a ? 'border-ink' : 'border-line hover:border-ink/40'}`}
                   >
                     <input type="radio" name="act" className="size-5 accent-ink" checked={about.act === a} onChange={() => setAbout({ ...about, act: a })} />
                     <span>
-                      <span className="font-bold block">{a}</span>
-                      <span className="text-[14px] text-ink-2">{d}</span>
+                      <span className="font-bold block">{t(titleKey, a)}</span>
+                      <span className="text-[14px] text-ink-2">{t(descKey, defDesc)}</span>
                     </span>
                   </label>
                 ))}
@@ -350,11 +406,14 @@ export default function Onboarding() {
         )}
 
         {step === 2 && (
-          <Section title="Where does it hurt?" sub="Choose every area that bothers you, even a little.">
+          <Section
+            title={t('onboarding.where_hurt', 'Where does it hurt?')}
+            sub={t('onboarding.where_hurt_sub', 'Choose every area that bothers you, even a little.')}
+          >
             <div className="flex flex-wrap gap-2" role="group" aria-label="Pain areas">
-              {areas.map((a) => (
+              {areas.map(([a, key]) => (
                 <Chip key={a} selected={sel.includes(a)} onClick={() => toggleArea(a)}>
-                  {a}
+                  {t(key, a)}
                 </Chip>
               ))}
             </div>
@@ -363,15 +422,15 @@ export default function Onboarding() {
               {painAreas.map((a) => {
                 const p = pain[a] ?? { level: 3, time: 'Less than 2 weeks', doctor: 'No' }
                 const set = (x: Partial<Pain>) => setPain({ ...pain, [a]: { ...p, ...x } })
-                const info = painInfo(p.level)
+                const info = painInfo(p.level, t)
                 return (
                   <Card key={a} className="p-6">
                     <h3 className="h-display text-[22px]" style={{ letterSpacing: '-0.02em' }}>
-                      {a}
+                      {areaLabel(a)}
                     </h3>
                     <div className="mt-5">
                       <label htmlFor={`pain-${a}`} className="text-[14px] font-semibold">
-                        Pain level right now
+                        {t('onboarding.pain_level_now', 'Pain level right now')}
                       </label>
                       <div className="flex items-center gap-4 mt-2">
                         <input
@@ -390,49 +449,67 @@ export default function Onboarding() {
                         </span>
                       </div>
                       <div className="flex justify-between text-[13px] text-ink-2 font-medium">
-                        <span>0 No pain</span>
-                        <span>10 Worst pain</span>
+                        <span>{t('onboarding.pain_no', '0 No pain')}</span>
+                        <span>{t('onboarding.pain_worst', '10 Worst pain')}</span>
                       </div>
                       {p.level >= 7 && (
                         <p className="mt-3 text-[14px] font-semibold text-[#a02a2a] flex gap-2">
-                          <OctagonAlert size={18} className="shrink-0" aria-hidden /> Pain this high needs a doctor before you train this area. Your PT will help you plan that.
+                          <OctagonAlert size={18} className="shrink-0" aria-hidden /> {t('onboarding.pain_high_warning', 'Pain this high needs a doctor before you train this area. Your PT will help you plan that.')}
                         </p>
                       )}
                     </div>
                     <div className="grid sm:grid-cols-2 gap-4 mt-5">
-                      <Field label="How long has it lasted?">
+                      <Field label={t('onboarding.pain_how_long', 'How long has it lasted?')}>
                         {(q) => (
                           <select {...q} className={inputCls} value={p.time} onChange={(e) => set({ time: e.target.value })}>
-                            {['Less than 2 weeks', '2 to 6 weeks', '2 to 6 months', 'More than 6 months'].map((o) => (
-                              <option key={o}>{o}</option>
+                            {durationOptions.map((o) => (
+                              <option key={o.val} value={o.val}>
+                                {t(o.labelKey, o.fb)}
+                              </option>
                             ))}
                           </select>
                         )}
                       </Field>
                       <div>
-                        <p className="text-[14px] font-semibold mb-2">Has a doctor seen it?</p>
-                        <Segment label="Doctor seen" options={['Yes', 'No']} value={p.doctor} onChange={(v) => set({ doctor: v })} />
+                        <p className="text-[14px] font-semibold mb-2">{t('onboarding.doctor_seen_q', 'Has a doctor seen it?')}</p>
+                        <Segment
+                          label="Doctor seen"
+                          options={[
+                            { val: 'Yes', label: t('common.yes', 'Yes') },
+                            { val: 'No', label: t('common.no', 'No') },
+                          ]}
+                          value={p.doctor}
+                          onChange={(v) => set({ doctor: v })}
+                        />
                       </div>
                     </div>
                   </Card>
                 )
               })}
             </div>
-            <SafetyCallout title="This isn't a diagnosis." className="mt-6">
-              Your physical therapist will review it. If you ever have sharp pain, numbness or swelling, stop and see a doctor.
+            <SafetyCallout title={t('onboarding.safety_callout_title', "This isn't a diagnosis.")} className="mt-6">
+              {t('onboarding.safety_callout_desc', 'Your physical therapist will review it. If you ever have sharp pain, numbness or swelling, stop and see a doctor.')}
             </SafetyCallout>
           </Section>
         )}
 
         {step === 3 && (
-          <Section title="How do you eat?" sub="Your dietitian builds around this.">
+          <Section
+            title={t('onboarding.food_question', 'How do you eat?')}
+            sub={t('onboarding.food_sub_dietitian', 'Your dietitian builds around this.')}
+          >
             <div className="space-y-7">
               <div>
-                <p className="text-[14px] font-semibold mb-2">Diet style</p>
-                <Segment label="Diet style" options={['No preference', 'Vegetarian', 'Pescatarian', 'High protein']} value={food.diet} onChange={(v) => setFood({ ...food, diet: v })} />
+                <p className="text-[14px] font-semibold mb-2">{t('onboarding.diet_style', 'Diet style')}</p>
+                <Segment
+                  label="Diet style"
+                  options={dietOptions.map((d) => ({ val: d.val, label: t(d.labelKey, d.fb) }))}
+                  value={food.diet}
+                  onChange={(v) => setFood({ ...food, diet: v })}
+                />
               </div>
               <div>
-                <p className="text-[14px] font-semibold mb-2">Allergies</p>
+                <p className="text-[14px] font-semibold mb-2">{t('onboarding.allergies_label', 'Allergies')}</p>
                 <div className="flex flex-wrap gap-2" role="group" aria-label="Allergies">
                   {['Nuts', 'Dairy', 'Gluten', 'Eggs', 'Shellfish'].map((a) => (
                     <Chip key={a} selected={food.allergies.includes(a)} onClick={() => setFood({ ...food, allergies: toggle(food.allergies, a) })}>
@@ -440,13 +517,16 @@ export default function Onboarding() {
                     </Chip>
                   ))}
                 </div>
-                <p className="text-[14px] text-ink-2 mt-2">Leave empty if none.</p>
+                <p className="text-[14px] text-ink-2 mt-2">{t('onboarding.allergies_empty', 'Leave empty if none.')}</p>
               </div>
               <div>
-                <p className="text-[14px] font-semibold mb-2">Meals per day</p>
+                <p className="text-[14px] font-semibold mb-2">{t('onboarding.meals_per_day', 'Meals per day')}</p>
                 <Segment label="Meals per day" options={['2', '3', '4', '5']} value={food.meals} onChange={(v) => setFood({ ...food, meals: v })} />
               </div>
-              <Field label="Foods you dislike" helper="Separate with commas, for example: okra, liver.">
+              <Field
+                label={t('onboarding.dislikes_label', 'Foods you dislike')}
+                helper={t('onboarding.dislikes_helper', 'Separate with commas, for example: okra, liver.')}
+              >
                 {(p) => <input {...p} className={inputCls} value={food.dislikes} onChange={(e) => setFood({ ...food, dislikes: e.target.value })} />}
               </Field>
             </div>
@@ -454,28 +534,51 @@ export default function Onboarding() {
         )}
 
         {done && (
-          <Section title="Your starting profile" sub="Here is what your specialists will see first. Check it looks right.">
+          <Section
+            title={t('onboarding.review_title', 'Your starting profile')}
+            sub={t('onboarding.review_sub', 'Here is what your specialists will see first. Check it looks right.')}
+          >
             <div className="space-y-3">
-              <Row svc="move" Icon={Dumbbell} head="Move" lines={[goals.join(', ') || 'No goal chosen', `${days} training days a week`]} />
-              <Row svc="eat" Icon={Utensils} head="Eat" lines={[`${food.diet}, ${food.meals} meals a day`, food.allergies.length ? `Allergies: ${food.allergies.join(', ')}` : 'No allergies', food.dislikes ? `Dislikes: ${food.dislikes}` : '']} />
+              <Row
+                svc="move"
+                Icon={Dumbbell}
+                head={t('landing.move_label', 'Move')}
+                lines={[
+                  goals.map((g) => {
+                    const match = goalsList.find((x) => x[0] === g)
+                    return match ? t(match[2], g) : g
+                  }).join(', ') || t('onboarding.review_no_injuries', 'No goal chosen'),
+                  `${days} ${t('landing.week_focus_move', 'training days a week')}`,
+                ]}
+              />
+              <Row
+                svc="eat"
+                Icon={Utensils}
+                head={t('landing.eat_label', 'Eat')}
+                lines={[
+                  `${food.diet}, ${food.meals} ${t('onboarding.meals_per_day', 'meals a day')}`,
+                  food.allergies.length ? `Allergies: ${food.allergies.join(', ')}` : t('onboarding.review_no_allergies', 'No allergies'),
+                  food.dislikes ? `${t('onboarding.dislikes_label', 'Dislikes')}: ${food.dislikes}` : '',
+                ]}
+              />
               <Row
                 svc="recover"
                 Icon={HeartPulse}
-                head="Recover"
-                lines={painAreas.length ? painAreas.map((a) => `${a}: ${pain[a].level}/10, ${pain[a].time.toLowerCase()}`) : ['Nothing hurts right now']}
+                head={t('landing.recover_label', 'Recover')}
+                lines={painAreas.length ? painAreas.map((a) => `${areaLabel(a)}: ${pain[a].level}/10, ${pain[a].time}`) : [t('onboarding.review_no_injuries', 'Nothing hurts right now')]}
               />
               <Card className="p-5 flex gap-4 items-center">
                 <span className="size-12 rounded-xl bg-sand grid place-items-center">
                   <Scale size={22} aria-hidden />
                 </span>
                 <p className="text-[15px]">
-                  <span className="num">{about.age}</span> years · <span className="num">{about.height}</span> cm · <span className="num">{about.weight}</span> kg · {about.act}
+                  <span className="num">{about.age}</span> {t('onboarding.years', 'years')} · <span className="num">{about.height}</span> cm · <span className="num">{about.weight}</span> kg · {about.act}
                 </p>
               </Card>
             </div>
             {painAreas.length > 0 && (
-              <SafetyCallout title="A physical therapist will review your pain answers." className="mt-6">
-                This isn't a diagnosis. Nothing in your plan that touches a sore area will start until they have looked.
+              <SafetyCallout title={t('onboarding.review_pt_note', 'A physical therapist will review your pain answers.')} className="mt-6">
+                {t('onboarding.review_pt_sub', "This isn't a diagnosis. Nothing in your plan that touches a sore area will start until they have looked.")}
               </SafetyCallout>
             )}
           </Section>
@@ -486,7 +589,7 @@ export default function Onboarding() {
         <div className="mx-auto max-w-[760px] px-5 h-24 flex items-center justify-between">
           {step > 0 ? (
             <Btn variant="secondary" onClick={() => { setErr({}); setStep(step - 1) }}>
-              <ArrowLeft size={18} aria-hidden /> Back
+              <ArrowLeft size={18} aria-hidden /> {t('common.back', 'Back')}
             </Btn>
           ) : (
             <span />
@@ -496,17 +599,17 @@ export default function Onboarding() {
               onClick={async () => {
                 try {
                   await api.completeOnboarding()
-                } catch (err) {
-                  console.error('Error completing onboarding:', err)
+                } catch (completionErr) {
+                  console.error('Error completing onboarding:', completionErr)
                 }
                 nav('/app/specialists')
               }}
             >
-              Find my specialists <ArrowRight size={18} aria-hidden />
+              {t('onboarding.find_specialists', 'Find my specialists')} <ArrowRight size={18} aria-hidden />
             </Btn>
           ) : (
             <Btn onClick={next}>
-              {step === 3 ? 'See my profile' : 'Continue'} <ArrowRight size={18} aria-hidden />
+              {step === 3 ? t('onboarding.see_profile', 'See my profile') : t('onboarding.continue', 'Continue')} <ArrowRight size={18} aria-hidden />
             </Btn>
           )}
         </div>

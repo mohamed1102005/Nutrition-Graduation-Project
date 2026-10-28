@@ -429,7 +429,7 @@ function Inner({ id }: { id?: string }) {
                       </div>
 
                       <Btn
-                        variant={e.cleared ? 'secondary' : 'default'}
+                        variant={e.cleared ? 'secondary' : 'primary'}
                         className="!h-9 text-xs px-3"
                         onClick={() => dirty(() => setEx(ex.map((x) => (x.id === e.id ? { ...x, cleared: !x.cleared } : x))))}
                       >

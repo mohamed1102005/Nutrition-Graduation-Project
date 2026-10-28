@@ -5,8 +5,10 @@ import { Avatar, Btn, Card, EmptyState, Gate, inputCls, PageHead, Segment, State
 import { clients as mockClients, overLimit } from '../../data'
 import { Flag, PainTrend } from '@/components'
 import { api } from '../../api'
+import { useLanguage } from '../../context/LanguageContext'
 
 export default function Clients() {
+  const { t } = useLanguage()
   const [q, setQ] = useState('')
   const [f, setF] = useState('All')
   const [state, setState] = useState<DemoState>('loaded')
@@ -37,13 +39,28 @@ export default function Clients() {
 
   return (
     <div>
-      <PageHead title="Clients" sub={`${allClients.length} clients. ${flagged} above their safe pain limit.`} />
+      <PageHead
+        title={t('specialist_clients.title', 'Clients')}
+        sub={`${allClients.length} ${t('specialist_clients.title', 'clients')}. ${flagged} ${t('specialist_clients.above_safe_limit', 'above safe limit.')}`}
+      />
       <div className="flex flex-wrap items-center gap-3 mb-5">
         <div className="relative flex-1 min-w-[220px] max-w-sm">
           <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-2" aria-hidden />
-          <input type="search" aria-label="Search clients" placeholder="Search by name or goal" className={`${inputCls} pl-11`} value={q} onChange={(e) => setQ(e.target.value)} />
+          <input
+            type="search"
+            aria-label={t('specialist_clients.search', 'Search clients')}
+            placeholder={t('specialist_clients.search', 'Search by name or goal')}
+            className={`${inputCls} pl-11`}
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
         </div>
-        <Segment label="Filter" options={['All', 'Needs attention', 'On track']} value={f} onChange={setF} />
+        <Segment
+          label="Filter"
+          options={['All', 'Needs attention', 'On track']}
+          value={f}
+          onChange={setF}
+        />
         {/* <StateSwitcher value={state} onChange={setState} /> */}
       </div>
 
@@ -61,10 +78,17 @@ export default function Clients() {
           <>
             <Card className="hidden md:block overflow-x-auto">
               <table className="w-full text-left min-w-[860px]">
-                <caption className="sr-only">Clients, sorted with pain flags first</caption>
+                <caption className="sr-only">{t('specialist_clients.table_title', 'Clients, sorted with pain flags first')}</caption>
                 <thead>
                   <tr className="text-[13px] text-ink-2 border-b border-line">
-                    {['Client', 'Goal', 'Week', 'Pain trend', 'Last check-in', 'Flag'].map((h) => <th key={h} scope="col" className="px-5 py-3 font-semibold">{h}</th>)}
+                    {[
+                      t('specialist_clients.col_client', 'Client'),
+                      t('specialist_clients.col_goal', 'Goal'),
+                      t('specialist_clients.col_week', 'Week'),
+                      t('specialist_clients.col_pain_trend', 'Pain trend'),
+                      t('specialist_clients.col_last_checkin', 'Last check-in'),
+                      t('specialist_clients.col_flag', 'Flag'),
+                    ].map((h) => <th key={h} scope="col" className="px-5 py-3 font-semibold">{h}</th>)}
                   </tr>
                 </thead>
                 <tbody>

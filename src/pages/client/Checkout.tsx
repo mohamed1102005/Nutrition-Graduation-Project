@@ -53,7 +53,7 @@ export default function Checkout() {
   const isSponsored = Boolean(user?.organization?.sponsored || user?.organizationId)
   const orgName = user?.organization?.name || 'Your Organization'
 
-  const [m, setM] = useState<(typeof methods)[number]['id']>('Card')
+  const [m, setM] = useState<(typeof paymentMethodsConfig)[number]['id']>('Card')
   const [f, setF] = useState(() => ({ name: user?.name || '', num: '', exp: '', cvc: '', phone: '', handle: '' }))
   const [err, setErr] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
@@ -406,7 +406,7 @@ export default function Checkout() {
 
           {/* Specialist Header */}
           <div className="flex items-center gap-3">
-            <Avatar initials={s.name.replace(/^(Dr\.|Coach)\s+/i, '').slice(0, 2).toUpperCase()} svc={s.service || 'recover'} size={48} />
+            <Avatar initials={s.name.replace(/^(Dr\.|Coach)\s+/i, '').slice(0, 2).toUpperCase()} svc={s.svc || 'recover'} size={48} />
             <div>
               <p className="font-bold text-sm text-ink">{s.name}</p>
               <p className="text-xs text-ink-2">{s.role || 'Physical Therapist'}</p>
