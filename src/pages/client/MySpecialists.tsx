@@ -9,6 +9,7 @@ import { Link } from 'react-router'
 import { Building2, CalendarDays, UserCheck, AlertCircle } from 'lucide-react'
 import { Avatar, Btn, Card, EmptyState, PageHead, Tag } from '../../ui'
 import { api, getStoredUser } from '../../api'
+import { useLanguage } from '../../context/LanguageContext'
 
 function getInitials(name = '') {
   return name
@@ -28,6 +29,7 @@ function fieldToSvc(field: string): 'move' | 'eat' | 'recover' {
 }
 
 export default function MySpecialists() {
+  const { t } = useLanguage()
   const user = getStoredUser()
   const isOrgMember = Boolean(user?.organization || user?.organizationId)
 
@@ -56,13 +58,13 @@ export default function MySpecialists() {
   return (
     <div>
       <PageHead
-        title="My specialists"
-        sub="Your personal care team supporting your training, nutrition, and recovery."
+        title={t('my_specialists.title', 'My specialists')}
+        sub={t('my_specialists.sub', 'Your personal care team supporting your training, nutrition, and recovery.')}
       />
 
       {loading ? (
         <Card className="p-8 text-center">
-          <p className="text-ink-2">Loading your care team...</p>
+          <p className="text-ink-2">{t('my_specialists.loading', 'Loading your care team...')}</p>
         </Card>
       ) : error ? (
         <Card className="p-6 text-center">
@@ -70,7 +72,7 @@ export default function MySpecialists() {
             <AlertCircle size={32} className="text-bad" />
             <p className="text-ink font-semibold">{error}</p>
             <Btn variant="secondary" onClick={loadData}>
-              Try again
+              {t('my_specialists.retry', 'Try again')}
             </Btn>
           </div>
         </Card>
@@ -78,16 +80,16 @@ export default function MySpecialists() {
         <Card className="p-4 sm:p-8">
           {isOrgMember ? (
             <EmptyState
-              title="Your organization hasn't assigned you a specialist yet"
-              text="Your care team will appear here once an administrator in your organization assigns a trainer, nutritionist, or physical therapist."
+              title={t('my_specialists.empty_title', 'No specialists assigned yet')}
+              text={t('my_specialists.empty_sub', 'Browse verified specialists in Move, Eat, and Recover to start your personalized plan.')}
             />
           ) : (
             <EmptyState
-              title="No active specialists yet"
-              text="Explore the specialist directory to choose your trainer, nutritionist, or physical therapist and begin your personalized plan."
+              title={t('my_specialists.empty_title', 'No specialists assigned yet')}
+              text={t('my_specialists.empty_sub', 'Browse verified specialists in Move, Eat, and Recover to start your personalized plan.')}
               action={
                 <Btn to="/app/specialists">
-                  <UserCheck size={18} className="mr-2" /> Browse specialists
+                  <UserCheck size={18} className="mr-2" /> {t('my_specialists.browse_btn', 'Browse specialists')}
                 </Btn>
               }
             />

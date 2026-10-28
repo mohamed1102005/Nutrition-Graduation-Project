@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { Card, PageHead, Btn, Dialog, Field, PasswordInput, inputCls, Skeleton, EmptyState } from '../../ui'
 import { api } from '../../api'
+import { useLanguage } from '../../context/LanguageContext'
 
 interface OrgSpecialist {
   specialistId: number
@@ -38,6 +39,7 @@ interface OrgSpecialist {
  * - Prompts admin to securely share temporary credentials upon creation
  */
 export default function OrgSpecialists() {
+  const { t } = useLanguage()
   const [specialists, setSpecialists] = useState<OrgSpecialist[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -198,10 +200,10 @@ export default function OrgSpecialists() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="h-display text-2xl sm:text-3xl font-bold text-ink">
-            Organization Specialists
+            {t('org.specialists_title', 'Organization Specialists')}
           </h1>
           <p className="text-sm text-ink-2 mt-1">
-            Dedicated trainers, nutritionists, and physical therapists affiliated with your organization.
+            {t('org.specialists_sub', 'Dedicated trainers, nutritionists, and physical therapists affiliated with your organization.')}
           </p>
         </div>
 
@@ -212,7 +214,7 @@ export default function OrgSpecialists() {
           }}
           className="gap-2 self-start sm:self-auto shrink-0"
         >
-          <Plus size={18} /> Add Specialist
+          <Plus size={18} /> {t('org.add_specialist', 'Add Specialist')}
         </Btn>
       </div>
 

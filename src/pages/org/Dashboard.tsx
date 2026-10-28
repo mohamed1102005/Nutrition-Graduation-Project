@@ -76,7 +76,10 @@ export default function OrgDashboard() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <PageHead title="Organization Dashboard" sub="Loading corporate wellness analytics..." />
+        <PageHead
+          title={t('org.dashboard_title', 'Organization Dashboard')}
+          sub={t('org.dashboard_loading', 'Loading corporate wellness analytics...')}
+        />
         <Skeleton className="h-44 w-full rounded-2xl" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[0, 1, 2, 3].map((i) => (
@@ -94,7 +97,10 @@ export default function OrgDashboard() {
   if (error) {
     return (
       <div className="space-y-6">
-        <PageHead title="Organization Dashboard" sub="Operational metrics & capacity" />
+        <PageHead
+          title={t('org.dashboard_title', 'Organization Dashboard')}
+          sub={t('org.dashboard_sub', 'Operational metrics & capacity')}
+        />
         <Card className="p-8 text-center border-bad/30 bg-bad-tint/30">
           <div className="size-12 rounded-full bg-bad-tint text-bad flex items-center justify-center mx-auto mb-4">
             <RefreshCw size={24} />

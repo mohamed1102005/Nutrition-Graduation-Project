@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { Mic, MicOff, Video, VideoOff, MonitorUp, MessageSquare, PhoneOff, Clock, ArrowLeft, Plus } from 'lucide-react'
 import { Wordmark, SVC, inputCls, Btn } from '../../ui'
+import { useLanguage } from '../../context/LanguageContext'
 
 const initialNotes = [
   { svc: 'recover' as const, by: 'Dr. Mona', text: 'Pain 3/10 today, down from 4 last week. Good.' },
@@ -13,6 +14,7 @@ const initialNotes = [
 const pad = (n: number) => String(n).padStart(2, '0')
 
 export default function Session() {
+  const { t } = useLanguage()
   const nav = useNavigate()
   const [sec, setSec] = useState(754)
   const [mic, setMic] = useState(true)
@@ -88,7 +90,7 @@ export default function Session() {
             </div>
             <p className="text-[14px] font-semibold">of <span className="num">30:00</span></p>
           </div>
-          <h2 className="h-display text-[20px] mt-5" style={{ letterSpacing: '-0.02em' }}>Shared plan notes</h2>
+          <h2 className="h-display text-[20px] mt-5" style={{ letterSpacing: '-0.02em' }}>{t('session.shared_notes', 'Shared plan notes')}</h2>
           <ul className="mt-3 space-y-2 flex-1 overflow-y-auto min-h-[160px]">
             {notes.map((n, i) => (
               <li key={i} className={`${(SVC[n.svc as keyof typeof SVC] || SVC.move).tint} rounded-xl p-3`}>

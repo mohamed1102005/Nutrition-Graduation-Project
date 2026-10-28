@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { Card, PageHead, Btn, Dialog, Field, inputCls, TableSkeleton, EmptyState } from '../../ui'
 import { api } from '../../api'
+import { useLanguage } from '../../context/LanguageContext'
 
 interface AssignedSpecialist {
   specialistId: number
@@ -53,6 +54,7 @@ interface OrgSpecialist {
  * All actions are strictly assignment and account metadata management.
  */
 export default function OrgMembers() {
+  const { t, lang } = useLanguage()
   const [members, setMembers] = useState<OrgMember[]>([])
   const [specialists, setSpecialists] = useState<OrgSpecialist[]>([])
   const [loading, setLoading] = useState(true)
@@ -192,10 +194,10 @@ export default function OrgMembers() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="h-display text-2xl sm:text-3xl font-bold text-ink">
-            Organization Members
+            {t('org.members_title', 'Organization Members')}
           </h1>
           <p className="text-sm text-ink-2 mt-1">
-            Manage your sponsored team members and their assigned Move, Eat, and Recover specialists.
+            {t('org.members_sub', 'Manage your sponsored team members and their assigned Move, Eat, and Recover specialists.')}
           </p>
         </div>
 
@@ -203,7 +205,7 @@ export default function OrgMembers() {
         <div className="flex items-center gap-2 bg-white border border-line px-3.5 py-1.5 rounded-full shadow-sm self-start sm:self-auto">
           <Users size={16} className="text-ink-2" />
           <span className="text-xs font-bold text-ink">
-            {members.length} {members.length === 1 ? 'Member' : 'Members'}
+            {members.length} {lang === 'ar' ? 'أعضاء' : (members.length === 1 ? 'Member' : 'Members')}
           </span>
         </div>
       </div>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Search, ReceiptText, CreditCard, Filter, Download } from 'lucide-react'
 import { Card, PageHead, Skeleton, Gate, inputCls, Segment, type DemoState, Btn } from '../../ui'
 import { api } from '../../api'
+import { useLanguage } from '../../context/LanguageContext'
 
 const PREVIEW_TRANSACTIONS = [
   { id: '1', type: 'subscription', reference: 'SUB-2026-001', customer_name: 'Sara Hassan', customer_email: 'sara@demo.com', description: 'Full Team Subscription', method: 'card', created_at: '2026-10-15T10:00:00Z', amount_egp: 1499 },
@@ -13,6 +14,7 @@ const PREVIEW_TRANSACTIONS = [
 ]
 
 export default function FinanceTransactions() {
+  const { t, isRtl } = useLanguage()
   const [state, setState] = useState<DemoState>('loading')
   const [transactions, setTransactions] = useState<any[]>(PREVIEW_TRANSACTIONS)
   const [totalCount, setTotalCount] = useState(PREVIEW_TRANSACTIONS.length)
@@ -66,19 +68,19 @@ export default function FinanceTransactions() {
   return (
     <div>
       <PageHead
-        title="Transaction Ledger"
-        sub={`${totalCount} recorded platform payments across Egypt.`}
+        title={t('finance.ledger_title', 'Transaction Ledger')}
+        sub={t('finance.ledger_sub', `${totalCount} recorded platform payments across Egypt.`).replace('{count}', String(totalCount))}
       />
 
       {/* Controls & Search */}
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <div className="relative flex-1 min-w-[240px] max-w-sm">
-          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-2" aria-hidden />
+          <Search size={18} className={`absolute top-1/2 -translate-y-1/2 text-ink-2 ${isRtl ? 'right-4' : 'left-4'}`} aria-hidden />
           <input
             type="search"
-            aria-label="Search ledger"
-            placeholder="Search by customer, reference, or description..."
-            className={`${inputCls} pl-11`}
+            aria-label={t('finance.search_ledger', 'Search ledger')}
+            placeholder={t('finance.search_ledger', 'Search by customer, reference, or description...')}
+            className={`${inputCls} ${isRtl ? 'pr-11 pl-4' : 'pl-11 pr-4'}`}
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
@@ -87,19 +89,29 @@ export default function FinanceTransactions() {
 
       <div className="flex flex-wrap gap-x-6 gap-y-3 mb-6">
         <div>
-          <p className="label text-ink-2 mb-1.5 uppercase text-[11px]">Type</p>
+          <p className="label text-ink-2 mb-1.5 uppercase text-[11px]">{t('finance.type', 'Type')}</p>
           <Segment
-            label="Type"
-            options={['All', 'Subscriptions', 'Sessions']}
+            label={t('finance.type', 'Type')}
+            options={[
+              { val: 'All', label: t('common.filter_all', 'All') },
+              { val: 'Subscriptions', label: t('finance.recurring_subs', 'Subscriptions') },
+              { val: 'Sessions', label: t('finance.consultations', 'Sessions') },
+            ]}
             value={typeFilter}
             onChange={setTypeFilter}
           />
         </div>
         <div>
-          <p className="label text-ink-2 mb-1.5 uppercase text-[11px]">Payment Method</p>
+          <p className="label text-ink-2 mb-1.5 uppercase text-[11px]">{t('finance.gateway', 'Payment Method')}</p>
           <Segment
-            label="Payment Method"
-            options={['All', 'Card', 'Instapay', 'Vodafone Cash', 'Fawry']}
+            label={t('finance.gateway', 'Payment Method')}
+            options={[
+              { val: 'All', label: t('common.filter_all', 'All') },
+              { val: 'Card', label: 'Credit Card' },
+              { val: 'Instapay', label: 'Instapay' },
+              { val: 'Vodafone Cash', label: 'Vodafone Cash' },
+              { val: 'Fawry', label: 'Fawry' },
+            ]}
             value={methodFilter}
             onChange={setMethodFilter}
           />
@@ -119,15 +131,15 @@ export default function FinanceTransactions() {
         empty={<Card className="p-8 text-center text-ink-2">No transactions match your criteria.</Card>}
       >
         <Card className="overflow-x-auto">
-          <table className="w-full text-left text-[14px]">
+          <table className={`w-full text-[14px] ${isRtl ? 'text-right' : 'text-left'}`}>
             <thead className="bg-paper border-b border-line text-[12px] uppercase text-ink-2">
               <tr>
-                <th className="py-3.5 px-5 font-semibold">Reference</th>
-                <th className="py-3.5 px-5 font-semibold">Customer</th>
-                <th className="py-3.5 px-5 font-semibold">Description</th>
-                <th className="py-3.5 px-5 font-semibold">Method</th>
-                <th className="py-3.5 px-5 font-semibold">Date</th>
-                <th className="py-3.5 px-5 font-semibold text-right">Amount</th>
+                <th className="py-3.5 px-5 font-semibold">{t('finance.th_ref', 'Reference')}</th>
+                <th className="py-3.5 px-5 font-semibold">{t('finance.th_customer', 'Customer')}</th>
+                <th className="py-3.5 px-5 font-semibold">{t('finance.th_desc', 'Description')}</th>
+                <th className="py-3.5 px-5 font-semibold">{t('finance.th_method', 'Method')}</th>
+                <th className="py-3.5 px-5 font-semibold">{isRtl ? 'التاريخ' : 'Date'}</th>
+                <th className={`py-3.5 px-5 font-semibold ${isRtl ? 'text-left' : 'text-right'}`}>{t('finance.th_amount', 'Amount')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line">

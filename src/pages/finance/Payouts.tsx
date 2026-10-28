@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Coins, CheckCircle2, Clock, ArrowRight, ShieldCheck, UserCheck } from 'lucide-react'
 import { Card, PageHead, Skeleton, Gate, Btn, Dialog, Field, inputCls, type DemoState } from '../../ui'
 import { api } from '../../api'
+import { useLanguage } from '../../context/LanguageContext'
 
 const PREVIEW_SPECIALISTS = [
   { id: 1, name: 'Dr. Mona Fathy, PT', email: 'mona@demo.com', type: 'physical_therapist', completedSessions: 5, grossEarned: 2250, platformCut: 450, netPayable: 1800, pendingAmount: 450, netOwed: 450 },
@@ -16,6 +17,7 @@ const PREVIEW_HISTORY = [
 ]
 
 export default function FinancePayouts() {
+  const { t, lang } = useLanguage()
   const [state, setState] = useState<DemoState>('loading')
   const [specialists, setSpecialists] = useState<any[]>(PREVIEW_SPECIALISTS)
   const [history, setHistory] = useState<any[]>(PREVIEW_HISTORY)
@@ -97,8 +99,8 @@ export default function FinancePayouts() {
   return (
     <div>
       <PageHead
-        title="Specialist Payouts"
-        sub="Manage provider compensation, platform fee deductions (20%), and disbursements."
+        title={t('finance.payouts_title', 'Specialist Payouts')}
+        sub={t('finance.payouts_sub', 'Manage provider compensation, platform fee deductions (20%), and disbursements.')}
       />
 
       {toastMsg && (
@@ -111,27 +113,27 @@ export default function FinancePayouts() {
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div className="bg-sand rounded-2xl p-5 sm:p-6">
-          <p className="label uppercase text-ink-2">Total Settled</p>
+          <p className="label uppercase text-ink-2">{t('finance.total_settled', 'Total Settled')}</p>
           <p className="num text-[36px] sm:text-[40px] leading-none mt-2">
             {totalDisbursed.toLocaleString('en-US')} <span className="text-[14px] font-normal font-sans">EGP</span>
           </p>
-          <p className="text-[12px] text-ink-2 mt-2">Historical disbursements paid to providers</p>
+          <p className="text-[12px] text-ink-2 mt-2">{t('finance.total_settled_sub', 'Historical disbursements paid to providers')}</p>
         </div>
 
         <div className="bg-recover-tint rounded-2xl p-5 sm:p-6">
-          <p className="label uppercase text-ink-2">Pending Balance</p>
+          <p className="label uppercase text-ink-2">{t('finance.pending_balance', 'Pending Balance')}</p>
           <p className="num text-[36px] sm:text-[40px] leading-none mt-2 text-recover">
             {totalPending.toLocaleString('en-US')} <span className="text-[14px] font-normal font-sans">EGP</span>
           </p>
-          <p className="text-[12px] text-ink-2 mt-2">Earned by specialists awaiting settlement</p>
+          <p className="text-[12px] text-ink-2 mt-2">{t('finance.pending_balance_sub', 'Earned revenue awaiting disbursement')}</p>
         </div>
 
         <div className="bg-paper border border-line rounded-2xl p-5 sm:p-6">
-          <p className="label uppercase text-ink-2">Platform Split</p>
+          <p className="label uppercase text-ink-2">{t('finance.platform_cut', 'Platform Fee (20%)')}</p>
           <p className="num text-[36px] sm:text-[40px] leading-none mt-2">
-            20% <span className="text-[14px] font-normal font-sans text-ink-2">Commission</span>
+            20% <span className="text-[14px] font-normal font-sans text-ink-2">{lang === 'ar' ? 'عمولة المنصة' : 'Commission'}</span>
           </p>
-          <p className="text-[12px] text-ink-2 mt-2">80% credited directly to specialist</p>
+          <p className="text-[12px] text-ink-2 mt-2">{t('finance.platform_cut_sub', 'Retained technology & clinical coordination fee')}</p>
         </div>
       </div>
 

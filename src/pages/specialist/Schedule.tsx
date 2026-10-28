@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { ChevronLeft, ChevronRight, Ban } from 'lucide-react'
 import { Btn, Card, Dialog, Gate, PageHead, Skeleton, StateSwitcher, SVC, type DemoState } from '../../ui'
 import { api } from '../../api'
+import { useLanguage } from '../../context/LanguageContext'
 
 type Kind = 'rehab' | 'karim' | 'hana'
 type Booked = { kind: Kind; who: string; id?: string; topic: string }
@@ -31,6 +32,7 @@ const kindSvc: Record<Kind, keyof typeof SVC> = { rehab: 'recover', karim: 'move
 const kindLabel: Record<Kind, string> = { rehab: 'Client session', karim: 'Sync with trainer', hana: 'Sync with dietitian' }
 
 export default function Schedule() {
+  const { t } = useLanguage()
   const [week, setWeek] = useState(0)
   const [day, setDay] = useState(1)
   const [blocked, setBlocked] = useState<Record<string, boolean>>({})
@@ -105,7 +107,10 @@ export default function Schedule() {
 
   return (
     <div>
-      <PageHead title="Schedule" sub={`Week of ${dateLabel(0)}. ${openCount} open slots.`} />
+      <PageHead
+        title={t('schedule.title', 'Schedule')}
+        sub={t('schedule.sub', `Week of ${dateLabel(0)}. ${openCount} open slots.`).replace('{date}', dateLabel(0)).replace('{count}', String(openCount))}
+      />
       {msg && <p role="status" className="mb-4 rounded-xl bg-sand font-semibold px-4 py-3">{msg}</p>}
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <div className="inline-flex items-center gap-1">

@@ -20,7 +20,7 @@ import { api } from '../../api'
 import { useLanguage } from '../../context/LanguageContext'
 
 export default function AdminSupport() {
-  const { t, isRtl } = useLanguage()
+  const { t, isRtl, lang } = useLanguage()
 
   const [loading, setLoading] = useState(true)
   const [tickets, setTickets] = useState<any[]>([])
@@ -144,7 +144,7 @@ export default function AdminSupport() {
     <div className="space-y-8">
       <PageHead
         title={t('nav.support')}
-        sub="Monitor platform inquiries, dispute resolutions, and user conduct reports."
+        sub={t('support.sub', 'Monitor platform inquiries, dispute resolutions, and user conduct reports.')}
       />
 
       {/* KPI Tiles */}
@@ -154,7 +154,7 @@ export default function AdminSupport() {
             {t('support.status_open')}
           </p>
           <p className="num text-[36px] font-extrabold text-ink mt-1">{metrics.totalOpen}</p>
-          <p className="text-[12px] text-ink-2 mt-1">Pending support triage</p>
+          <p className="text-[12px] text-ink-2 mt-1">{t('support.pending_triage', 'Pending support triage')}</p>
         </Card>
 
         <Card className="p-5 bg-bad-tint/30 border-bad/30">
@@ -162,7 +162,7 @@ export default function AdminSupport() {
             <AlertTriangle size={15} /> {t('support.prio_urgent')}
           </p>
           <p className="num text-[36px] font-extrabold text-bad mt-1">{metrics.urgentCount}</p>
-          <p className="text-[12px] text-bad mt-1">High priority or conduct flags</p>
+          <p className="text-[12px] text-bad mt-1">{t('support.urgent_flags', 'High priority or conduct flags')}</p>
         </Card>
 
         <Card className="p-5">
@@ -172,7 +172,7 @@ export default function AdminSupport() {
           <p className="num text-[36px] font-extrabold text-ink mt-1">
             {metrics.inProgressCount}
           </p>
-          <p className="text-[12px] text-ink-2 mt-1">Active investigations</p>
+          <p className="text-[12px] text-ink-2 mt-1">{lang === 'ar' ? 'تحقيقات نشطة' : 'Active investigations'}</p>
         </Card>
 
         <Card className="p-5">
@@ -180,7 +180,7 @@ export default function AdminSupport() {
             {t('support.status_resolved')}
           </p>
           <p className="num text-[36px] font-extrabold text-ok mt-1">{metrics.resolvedCount}</p>
-          <p className="text-[12px] text-ok mt-1">Closed successfully</p>
+          <p className="text-[12px] text-ok mt-1">{lang === 'ar' ? 'تم الحل بنجاح' : 'Closed successfully'}</p>
         </Card>
       </div>
 
@@ -189,7 +189,7 @@ export default function AdminSupport() {
         <div className="flex flex-wrap gap-3 items-center justify-between">
           <div className="flex flex-wrap gap-2">
             {[
-              { id: 'all', label: 'All' },
+              { id: 'all', label: t('common.filter_all', 'All') },
               { id: 'open', label: t('support.status_open') },
               { id: 'in_progress', label: t('support.status_in_progress') },
               { id: 'resolved', label: t('support.status_resolved') },

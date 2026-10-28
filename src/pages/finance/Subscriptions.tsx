@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { CreditCard, Users, TrendingUp, Sparkles, CheckCircle2 } from 'lucide-react'
 import { Card, PageHead, Skeleton, Gate, type DemoState } from '../../ui'
 import { api } from '../../api'
+import { useLanguage } from '../../context/LanguageContext'
 
 const PREVIEW_SUBSCRIPTIONS_DATA = {
   mrr: 4296,
@@ -20,6 +21,7 @@ const PREVIEW_SUBSCRIPTIONS_DATA = {
 }
 
 export default function FinanceSubscriptions() {
+  const { t, lang } = useLanguage()
   const [state, setState] = useState<DemoState>('loading')
   const [data, setData] = useState<any>(PREVIEW_SUBSCRIPTIONS_DATA)
 
@@ -55,8 +57,8 @@ export default function FinanceSubscriptions() {
   return (
     <div>
       <PageHead
-        title="Subscriptions & MRR"
-        sub="Monthly recurring revenue run-rate, tier distribution, and active membership roster."
+        title={t('finance.subscriptions_title', 'Subscriptions & MRR')}
+        sub={t('finance.subscriptions_sub', 'Monthly recurring revenue run-rate, tier distribution, and active membership roster.')}
       />
 
       <Gate
@@ -78,35 +80,35 @@ export default function FinanceSubscriptions() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <div className="bg-eat-tint rounded-2xl p-5 sm:p-6">
             <div className="flex items-center justify-between">
-              <span className="label uppercase text-ink-2">Monthly Recurring Revenue</span>
+              <span className="label uppercase text-ink-2">{t('finance.monthly_recurring_rev', 'Monthly Recurring Revenue')}</span>
               <TrendingUp size={18} className="text-eat" />
             </div>
             <p className="num text-[36px] sm:text-[44px] leading-none mt-3 text-eat">
               {(mrr ?? 0).toLocaleString('en-US')} <span className="text-[14px] font-normal font-sans text-ink-2">EGP / mo</span>
             </p>
-            <p className="text-[13px] text-ink-2 mt-2">Active recurring subscription run-rate</p>
+            <p className="text-[13px] text-ink-2 mt-2">{t('finance.mrr_sub', 'Active recurring subscription run-rate')}</p>
           </div>
 
           <div className="bg-sand rounded-2xl p-5 sm:p-6">
             <div className="flex items-center justify-between">
-              <span className="label uppercase text-ink-2">Active Subscribers</span>
+              <span className="label uppercase text-ink-2">{t('finance.active_subscribers', 'Active Subscribers')}</span>
               <Users size={18} className="text-ink-2" />
             </div>
             <p className="num text-[36px] sm:text-[44px] leading-none mt-3">
-              {totalActive ?? 0} <span className="text-[14px] font-normal font-sans text-ink-2">Members</span>
+              {totalActive ?? 0} <span className="text-[14px] font-normal font-sans text-ink-2">{lang === 'ar' ? 'أعضاء' : 'Members'}</span>
             </p>
-            <p className="text-[13px] text-ink-2 mt-2">100% active billing accounts</p>
+            <p className="text-[13px] text-ink-2 mt-2">{t('finance.active_subscribers_sub', '100% active billing accounts')}</p>
           </div>
 
           <div className="bg-paper border border-line rounded-2xl p-5 sm:p-6">
             <div className="flex items-center justify-between">
-              <span className="label uppercase text-ink-2">Average ARPU</span>
+              <span className="label uppercase text-ink-2">{t('finance.arpu_label', 'Average ARPU')}</span>
               <Sparkles size={18} className="text-ink-2" />
             </div>
             <p className="num text-[36px] sm:text-[44px] leading-none mt-3">
-              {(arpu ?? 0).toLocaleString('en-US')} <span className="text-[14px] font-normal font-sans text-ink-2">EGP / member</span>
+              {(arpu ?? 0).toLocaleString('en-US')} <span className="text-[14px] font-normal font-sans text-ink-2">{lang === 'ar' ? 'ج.م / عضو' : 'EGP / member'}</span>
             </p>
-            <p className="text-[13px] text-ink-2 mt-2">Average revenue per active user</p>
+            <p className="text-[13px] text-ink-2 mt-2">{t('finance.arpu_sub', 'Average revenue per active user')}</p>
           </div>
         </div>
 

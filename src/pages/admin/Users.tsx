@@ -3,6 +3,7 @@ import { Search, CircleCheck, Clock, Ban, UserPlus } from 'lucide-react'
 import { Avatar, Btn, Card, Dialog, EmptyState, Field, Gate, inputCls, PageHead, Segment, StateSwitcher, TableSkeleton, type DemoState } from '../../ui'
 import type { Svc } from '../../data'
 import { api } from '../../api'
+import { useLanguage } from '../../context/LanguageContext'
 
 type Status = 'Active' | 'Pending' | 'Suspended'
 type Role = 'Client' | 'Specialist' | 'Admin' | 'Finance' | 'Org Admin' | 'Org_admin'
@@ -55,6 +56,7 @@ function formatRole(role?: string): Role {
 }
 
 export default function Users() {
+  const { t, isRtl } = useLanguage()
   const [rows, setRows] = useState<U[]>(seed)
   const [q, setQ] = useState('')
   const [role, setRole] = useState('All')
@@ -157,48 +159,100 @@ export default function Users() {
 
   const act = (u: U) => (
     u.status === 'Pending' ? null : (
-      <Btn variant="secondary" className="min-h-11 h-11 px-4" onClick={() => setTarget(u)}>{u.status === 'Suspended' ? 'Reactivate' : 'Suspend'}</Btn>
+      <Btn variant="secondary" className="min-h-11 h-11 px-4" onClick={() => setTarget(u)}>
+        {u.status === 'Suspended' ? t('users.reactivate', 'Reactivate') : t('users.suspend', 'Suspend')}
+      </Btn>
     )
   )
 
   return (
     <div>
       <PageHead
-        title="Users"
-        sub={`${rows.length} accounts`}
+        title={t('users.title', 'Users')}
+        sub={t('users.sub', `${rows.length} accounts`).replace('{n}', String(rows.length))}
         action={
           <Btn onClick={() => setCreateOpen(true)} className="flex items-center gap-2">
-            <UserPlus size={18} aria-hidden /> Add user
+            <UserPlus size={18} aria-hidden /> {t('users.add_user', 'Add user')}
           </Btn>
         }
       />
       {msg && <p role="status" className="mb-4 rounded-xl bg-sand font-semibold px-4 py-3">{msg}</p>}
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <div className="relative flex-1 min-w-[220px] max-w-sm">
-          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-2" aria-hidden />
-          <input type="search" aria-label="Search users" placeholder="Search by name or email" className={`${inputCls} pl-11`} value={q} onChange={(e) => setQ(e.target.value)} />
+          <Search size={18} className={`absolute top-1/2 -translate-y-1/2 text-ink-2 ${isRtl ? 'right-4' : 'left-4'}`} aria-hidden />
+          <input
+            type="search"
+            aria-label={t('users.search_placeholder', 'Search users')}
+            placeholder={t('users.search_placeholder', 'Search by name or email')}
+            className={`${inputCls} ${isRtl ? 'pr-11 pl-4' : 'pl-11 pr-4'}`}
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
         </div>
         {/* <StateSwitcher value={state} onChange={setState} /> */}
       </div>
       <div className="flex flex-wrap gap-x-6 gap-y-3 mb-5">
-        <div><p className="label text-ink-2 mb-1.5">Role</p><Segment label="Role" options={['All', 'Client', 'Specialist', 'Admin', 'Finance', 'Org Admin']} value={role} onChange={setRole} /></div>
-        <div><p className="label text-ink-2 mb-1.5">Status</p><Segment label="Status" options={['All', 'Active', 'Pending', 'Suspended']} value={status} onChange={setStatus} /></div>
+        <div>
+          <p className="label text-ink-2 mb-1.5">{t('users.role', 'Role')}</p>
+          <Segment
+            label={t('users.role', 'Role')}
+            options={[
+              { val: 'All', label: t('users.filter_all', 'All') },
+              { val: 'Client', label: t('nav.client', 'Client') },
+              { val: 'Specialist', label: t('nav.specialist', 'Specialist') },
+              { val: 'Admin', label: t('nav.admin', 'Admin') },
+              { val: 'Finance', label: t('nav.finance', 'Finance') },
+              { val: 'Org Admin', label: t('nav.org_admin', 'Org Admin') },
+            ]}
+            value={role}
+            onChange={setRole}
+          />
+        </div>
+        <div>
+          <p className="label text-ink-2 mb-1.5">{t('users.status', 'Status')}</p>
+          <Segment
+            label={t('users.status', 'Status')}
+            options={[
+              { val: 'All', label: t('users.filter_all', 'All') },
+              { val: 'Active', label: t('users.status_active', 'Active') },
+              { val: 'Pending', label: t('users.status_pending', 'Pending') },
+              { val: 'Suspended', label: t('users.status_suspended', 'Suspended') },
+            ]}
+            value={status}
+            onChange={setStatus}
+          />
+        </div>
       </div>
 
       <Gate
         state={state}
         retry={() => setState('loaded')}
         skeleton={<TableSkeleton rows={7} />}
-        empty={<Card><EmptyState title="No users yet" text="Accounts appear here as people sign up." /></Card>}
+        empty={<Card><EmptyState title={t('users.empty_title', 'No users yet')} text={t('users.empty_desc', 'Accounts appear here as people sign up.')} /></Card>}
       >
         {list.length === 0 ? (
-          <Card><EmptyState title="No users match" text="Try a different search, or clear the filters." action={<Btn variant="secondary" onClick={() => { setQ(''); setRole('All'); setStatus('All') }}>Clear search and filters</Btn>} /></Card>
+          <Card><EmptyState title={t('users.no_match_title', 'No users match')} text={t('users.no_match_desc', 'Try a different search, or clear the filters.')} action={<Btn variant="secondary" onClick={() => { setQ(''); setRole('All'); setStatus('All') }}>{t('users.clear_filters', 'Clear search and filters')}</Btn>} /></Card>
         ) : (
           <>
             <Card className="hidden md:block overflow-x-auto">
-              <table className="w-full text-left min-w-[820px]">
-                <caption className="sr-only">Users</caption>
-                <thead><tr className="text-[13px] text-ink-2 border-b border-line">{['User', 'Role', 'Status', 'Joined', 'Last active', ''].map((h, i) => <th key={i} scope="col" className="px-5 py-3 font-semibold">{h || <span className="sr-only">Actions</span>}</th>)}</tr></thead>
+              <table className={`w-full min-w-[820px] ${isRtl ? 'text-right' : 'text-left'}`}>
+                <caption className="sr-only">{t('users.title', 'Users')}</caption>
+                <thead>
+                  <tr className="text-[13px] text-ink-2 border-b border-line">
+                    {[
+                      t('users.col_user', 'User'),
+                      t('users.col_role', 'Role'),
+                      t('users.col_status', 'Status'),
+                      t('users.col_joined', 'Joined'),
+                      t('users.col_last_active', 'Last active'),
+                      '',
+                    ].map((h, i) => (
+                      <th key={i} scope="col" className="px-5 py-3 font-semibold">
+                        {h || <span className="sr-only">Actions</span>}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
                 <tbody>
                   {list.map((u) => (
                     <tr key={u.id} className="border-b border-line last:border-0">

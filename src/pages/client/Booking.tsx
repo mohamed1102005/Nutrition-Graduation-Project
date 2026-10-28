@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, Check, MessageSquare, Video, Info } from 'lucide
 import { Avatar, Btn, Card, EmptyState, SVC, Tag } from '../../ui'
 import { specialists as staticSpecialists, packagesFor, days, slotsFor, t12, egp, sessionPrice, nextSlots, type Svc } from '../../data'
 import { api } from '../../api'
+import { useLanguage } from '../../context/LanguageContext'
 
 const steps = ['Package', 'Date and time', 'Review']
 
@@ -18,6 +19,7 @@ function getInitials(name = '') {
 }
 
 export default function Booking() {
+  const { t } = useLanguage()
   const { id } = useParams()
   const nav = useNavigate()
   const [sp] = useSearchParams()
@@ -127,7 +129,7 @@ export default function Booking() {
         <div>
           {step === 0 && (
             <div>
-              <h2 className="h-display text-[28px]" style={{ letterSpacing: '-0.025em' }}>Choose a package</h2>
+              <h2 className="h-display text-[28px]" style={{ letterSpacing: '-0.025em' }}>{t('booking.choose_package', 'Choose a package')}</h2>
               <div role="radiogroup" aria-label="Package" className="grid gap-3 mt-5">
                 {packagesFor(s.rate).map((p) => (
                   <button
@@ -175,7 +177,9 @@ export default function Booking() {
 
           {step === 1 && (
             <div>
-              <h2 className="h-display text-[28px]" style={{ letterSpacing: '-0.025em' }}>{resched ? 'Pick a new time' : 'Pick a date and time'}</h2>
+              <h2 className="h-display text-[28px]" style={{ letterSpacing: '-0.025em' }}>
+                {resched ? t('booking.pick_new_time', 'Pick a new time') : t('booking.pick_date_time', 'Pick a date and time')}
+              </h2>
               <p className="text-ink-2 mt-1 flex items-center gap-2"><Info size={16} aria-hidden /> All times are Cairo time.</p>
               <div role="radiogroup" aria-label="Date" className="mt-5 grid grid-cols-7 gap-2">
                 {days.map((d, i) => {
@@ -220,7 +224,7 @@ export default function Booking() {
 
           {step === 2 && (
             <div>
-              <h2 className="h-display text-[28px]" style={{ letterSpacing: '-0.025em' }}>Review and confirm</h2>
+              <h2 className="h-display text-[28px]" style={{ letterSpacing: '-0.025em' }}>{t('booking.review_confirm', 'Review and confirm')}</h2>
               <Card className="mt-5 divide-y divide-line">
                 {[
                   ['Specialist', s.name],

@@ -19,16 +19,36 @@ const DEMO_CREDENTIALS = {
 };
 
 const PAGES_TO_VERIFY = [
+  // Client
   { path: '/app/today', name: 'client-today', role: 'Client' },
   { path: '/app/plan', name: 'client-plan', role: 'Client' },
   { path: '/app/progress', name: 'client-progress', role: 'Client' },
   { path: '/app/ai-plan', name: 'client-ai-plan', role: 'Client' },
   { path: '/app/bookings/checkout', name: 'client-checkout', role: 'Client' },
+  { path: '/app/my-specialists', name: 'client-my-specialists', role: 'Client' },
+  { path: '/app/bookings', name: 'client-bookings', role: 'Client' },
+
+  // Specialist
   { path: '/app/today', name: 'specialist-today', role: 'Specialist' },
   { path: '/app/clients/sara', name: 'specialist-client-detail', role: 'Specialist' },
+  { path: '/app/schedule', name: 'specialist-schedule', role: 'Specialist' },
+
+  // Admin
   { path: '/app/overview', name: 'admin-overview', role: 'Admin' },
+  { path: '/app/approvals', name: 'admin-approvals', role: 'Admin' },
+  { path: '/app/users', name: 'admin-users', role: 'Admin' },
+  { path: '/app/admin/support', name: 'admin-support', role: 'Admin' },
+
+  // Finance
   { path: '/app/finance/overview', name: 'finance-overview', role: 'Finance' },
+  { path: '/app/finance/subscriptions', name: 'finance-subscriptions', role: 'Finance' },
+  { path: '/app/finance/payouts', name: 'finance-payouts', role: 'Finance' },
+  { path: '/app/finance/transactions', name: 'finance-transactions', role: 'Finance' },
+
+  // Org
   { path: '/app/org', name: 'org-dashboard', role: 'OrgAdmin' },
+  { path: '/app/org/members', name: 'org-members', role: 'OrgAdmin' },
+  { path: '/app/org/specialists', name: 'org-specialists', role: 'OrgAdmin' },
 ];
 
 async function getTokens() {
@@ -115,7 +135,7 @@ async function run() {
 
         if (passed) {
           totalPassed++;
-          console.log(`✅ [${lang.toUpperCase()}] ${item.path} (${item.name}): dir=${info.docDir}, switchBtn="${info.switchLabel}", h1="${info.h1.slice(0, 30)}"`);
+          console.log(`✅ [${lang.toUpperCase()}] ${item.path} (${item.name}): dir=${info.docDir}, switchBtn="${info.switchLabel}", h="${(info.h1 || info.h2).slice(0, 30)}"`);
         } else {
           totalFailed++;
           console.error(`❌ [${lang.toUpperCase()}] FAILED: ${item.path} (${item.name})`);

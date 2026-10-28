@@ -4,6 +4,7 @@ import { CalendarPlus, Video, MessageSquare } from 'lucide-react'
 import { Avatar, Btn, Card, Dialog, EmptyState, Gate, PageHead, Skeleton, StateSwitcher, StatusBadge, Tabs, type DemoState } from '../../ui'
 import { specialists as staticSpecialists } from '../../data'
 import { api } from '../../api'
+import { useLanguage } from '../../context/LanguageContext'
 
 type Status = 'Confirmed' | 'Completed' | 'Cancelled'
 type B = {
@@ -34,6 +35,7 @@ function formatSlotWhen(startsAtStr: string) {
 }
 
 export default function MyBookings() {
+  const { t } = useLanguage()
   const nav = useNavigate()
   const [tab, setTab] = useState<'up' | 'past'>('up')
   const [rows, setRows] = useState<B[]>([])
@@ -85,23 +87,34 @@ export default function MyBookings() {
   const list = rows.filter((r) => (tab === 'up' ? r.status === 'Confirmed' : r.status !== 'Confirmed'))
   const empty =
     tab === 'up' ? (
-      <EmptyState title="No upcoming sessions" text="Book a session with your trainer, dietitian or physical therapist." action={<Btn to="/app/specialists"><CalendarPlus size={18} aria-hidden /> Book a session</Btn>} />
+      <EmptyState
+        title={t('bookings.empty_upcoming_title', 'No upcoming sessions')}
+        text={t('bookings.empty_upcoming_sub', 'Book a session with a trainer, dietitian, or PT to get personalized guidance.')}
+        action={<Btn to="/app/specialists"><CalendarPlus size={18} aria-hidden /> {t('bookings.book_session', 'Book a session')}</Btn>}
+      />
     ) : (
-      <EmptyState title="No past sessions yet" text="Completed and cancelled sessions show up here." />
+      <EmptyState
+        title={t('bookings.empty_past_title', 'No past sessions yet')}
+        text={t('bookings.empty_past_sub', 'Completed and cancelled sessions show up here.')}
+      />
     )
 
   return (
     <div>
-      <PageHead title="My bookings" sub="Free cancellation up to 12 hours before a session." action={<Btn to="/app/specialists">Book a session</Btn>} />
+      <PageHead
+        title={t('bookings.title', 'My bookings')}
+        sub={t('bookings.sub', 'Free cancellation up to 12 hours before a session.')}
+        action={<Btn to="/app/specialists">{t('bookings.book_session', 'Book a session')}</Btn>}
+      />
       {msg && <p role="status" className="mb-4 rounded-xl bg-sand font-semibold px-4 py-3">{msg}</p>}
       <div className="flex flex-wrap items-center gap-4 mb-5">
         <Tabs
-          label="Bookings"
+          label={t('bookings.title', 'My bookings')}
           value={tab}
           onChange={setTab}
           tabs={[
-            { id: 'up', label: `Upcoming (${rows.filter((r) => r.status === 'Confirmed').length})` },
-            { id: 'past', label: 'Past' },
+            { id: 'up', label: `${t('bookings.tab_upcoming', 'Upcoming')} (${rows.filter((r) => r.status === 'Confirmed').length})` },
+            { id: 'past', label: t('bookings.tab_past', 'Past') },
           ]}
         />
         {/* <StateSwitcher value={state} onChange={setState} /> */}

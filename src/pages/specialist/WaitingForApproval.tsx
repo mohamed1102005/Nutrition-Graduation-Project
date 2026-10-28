@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { Btn, Card, Tag } from '../../ui'
 import { api, removeToken } from '../../api'
+import { useLanguage } from '../../context/LanguageContext'
 
 interface WaitingForApprovalProps {
   user: any
@@ -21,6 +22,7 @@ interface WaitingForApprovalProps {
 }
 
 export default function WaitingForApproval({ user, onApproved }: WaitingForApprovalProps) {
+  const { t } = useLanguage()
   const [checking, setChecking] = useState(false)
   const [statusMsg, setStatusMsg] = useState<string | null>(null)
 
@@ -107,12 +109,12 @@ export default function WaitingForApproval({ user, onApproved }: WaitingForAppro
                       : 'bg-warn-tint text-[#8c4e00] border border-[#8c4e00]/20'
                   }`}
                 >
-                  {isRejected ? 'Needs Revision' : 'Waiting for Approval'}
+                  {isRejected ? t('waiting_approval.badge_revision', 'Needs Revision') : t('waiting_approval.badge_waiting', 'Waiting for Approval')}
                 </span>
                 <Tag svc={svcType}>{roleLabel}</Tag>
               </div>
               <h1 className="h-display text-[26px] sm:text-[30px] mt-1 text-ink">
-                {isRejected ? 'Application Not Approved' : 'Your account is under review'}
+                {isRejected ? t('waiting_approval.title_rejected', 'Application Not Approved') : t('waiting_approval.title_pending', 'Your account is under review')}
               </h1>
             </div>
           </div>
@@ -120,14 +122,14 @@ export default function WaitingForApproval({ user, onApproved }: WaitingForAppro
 
         <p className="text-ink-2 text-[15px] sm:text-[16px] leading-relaxed mb-6">
           {isRejected
-            ? 'Our clinical compliance team reviewed your submitted documents and could not verify your syndicate registration or credentials. Please review the details below or contact our team.'
-            : 'Thank you for applying to join Rebound. We verify the identity, medical syndicate license, and degree qualifications of every practitioner before granting access to patient charts and booking tools.'}
+            ? t('waiting_approval.desc_rejected', 'Our clinical compliance team reviewed your submitted documents and could not verify your syndicate registration or credentials. Please review the details below or contact our team.')
+            : t('waiting_approval.desc_pending', 'Thank you for applying to join Rebound. We verify the identity, medical syndicate license, and degree qualifications of every practitioner before granting access to patient charts and booking tools.')}
         </p>
 
         {/* Verification Progress Tracker */}
         <div className="bg-sand/60 border border-line rounded-2xl p-5 mb-6">
           <p className="font-bold text-[14px] text-ink mb-3 uppercase tracking-wider text-xs">
-            Licensing & Review Timeline
+            {t('waiting_approval.timeline_title', 'Licensing & Review Timeline')}
           </p>
           <div className="space-y-4">
             <div className="flex items-start gap-3">

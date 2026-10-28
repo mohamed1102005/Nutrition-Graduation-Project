@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { FileText, Check, X, Eye, CircleCheck, Ban } from 'lucide-react'
 import { Avatar, Btn, Card, Dialog, EmptyState, Field, Gate, inputCls, PageHead, Skeleton, StateSwitcher, Tabs, Tag, type DemoState } from '../../ui'
 import { api } from '../../api'
+import { useLanguage } from '../../context/LanguageContext'
 
 type Svc = 'move' | 'eat' | 'recover'
 type A = {
@@ -45,6 +46,7 @@ function getRoleLabel(type?: string): string {
 }
 
 export default function Approvals() {
+  const { t } = useLanguage()
   const [rows, setRows] = useState<A[]>(seed)
   const [tab, setTab] = useState<'pending' | 'reviewed'>('pending')
   const [state, setState] = useState<DemoState>('loaded')
@@ -127,20 +129,36 @@ export default function Approvals() {
 
   return (
     <div>
-      <PageHead title="Specialist approvals" sub={`${pending.length} waiting. Check each licence before approving.`} />
+      <PageHead
+        title={t('approvals.title', 'Specialist approvals')}
+        sub={t('approvals.sub', `${pending.length} waiting. Check each licence before approving.`).replace('{n}', String(pending.length))}
+      />
       {msg && <p role="status" className="mb-4 rounded-xl bg-sand font-semibold px-4 py-3">{msg}</p>}
       <div className="flex flex-wrap items-center gap-4 mb-5">
-        <Tabs label="Queue" value={tab} onChange={setTab} tabs={[{ id: 'pending', label: `Pending (${pending.length})` }, { id: 'reviewed', label: `Reviewed (${reviewed.length})` }]} />
+        <Tabs
+          label={t('approvals.title', 'Specialist approvals')}
+          value={tab}
+          onChange={setTab}
+          tabs={[
+            { id: 'pending', label: `${t('approvals.tab_pending', 'Pending')} (${pending.length})` },
+            { id: 'reviewed', label: `${t('approvals.tab_reviewed', 'Reviewed')} (${reviewed.length})` },
+          ]}
+        />
         {/* <StateSwitcher value={state} onChange={setState} /> */}
       </div>
       <Gate
         state={state}
         retry={() => setState('loaded')}
         skeleton={<div className="space-y-4">{[0, 1].map((i) => <Skeleton key={i} className="h-48" />)}</div>}
-        empty={<Card><EmptyState title="Nothing to review" text="New specialist applications show up here." /></Card>}
+        empty={<Card><EmptyState title={t('approvals.empty_title', 'Nothing to review')} text={t('approvals.empty_text', 'New specialist applications show up here.')} /></Card>}
       >
         {list.length === 0 ? (
-          <Card><EmptyState title={tab === 'pending' ? "You're all caught up" : 'Nothing reviewed yet'} text={tab === 'pending' ? 'No specialists are waiting for approval.' : 'Approved and rejected applications are listed here.'} /></Card>
+          <Card>
+            <EmptyState
+              title={tab === 'pending' ? t('approvals.caught_up_title', "You're all caught up") : t('approvals.reviewed_empty_title', 'Nothing reviewed yet')}
+              text={tab === 'pending' ? t('approvals.caught_up_text', 'No specialists are waiting for approval.') : t('approvals.reviewed_empty_text', 'Approved and rejected applications are listed here.')}
+            />
+          </Card>
         ) : (
           <ul className="space-y-4">
             {list.map((a) => (
@@ -162,7 +180,7 @@ export default function Approvals() {
                     <Tag svc={a.svc}>{a.role}</Tag>
                   </div>
                   <div className="mt-4">
-                    <p className="label text-ink-2 mb-2">Credential documents</p>
+                    <p className="label text-ink-2 mb-2">{t('approvals.credentials', 'Credential documents')}</p>
                     <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
                       {a.docs.map(([n, meta]) => (
                         <li key={n}>
@@ -184,8 +202,8 @@ export default function Approvals() {
                     </div>
                   ) : (
                     <div className="mt-5 flex flex-col sm:flex-row gap-3">
-                      <Btn onClick={() => setOk(a)}><Check size={18} aria-hidden /> Approve</Btn>
-                      <Btn variant="secondary" onClick={() => setNo(a)}><X size={18} aria-hidden /> Reject</Btn>
+                      <Btn onClick={() => setOk(a)}><Check size={18} aria-hidden /> {t('approvals.approve_btn', 'Approve')}</Btn>
+                      <Btn variant="secondary" onClick={() => setNo(a)}><X size={18} aria-hidden /> {t('approvals.reject_btn', 'Reject')}</Btn>
                     </div>
                   )}
                 </Card>
@@ -205,21 +223,21 @@ export default function Approvals() {
         <div className="mt-5 flex justify-end"><Btn variant="secondary" onClick={() => setDoc(null)}>Close</Btn></div>
       </Dialog>
 
-      <Dialog open={!!ok} onClose={() => setOk(null)} title="Approve this specialist?">
-        <p className="text-ink-2">{ok?.name} will appear in the specialists list and clients can book them straight away.</p>
+      <Dialog open={!!ok} onClose={() => setOk(null)} title={t('approvals.dialog_approve_title', 'Approve this specialist?')}>
+        <p className="text-ink-2">{ok?.name} {t('approvals.dialog_approve_text', 'will appear in the specialists list and clients can book them straight away.')}</p>
         <div className="flex flex-col-reverse sm:flex-row gap-3 mt-6 sm:justify-end">
-          <Btn variant="secondary" onClick={() => setOk(null)}>Not yet</Btn>
-          <Btn onClick={() => approve(ok!)}>Yes, approve</Btn>
+          <Btn variant="secondary" onClick={() => setOk(null)}>{t('approvals.not_yet', 'Not yet')}</Btn>
+          <Btn onClick={() => approve(ok!)}>{t('approvals.yes_approve', 'Yes, approve')}</Btn>
         </div>
       </Dialog>
 
-      <Dialog open={!!no} onClose={() => { setNo(null); setRErr('') }} title="Reject this application?">
+      <Dialog open={!!no} onClose={() => { setNo(null); setRErr('') }} title={t('approvals.dialog_reject_title', 'Reject this application?')}>
         <form onSubmit={reject} noValidate className="space-y-4">
-          <p className="text-ink-2">{no?.name} will get your reason by email and can apply again.</p>
-          <Field label="Reason" error={rErr}>{(p) => <textarea {...p} rows={3} className={`${inputCls} h-auto py-3`} value={reason} onChange={(e) => setReason(e.target.value)} />}</Field>
+          <p className="text-ink-2">{no?.name} {t('approvals.dialog_reject_text', 'will get your reason by email and can apply again.')}</p>
+          <Field label={t('approvals.reason', 'Reason')} error={rErr}>{(p) => <textarea {...p} rows={3} className={`${inputCls} h-auto py-3`} value={reason} onChange={(e) => setReason(e.target.value)} />}</Field>
           <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-end">
-            <Btn type="button" variant="secondary" onClick={() => { setNo(null); setRErr('') }}>Cancel</Btn>
-            <Btn type="submit" className="!bg-[#a02a2a]">Reject application</Btn>
+            <Btn type="button" variant="secondary" onClick={() => { setNo(null); setRErr('') }}>{t('approvals.cancel', 'Cancel')}</Btn>
+            <Btn type="submit" className="!bg-[#a02a2a]">{t('approvals.reject_application', 'Reject application')}</Btn>
           </div>
         </form>
       </Dialog>
