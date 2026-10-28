@@ -407,7 +407,7 @@ export default function Shell() {
           <div
             role="dialog"
             aria-modal="true"
-            aria-label="Navigation menu"
+            aria-label={t('nav.menu', 'Navigation menu')}
             className={`absolute inset-y-0 ${isRtl ? 'left-0' : 'right-0'} flex w-[min(88vw,360px)] flex-col overflow-y-auto bg-white p-5`}
             onClick={(e) => e.stopPropagation()}
           >
@@ -415,7 +415,7 @@ export default function Shell() {
               <p className="h-display text-[24px]">{t('nav.menu')}</p>
               <div className="flex items-center gap-2">
                 <LanguageToggle variant="pill" />
-                <button onClick={() => setMore(false)} aria-label="Close" className="size-11 grid place-items-center rounded-xl hover:bg-ink/5 cursor-pointer">
+                <button onClick={() => setMore(false)} aria-label={t('common.close', 'Close')} className="size-11 grid place-items-center rounded-xl hover:bg-ink/5 cursor-pointer">
                   <X size={22} aria-hidden />
                 </button>
               </div>

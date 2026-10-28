@@ -214,13 +214,17 @@ export default function Approvals() {
       </Gate>
 
       <Dialog open={!!doc} onClose={() => setDoc(null)} title={doc?.name ?? ''}>
-        <p className="text-[14px] text-ink-2 mb-3">Submitted by {doc?.who}. Placeholder preview for the demo.</p>
+        <p className="text-[14px] text-ink-2 mb-3">
+          {t('approvals.doc_submitted_by', 'Submitted by {who}. Placeholder preview for the demo.').replace('{who}', doc?.who ?? '')}
+        </p>
         <div className="rounded-xl bg-sand aspect-[3/4] max-h-[50vh] mx-auto p-6 space-y-3" aria-hidden>
           <div className="h-5 w-1/2 rounded bg-ink/15" />
           {[0, 1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-3 rounded bg-ink/10" style={{ width: `${95 - (i % 3) * 18}%` }} />)}
           <div className="h-16 w-24 rounded border-2 border-dashed border-ink/20 mt-6" />
         </div>
-        <div className="mt-5 flex justify-end"><Btn variant="secondary" onClick={() => setDoc(null)}>Close</Btn></div>
+        <div className="mt-5 flex justify-end">
+          <Btn variant="secondary" onClick={() => setDoc(null)}>{t('common.close', 'Close')}</Btn>
+        </div>
       </Dialog>
 
       <Dialog open={!!ok} onClose={() => setOk(null)} title={t('approvals.dialog_approve_title', 'Approve this specialist?')}>

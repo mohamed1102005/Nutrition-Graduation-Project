@@ -1,5 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { X } from 'lucide-react'
+import { useLanguage } from '../../context/LanguageContext'
 
 export function Dialog({
   open,
@@ -15,6 +16,15 @@ export function Dialog({
   side?: boolean
 }) {
   const dialogRef = useRef<HTMLDivElement>(null)
+  let isRtl = false
+  let closeAria = 'Close'
+  try {
+    const lang = useLanguage()
+    isRtl = lang.isRtl
+    closeAria = lang.t('common.close', 'Close')
+  } catch {
+    // Rendered outside of LanguageProvider context
+  }
 
   useEffect(() => {
     if (!open) return
@@ -80,7 +90,11 @@ export function Dialog({
           <h2 className="h-display text-[24px]" style={{ letterSpacing: '-0.02em' }}>
             {title}
           </h2>
-          <button onClick={onClose} aria-label="Close" className="size-11 -mt-2 -mr-2 grid place-items-center rounded-xl hover:bg-ink/5 cursor-pointer shrink-0">
+          <button
+            onClick={onClose}
+            aria-label={closeAria}
+            className={`size-11 -mt-2 ${isRtl ? '-ml-2' : '-mr-2'} grid place-items-center rounded-xl hover:bg-ink/5 cursor-pointer shrink-0`}
+          >
             <X size={22} />
           </button>
         </div>

@@ -322,9 +322,9 @@ export default function Progress() {
       </Gate>
 
       {/* Log Today Modal */}
-      <Dialog open={open} onClose={() => setOpen(false)} title="Log Today's Health Vitals" side>
+      <Dialog open={open} onClose={() => setOpen(false)} title={t('progress.log_modal_title', "Log Today's Health Vitals")} side>
         <form onSubmit={save} noValidate className="space-y-5">
-          <Field label="Body Weight (kg)" error={err.w} helper="Weigh yourself after waking and prior to breakfast">
+          <Field label={t('progress.weight_label', 'Body Weight (kg)')} error={err.w} helper={t('progress.weight_helper', 'Weigh yourself after waking and prior to breakfast')}>
             {(p) => (
               <input
                 {...p}
@@ -339,11 +339,15 @@ export default function Progress() {
 
           <div>
             <label className="text-xs uppercase font-bold text-ink-2 tracking-wider block mb-2">
-              Did you complete your scheduled workout?
+              {t('progress.workout_completed_q', 'Did you complete your scheduled workout?')}
             </label>
             <Segment
-              label="Workout done"
-              options={['Yes', 'No', 'Rest day']}
+              label={t('progress.workout_done_label', 'Workout done')}
+              options={[
+                { val: 'Yes', label: t('common.yes', 'Yes') },
+                { val: 'No', label: t('common.no', 'No') },
+                { val: 'Rest day', label: t('common.rest_day', 'Rest day') },
+              ]}
               value={form.done}
               onChange={(v) => setForm({ ...form, done: v })}
             />
@@ -351,7 +355,7 @@ export default function Progress() {
 
           <div>
             <label className="text-xs uppercase font-bold text-ink-2 tracking-wider block mb-2" id="pain-lbl">
-              Knee Joint Discomfort (0 to 10 Scale)
+              {t('progress.pain_level_lbl', 'Knee Joint Discomfort (0 to 10 Scale)')}
             </label>
             <div role="radiogroup" aria-labelledby="pain-lbl" className="grid grid-cols-6 gap-2">
               {Array.from({ length: 11 }, (_, i) => {
@@ -382,18 +386,23 @@ export default function Progress() {
 
             {Number(form.pain) > 4 && form.pain !== '' && (
               <div className="mt-3 rounded-xl bg-warn-tint border border-warn/30 p-3 text-xs text-[#7a5200] leading-relaxed">
-                <strong className="block font-bold">Pain Above Safe Threshold ({form.pain}/10):</strong>
-                Pause active quad loading today. Dr. Mona Fathy will be alerted immediately upon submission.
+                <strong className="block font-bold">
+                  {t('progress.pain_alert_title', 'Pain Above Safe Threshold ({pain}/10):').replace('{pain}', form.pain)}
+                </strong>
+                {t('progress.pain_alert_desc', 'Pause active quad loading today. Dr. Mona Fathy will be alerted immediately upon submission.')}
               </div>
             )}
           </div>
 
-          <Field label="Clinical Observation or Notes (Optional)" helper="Any swelling, sleep quality notes, or muscle tightness">
+          <Field
+            label={t('progress.notes_label', 'Clinical Observation or Notes (Optional)')}
+            helper={t('progress.notes_helper', 'Any swelling, sleep quality notes, or muscle tightness')}
+          >
             {(p) => (
               <textarea
                 {...p}
                 rows={3}
-                placeholder="e.g. Mild tightness in right patellar tendon after morning stairs..."
+                placeholder={t('progress.notes_placeholder', 'e.g. Mild tightness in right patellar tendon after morning stairs...')}
                 className={`${inputCls} h-auto py-3 text-sm leading-relaxed`}
                 value={form.note}
                 onChange={(e) => setForm({ ...form, note: e.target.value })}
@@ -403,9 +412,9 @@ export default function Progress() {
 
           <div className="flex gap-3 justify-end pt-3 border-t border-line">
             <Btn type="button" variant="secondary" onClick={() => setOpen(false)}>
-              Cancel
+              {t('common.cancel', 'Cancel')}
             </Btn>
-            <Btn type="submit">Submit Daily Log</Btn>
+            <Btn type="submit">{t('progress.submit_log', 'Submit Daily Log')}</Btn>
           </div>
         </form>
       </Dialog>

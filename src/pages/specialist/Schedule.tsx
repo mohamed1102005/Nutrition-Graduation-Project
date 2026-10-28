@@ -33,6 +33,16 @@ const kindLabel: Record<Kind, string> = { rehab: 'Client session', karim: 'Sync 
 
 export default function Schedule() {
   const { t } = useLanguage()
+
+  const getKindLabel = (k: Kind) => {
+    switch (k) {
+      case 'rehab': return t('schedule.kind_rehab', 'Client session')
+      case 'karim': return t('schedule.kind_karim', 'Sync with trainer')
+      case 'hana': return t('schedule.kind_hana', 'Sync with dietitian')
+      default: return k
+    }
+  }
+
   const [week, setWeek] = useState(0)
   const [day, setDay] = useState(1)
   const [blocked, setBlocked] = useState<Record<string, boolean>>({})
@@ -180,7 +190,11 @@ export default function Schedule() {
         </div>
       </Gate>
 
-      <Dialog open={!!pick} onClose={() => setPick(null)} title={pb ? kindLabel[pb.kind] : blocked[pick?.key ?? ''] ? 'Blocked time' : 'Open slot'}>
+      <Dialog
+        open={!!pick}
+        onClose={() => setPick(null)}
+        title={pb ? getKindLabel(pb.kind) : blocked[pick?.key ?? ''] ? t('schedule.slot_blocked', 'Blocked time') : t('schedule.slot_open', 'Open slot')}
+      >
         {pick && (
           <>
             <p className="font-semibold">{dayNames[pick.d]} {dateLabel(pick.d)}, {t12(pick.m)} to {t12(pick.m + 30)}</p>
@@ -189,24 +203,28 @@ export default function Schedule() {
                 <p className="mt-2">{pb.who}</p>
                 <p className="text-ink-2">{pb.topic}</p>
                 <div className="flex flex-col-reverse sm:flex-row gap-3 mt-6 sm:justify-end">
-                  <Btn variant="secondary" onClick={() => setPick(null)}>Close</Btn>
-                  {pb.id ? <Btn to={`/app/clients/${pb.id}`}>Open client</Btn> : null}
+                  <Btn variant="secondary" onClick={() => setPick(null)}>{t('common.close', 'Close')}</Btn>
+                  {pb.id ? <Btn to={`/app/clients/${pb.id}`}>{t('schedule.open_client', 'Open client')}</Btn> : null}
                 </div>
               </>
             ) : blocked[pick.key] ? (
               <>
-                <p className="text-ink-2 mt-2">Clients cannot book this time.</p>
+                <p className="text-ink-2 mt-2">{t('schedule.blocked_desc', 'Clients cannot book this time.')}</p>
                 <div className="flex flex-col-reverse sm:flex-row gap-3 mt-6 sm:justify-end">
-                  <Btn variant="secondary" onClick={() => setPick(null)}>Keep blocked</Btn>
-                  <Btn onClick={() => { setBlocked({ ...blocked, [pick.key]: false }); setMsg('Slot opened. Clients can book it now.'); setPick(null) }}>Open this slot</Btn>
+                  <Btn variant="secondary" onClick={() => setPick(null)}>{t('schedule.keep_blocked', 'Keep blocked')}</Btn>
+                  <Btn onClick={() => { setBlocked({ ...blocked, [pick.key]: false }); setMsg(t('schedule.slot_opened_msg', 'Slot opened. Clients can book it now.')); setPick(null) }}>
+                    {t('schedule.open_slot_btn', 'Open this slot')}
+                  </Btn>
                 </div>
               </>
             ) : (
               <>
-                <p className="text-ink-2 mt-2">Nobody has booked this time. Block it if you are not available. Existing bookings are not affected.</p>
+                <p className="text-ink-2 mt-2">{t('schedule.open_desc', 'Nobody has booked this time. Block it if you are not available. Existing bookings are not affected.')}</p>
                 <div className="flex flex-col-reverse sm:flex-row gap-3 mt-6 sm:justify-end">
-                  <Btn variant="secondary" onClick={() => setPick(null)}>Leave open</Btn>
-                  <Btn onClick={() => { setBlocked({ ...blocked, [pick.key]: true }); setMsg('Slot blocked. Clients cannot book it.'); setPick(null) }}>Block this time</Btn>
+                  <Btn variant="secondary" onClick={() => setPick(null)}>{t('schedule.leave_open', 'Leave open')}</Btn>
+                  <Btn onClick={() => { setBlocked({ ...blocked, [pick.key]: true }); setMsg(t('schedule.slot_blocked_msg', 'Slot blocked. Clients cannot book it.')); setPick(null) }}>
+                    {t('schedule.block_time_btn', 'Block this time')}
+                  </Btn>
                 </div>
               </>
             )}

@@ -155,33 +155,33 @@ export default function MyBookings() {
         )}
       </Gate>
 
-      <Dialog open={!!target} onClose={() => setTarget(null)} title="Cancel this session?">
+      <Dialog open={!!target} onClose={() => setTarget(null)} title={t('bookings.cancel_title', 'Cancel this session?')}>
         {target && (
           <>
             <p className="text-ink-2">
-              {target.spName}, {target.when}. They will be told right away. This can't be undone, but you can book a new time.
+              {target.spName}, {target.when}. {t('bookings.cancel_desc', "They will be told right away. This can't be undone, but you can book a new time.")}
             </p>
             <div className="flex flex-col-reverse sm:flex-row gap-3 mt-6 sm:justify-end">
-              <Btn variant="secondary" onClick={() => setTarget(null)}>Keep session</Btn>
+              <Btn variant="secondary" onClick={() => setTarget(null)}>{t('bookings.keep_session', 'Keep session')}</Btn>
               <Btn
                 className="!bg-[#a02a2a] hover:!bg-[#b93a3a]"
                 onClick={async () => {
                   try {
                     await api.cancelBooking(target.id)
                     setRows((prev) => prev.map((r) => (r.id === target.id ? { ...r, status: 'Cancelled' } : r)))
-                    setMsg('Session cancelled. It moved to Past.')
+                    setMsg(t('bookings.cancelled_msg', 'Session cancelled. It moved to Past.'))
                   } catch (err: any) {
                     if (err?.code === 'TOO_LATE_TO_CANCEL') {
-                      setMsg('Cannot cancel: Free cancellation is only allowed up to 12 hours before the session.')
+                      setMsg(t('bookings.too_late_msg', 'Cannot cancel: Free cancellation is only allowed up to 12 hours before the session.'))
                     } else {
-                      setMsg(err?.message || 'Failed to cancel session.')
+                      setMsg(err?.message || t('bookings.cancel_fail_msg', 'Failed to cancel session.'))
                     }
                   } finally {
                     setTarget(null)
                   }
                 }}
               >
-                Yes, cancel session
+                {t('bookings.confirm_cancel', 'Yes, cancel session')}
               </Btn>
             </div>
           </>

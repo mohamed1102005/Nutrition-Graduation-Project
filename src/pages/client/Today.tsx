@@ -448,7 +448,7 @@ export default function ClientToday() {
         
         <div className="bg-paper rounded-2xl p-4 border border-line mb-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[13px] font-bold text-ink-2">Current rating:</span>
+            <span className="text-[13px] font-bold text-ink-2">{t('today.dialog_rating', 'Current rating:')}</span>
             <PainChip n={draft} />
           </div>
           <input
@@ -462,9 +462,9 @@ export default function ClientToday() {
             aria-valuetext={`${draft} out of 10`}
           />
           <div className="flex justify-between text-[12px] text-ink-2 font-semibold">
-            <span>0 · Pain-free</span>
-            <span>4 · Threshold</span>
-            <span>10 · Severe pain</span>
+            <span>{t('today.rating_pain_free', '0 · Pain-free')}</span>
+            <span>{t('today.rating_threshold', '4 · Threshold')}</span>
+            <span>{t('today.rating_severe', '10 · Severe pain')}</span>
           </div>
         </div>
 
@@ -480,27 +480,27 @@ export default function ClientToday() {
           <div>
             <p className="font-bold">
               {draft <= 3
-                ? 'Safe for loaded squats'
+                ? t('today.adv_safe_title', 'Safe for loaded squats')
                 : draft <= 6
-                ? 'Limit flexion to 60°'
-                : 'Rest recommended'}
+                ? t('today.adv_warn_title', 'Limit flexion to 60°')
+                : t('today.adv_bad_title', 'Rest recommended')}
             </p>
             <p className="mt-0.5 text-[12px] leading-relaxed">
               {draft <= 3
-                ? 'Proceed with the scheduled 60° box squats and full protein lunch.'
+                ? t('today.adv_safe_desc', 'Proceed with the scheduled 60° box squats and full protein lunch.')
                 : draft <= 6
-                ? 'Squats will be modified to knee-friendly isometric holds and mobility drills.'
-                : 'Dr. Mona will be flagged immediately. Skip squats and focus on passive knee decompression.'}
+                ? t('today.adv_warn_desc', 'Squats will be modified to knee-friendly isometric holds and mobility drills.')
+                : t('today.adv_bad_desc', 'Dr. Mona will be flagged immediately. Skip squats and focus on passive knee decompression.')}
             </p>
           </div>
         </div>
 
         <div className="flex justify-end gap-3 mt-6">
           <Btn variant="secondary" onClick={() => setOpen(false)}>
-            Cancel
+            {t('common.cancel', 'Cancel')}
           </Btn>
           <Btn onClick={saveCheckin}>
-            Confirm check-in
+            {t('today.confirm_checkin', 'Confirm check-in')}
           </Btn>
         </div>
       </Dialog>

@@ -38,9 +38,9 @@ const svcOf: Record<string, Svc> = {
   OrgAdmin: 'move',
 }
 
-function StatusPill({ s }: { s: Status }) {
+function StatusPill({ s, label }: { s: Status; label?: string }) {
   const [I, c] = st[s]
-  return <span className={`inline-flex items-center gap-1.5 rounded-full px-3 h-8 font-bold text-[14px] ${c}`}><I size={16} aria-hidden /> {s}</span>
+  return <span className={`inline-flex items-center gap-1.5 rounded-full px-3 h-8 font-bold text-[14px] ${c}`}><I size={16} aria-hidden /> {label ?? s}</span>
 }
 
 function cap(s?: string): string {
@@ -104,11 +104,31 @@ export default function Users() {
     loadUsers()
   }, [q, role, status])
 
+  const roleLabel = (r: Role) => {
+    switch (r) {
+      case 'Client': return t('nav.client', 'Client')
+      case 'Specialist': return t('nav.specialist', 'Specialist')
+      case 'Admin': return t('nav.admin', 'Admin')
+      case 'Finance': return t('nav.finance', 'Finance')
+      case 'Org Admin': return t('nav.org_admin', 'Org Admin')
+      default: return r
+    }
+  }
+
+  const statusLabel = (s: Status) => {
+    switch (s) {
+      case 'Active': return t('users.status_active', 'Active')
+      case 'Pending': return t('users.status_pending', 'Pending')
+      case 'Suspended': return t('users.status_suspended', 'Suspended')
+      default: return s
+    }
+  }
+
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault()
     setCreateError('')
     if (!newName.trim() || !newEmail.trim() || !newPassword.trim()) {
-      setCreateError('Please fill out all fields.')
+      setCreateError(t('users.fill_all_fields', 'Please fill out all fields.'))
       return
     }
     setCreating(true)
@@ -119,7 +139,7 @@ export default function Users() {
         password: newPassword,
         role: newRole,
       })
-      setMsg(`Account created for ${res.user.name} (${cap(res.user.role)}).`)
+      setMsg(t('users.user_created_msg', 'Account created for {name} ({role}).').replace('{name}', res.user.name).replace('{role}', roleLabel(formatRole(res.user.role))))
       setCreateOpen(false)
       setNewName('')
       setNewEmail('')
@@ -148,10 +168,10 @@ export default function Users() {
     try {
       await api.updateUserStatus(targetUser.id, nextStatusLower)
       setRows((prev) => prev.map((r) => (r.id === targetUser.id ? { ...r, status: nextStatusTitle } : r)))
-      setMsg(`${targetUser.name} is now ${nextStatusTitle.toLowerCase()}.`)
+      setMsg(t('users.user_status_msg', '{name} is now {status}.').replace('{name}', targetUser.name).replace('{status}', statusLabel(nextStatusTitle)))
     } catch {
       setRows((prev) => prev.map((r) => (r.id === targetUser.id ? { ...r, status: nextStatusTitle } : r)))
-      setMsg(`${targetUser.name} is now ${nextStatusTitle.toLowerCase()}.`)
+      setMsg(t('users.user_status_msg', '{name} is now {status}.').replace('{name}', targetUser.name).replace('{status}', statusLabel(nextStatusTitle)))
     } finally {
       setTarget(null)
     }
@@ -257,10 +277,10 @@ export default function Users() {
                   {list.map((u) => (
                     <tr key={u.id} className="border-b border-line last:border-0">
                       <td className="px-5 py-3"><div className="flex items-center gap-3"><Avatar initials={u.name.replace(/^(Dr\.|Coach) /, '').split(' ').map((x) => x[0]).slice(0, 2).join('')} svc={svcOf[u.role]} size={40} /><div><p className="font-bold leading-5">{u.name}</p><p className="text-[13px] text-ink-2">{u.email}</p></div></div></td>
-                      <td className="px-5 py-3 text-[15px]">{u.role}</td>
-                      <td className="px-5 py-3"><StatusPill s={u.status} /></td>
-                      <td className="px-5 py-3 text-[15px] whitespace-nowrap">{u.joined}</td>
-                      <td className="px-5 py-3 text-[15px] whitespace-nowrap">{u.active}</td>
+                      <td className="px-5 py-3 text-[15px]">{roleLabel(u.role)}</td>
+                      <td className="px-5 py-3"><StatusPill s={u.status} label={statusLabel(u.status)} /></td>
+                      <td className="px-5 py-3 text-[15px] whitespace-nowrap">{u.joined === 'Recently' ? t('users.recently', 'Recently') : u.joined}</td>
+                      <td className="px-5 py-3 text-[15px] whitespace-nowrap">{u.active === 'Today' ? t('common.today', 'Today') : u.active === 'Yesterday' ? t('common.yesterday', 'Yesterday') : u.active}</td>
                       <td className="px-5 py-3 text-right">{act(u)}</td>
                     </tr>
                   ))}
@@ -275,7 +295,13 @@ export default function Users() {
                       <Avatar initials={u.name.replace(/^(Dr\.|Coach) /, '').split(' ').map((x) => x[0]).slice(0, 2).join('')} svc={svcOf[u.role]} size={44} />
                       <div className="min-w-0"><p className="font-bold">{u.name}</p><p className="text-[13px] text-ink-2 truncate">{u.email}</p></div>
                     </div>
-                    <div className="flex flex-wrap items-center gap-3 mt-3"><span className="text-[14px] font-semibold">{u.role}</span><StatusPill s={u.status} /><span className="text-[13px] text-ink-2">Active {u.active}</span></div>
+                    <div className="flex flex-wrap items-center gap-3 mt-3">
+                      <span className="text-[14px] font-semibold">{roleLabel(u.role)}</span>
+                      <StatusPill s={u.status} label={statusLabel(u.status)} />
+                      <span className="text-[13px] text-ink-2">
+                        {t('users.col_last_active', 'Last active')}: {u.active === 'Today' ? t('common.today', 'Today') : u.active === 'Yesterday' ? t('common.yesterday', 'Yesterday') : u.active}
+                      </span>
+                    </div>
                     {act(u) && <div className="mt-3">{act(u)}</div>}
                   </Card>
                 </li>
@@ -285,55 +311,59 @@ export default function Users() {
         )}
       </Gate>
 
-      <Dialog open={!!target} onClose={() => setTarget(null)} title={target?.status === 'Suspended' ? 'Reactivate this account?' : 'Suspend this account?'}>
+      <Dialog
+        open={!!target}
+        onClose={() => setTarget(null)}
+        title={target?.status === 'Suspended' ? t('users.dialog_reactivate_title', 'Reactivate this account?') : t('users.dialog_suspend_title', 'Suspend this account?')}
+      >
         {target && (
           <>
             <p className="text-ink-2">
               {target.status === 'Suspended'
-                ? `${target.name} will be able to log in and book again.`
-                : `${target.name} will be logged out and cannot book sessions. Their plan and history are kept.`}
+                ? t('users.reactivate_desc', '{name} will be able to log in and book again.').replace('{name}', target.name)
+                : t('users.suspend_desc', '{name} will be logged out and cannot book sessions. Their plan and history are kept.').replace('{name}', target.name)}
             </p>
             <div className="flex flex-col-reverse sm:flex-row gap-3 mt-6 sm:justify-end">
-              <Btn variant="secondary" onClick={() => setTarget(null)}>Cancel</Btn>
+              <Btn variant="secondary" onClick={() => setTarget(null)}>{t('common.cancel', 'Cancel')}</Btn>
               <Btn
                 className={target.status === 'Suspended' ? '' : '!bg-[#a02a2a]'}
                 onClick={() => handleStatusChange(target)}
               >
-                {target.status === 'Suspended' ? 'Reactivate' : 'Suspend account'}
+                {target.status === 'Suspended' ? t('users.reactivate', 'Reactivate') : t('users.suspend_confirm', 'Suspend account')}
               </Btn>
             </div>
           </>
         )}
       </Dialog>
 
-      <Dialog open={createOpen} onClose={() => setCreateOpen(false)} title="Create User">
+      <Dialog open={createOpen} onClose={() => setCreateOpen(false)} title={t('users.create_user_title', 'Create User')}>
         <form onSubmit={handleCreateUser} className="space-y-4">
           {createError && (
             <p role="alert" className="text-[14px] text-bad bg-bad-tint p-3 rounded-xl font-medium">
               {createError}
             </p>
           )}
-          <Field label="Full name">
+          <Field label={t('users.full_name', 'Full name')}>
             <input
               type="text"
               required
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               className={inputCls}
-              placeholder="e.g. Tamer Fahmy"
+              placeholder={t('users.placeholder_name', 'e.g. Tamer Fahmy')}
             />
           </Field>
-          <Field label="Email address">
+          <Field label={t('users.email_addr', 'Email address')}>
             <input
               type="email"
               required
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
               className={inputCls}
-              placeholder="e.g. finance@rebound.eg"
+              placeholder={t('users.placeholder_email', 'e.g. finance@rebound.eg')}
             />
           </Field>
-          <Field label="Password" helper="Minimum 6 characters">
+          <Field label={t('users.password', 'Password')} helper={t('users.min_password', 'Minimum 6 characters')}>
             <input
               type="password"
               required
@@ -344,24 +374,24 @@ export default function Users() {
               placeholder="••••••••"
             />
           </Field>
-          <Field label="Role" helper="Finance role can only be assigned by Admin">
+          <Field label={t('users.role_label', 'Role')} helper={t('users.role_helper', 'Finance role can only be assigned by Admin')}>
             <select
               value={newRole}
               onChange={(e) => setNewRole(e.target.value as any)}
               className={inputCls}
             >
-              <option value="finance">Finance (Financial Dashboards & Reports)</option>
-              <option value="client">Client (Patient / Athlete)</option>
-              <option value="specialist">Specialist (Doctor / Dietitian / Coach)</option>
-              <option value="admin">Admin (Full System Access)</option>
+              <option value="finance">{t('users.role_opt_finance', 'Finance (Financial Dashboards & Reports)')}</option>
+              <option value="client">{t('users.role_opt_client', 'Client (Patient / Athlete)')}</option>
+              <option value="specialist">{t('users.role_opt_specialist', 'Specialist (Doctor / Dietitian / Coach)')}</option>
+              <option value="admin">{t('users.role_opt_admin', 'Admin (Full System Access)')}</option>
             </select>
           </Field>
           <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2 sm:justify-end">
             <Btn variant="secondary" type="button" onClick={() => setCreateOpen(false)}>
-              Cancel
+              {t('common.cancel', 'Cancel')}
             </Btn>
             <Btn type="submit" disabled={creating}>
-              {creating ? 'Creating...' : 'Create Account'}
+              {creating ? t('users.creating_btn', 'Creating...') : t('users.create_account_btn', 'Create Account')}
             </Btn>
           </div>
         </form>

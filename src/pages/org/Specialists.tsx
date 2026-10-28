@@ -317,11 +317,11 @@ export default function OrgSpecialists() {
       <Dialog
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        title="Add Organization Specialist"
+        title={t('org.add_spec_title', 'Add Organization Specialist')}
       >
         <form onSubmit={handleCreateSpecialist} className="space-y-4 pt-1">
           <p className="text-sm text-ink-2">
-            Register a coach or clinician affiliated with your organization. They are automatically approved and receive upcoming schedule booking slots immediately.
+            {t('org.add_spec_desc', 'Register a coach or clinician affiliated with your organization. They are automatically approved and receive upcoming schedule booking slots immediately.')}
           </p>
 
           {createError && (
@@ -331,12 +331,12 @@ export default function OrgSpecialists() {
             </div>
           )}
 
-          <Field label="Full Legal Name">
+          <Field label={t('org.legal_name_label', 'Full Legal Name')}>
             {(p) => (
               <input
                 {...p}
                 className={inputCls}
-                placeholder="e.g. Dr. Tarek Mansour"
+                placeholder={t('org.legal_name_ph', 'e.g. Dr. Tarek Mansour')}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
@@ -344,7 +344,7 @@ export default function OrgSpecialists() {
             )}
           </Field>
 
-          <Field label="Specialist Email">
+          <Field label={t('org.spec_email_label', 'Specialist Email')}>
             {(p) => (
               <input
                 {...p}
@@ -358,7 +358,7 @@ export default function OrgSpecialists() {
             )}
           </Field>
 
-          <Field label="Temporary Password" helper="Must be at least 8 characters">
+          <Field label={t('org.temp_pass_label', 'Temporary Password')} helper={t('org.temp_pass_helper', 'Must be at least 8 characters')}>
             {(p) => (
               <PasswordInput
                 {...p}
@@ -369,7 +369,7 @@ export default function OrgSpecialists() {
             )}
           </Field>
 
-          <Field label="Pillar & Discipline">
+          <Field label={t('org.pillar_label', 'Pillar & Discipline')}>
             {(p) => (
               <select
                 {...p}
@@ -379,32 +379,32 @@ export default function OrgSpecialists() {
                   setType(e.target.value as 'trainer' | 'nutritionist' | 'physical_therapist')
                 }
               >
-                <option value="trainer">Move: Personal Trainer & Coach</option>
-                <option value="nutritionist">Eat: Dietitian & Nutritionist</option>
-                <option value="physical_therapist">Recover: Physical Therapist</option>
+                <option value="trainer">{t('org.pillar_trainer', 'Move: Personal Trainer & Coach')}</option>
+                <option value="nutritionist">{t('org.pillar_nutritionist', 'Eat: Dietitian & Nutritionist')}</option>
+                <option value="physical_therapist">{t('org.pillar_pt', 'Recover: Physical Therapist')}</option>
               </select>
             )}
           </Field>
 
-          <Field label="Credentials & Licensure (Optional)">
+          <Field label={t('org.creds_label', 'Credentials & Licensure (Optional)')}>
             {(p) => (
               <input
                 {...p}
                 className={inputCls}
-                placeholder="e.g. BSc Physiotherapy, CSCS Certified"
+                placeholder={t('org.creds_ph', 'e.g. BSc Physiotherapy, CSCS Certified')}
                 value={credentials}
                 onChange={(e) => setCredentials(e.target.value)}
               />
             )}
           </Field>
 
-          <Field label="Professional Bio (Optional)">
+          <Field label={t('org.bio_label', 'Professional Bio (Optional)')}>
             {(p) => (
               <textarea
                 {...p}
                 rows={2}
                 className={`${inputCls} h-auto py-2`}
-                placeholder="Brief introduction or coaching philosophy..."
+                placeholder={t('org.bio_ph', 'Brief introduction or coaching philosophy...')}
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
               />
@@ -418,10 +418,10 @@ export default function OrgSpecialists() {
               onClick={() => setCreateOpen(false)}
               disabled={creating}
             >
-              Cancel
+              {t('common.cancel', 'Cancel')}
             </Btn>
             <Btn type="submit" disabled={creating}>
-              {creating ? 'Creating Specialist...' : 'Create Specialist'}
+              {creating ? t('org.creating_spec_btn', 'Creating Specialist...') : t('org.create_spec_btn', 'Create Specialist')}
             </Btn>
           </div>
         </form>
@@ -431,7 +431,7 @@ export default function OrgSpecialists() {
       <Dialog
         open={Boolean(createdSpecInfo)}
         onClose={() => setCreatedSpecInfo(null)}
-        title="Specialist Created Successfully"
+        title={t('org.created_title', 'Specialist Created Successfully')}
       >
         <div className="space-y-4 pt-1">
           <div className="size-12 rounded-2xl bg-ok/10 text-ok flex items-center justify-center mx-auto mb-2">
@@ -439,14 +439,15 @@ export default function OrgSpecialists() {
           </div>
 
           <p className="text-center text-sm text-ink-2">
-            <strong>{createdSpecInfo?.name}</strong> has been added as a{' '}
-            <strong>{createdSpecInfo?.field}</strong> specialist under your organization.
+            {t('org.created_desc', '{name} has been added as a {field} specialist under your organization.')
+              .replace('{name}', createdSpecInfo?.name ?? '')
+              .replace('{field}', createdSpecInfo?.field ?? '')}
           </p>
 
           <div className="p-4 rounded-xl bg-paper border border-line space-y-3">
             <div>
               <span className="text-[11px] font-bold uppercase tracking-wider text-ink-2 block">
-                Login Email
+                {t('org.login_email_label', 'Login Email')}
               </span>
               <span className="text-sm font-semibold text-ink font-mono select-all">
                 {createdSpecInfo?.email}
@@ -455,7 +456,7 @@ export default function OrgSpecialists() {
 
             <div>
               <span className="text-[11px] font-bold uppercase tracking-wider text-ink-2 block mb-1">
-                Temporary Password
+                {t('org.temp_password_label', 'Temporary Password')}
               </span>
               <div className="flex items-center justify-between gap-2 bg-white p-2.5 rounded-lg border border-line">
                 <span className="font-mono text-sm font-bold text-ink select-all">
@@ -468,11 +469,11 @@ export default function OrgSpecialists() {
                 >
                   {copiedPass ? (
                     <>
-                      <Check size={14} className="text-ok" /> Copied
+                      <Check size={14} className="text-ok" /> {t('common.copied', 'Copied')}
                     </>
                   ) : (
                     <>
-                      <Copy size={14} /> Copy
+                      <Copy size={14} /> {t('common.copy', 'Copy')}
                     </>
                   )}
                 </button>
@@ -483,7 +484,7 @@ export default function OrgSpecialists() {
           <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs leading-relaxed flex items-start gap-2">
             <Lock size={16} className="shrink-0 mt-0.5" />
             <span>
-              <strong>Important:</strong> Please share this temporary password securely with the specialist. They can log in immediately at <strong className="font-semibold">rebound.eg/login</strong> to manage their schedule and assigned clients.
+              {t('org.creds_notice', 'Important: Please share this temporary password securely with the specialist. They can log in immediately at rebound.eg/login to manage their schedule and assigned clients.')}
             </span>
           </div>
 
@@ -492,7 +493,7 @@ export default function OrgSpecialists() {
               onClick={() => setCreatedSpecInfo(null)}
               className="w-full"
             >
-              Done
+              {t('common.done', 'Done')}
             </Btn>
           </div>
         </div>

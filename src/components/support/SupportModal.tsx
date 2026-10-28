@@ -208,13 +208,13 @@ export function SupportModal({
                 {t('support.modal_title')}
               </h3>
               <p className="text-[13px] text-ink-2">
-                {initialTargetName ? `${t('support.report_specialist')}: ${initialTargetName}` : 'Rebound Care & Operations'}
+                {initialTargetName ? `${t('support.report_specialist')}: ${initialTargetName}` : t('support.care_ops', 'Rebound Care & Operations')}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t('common.close', 'Close')}
             className="size-11 rounded-xl grid place-items-center hover:bg-ink/5 transition cursor-pointer text-ink-2"
           >
             <X size={20} />

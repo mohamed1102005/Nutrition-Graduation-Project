@@ -374,12 +374,12 @@ export default function OrgMembers() {
           setSelectedSpecialistId('')
           setAssignError(null)
         }}
-        title={`Assign Specialist`}
+        title={t('org.assign_title', 'Assign Specialist')}
       >
         <form onSubmit={handleAssignSpecialist} className="space-y-4 pt-1">
           <p className="text-sm text-ink-2">
-            Assign an organization specialist to <strong>{assignDialogMember?.name}</strong>. Each
-            member may have at most one specialist per field (Move, Eat, or Recover).
+            {t('org.assign_desc', 'Assign an organization specialist to {name}. Each member may have at most one specialist per field (Move, Eat, or Recover).')
+              .replace('{name}', assignDialogMember?.name ?? '')}
           </p>
 
           {assignError && (
@@ -389,7 +389,7 @@ export default function OrgMembers() {
             </div>
           )}
 
-          <Field label="Choose Specialist">
+          <Field label={t('org.choose_spec_label', 'Choose Specialist')}>
             {(p) => (
               <select
                 {...p}
@@ -398,7 +398,7 @@ export default function OrgMembers() {
                 onChange={(e) => setSelectedSpecialistId(Number(e.target.value) || '')}
                 required
               >
-                <option value="">Select an organization specialist...</option>
+                <option value="">{t('org.choose_spec_ph', 'Select an organization specialist...')}</option>
                 {specialists.map((sp) => {
                   const alreadyAssigned = assignDialogMember?.assignedSpecialists.some(
                     (a) => a.field === sp.field
@@ -406,7 +406,7 @@ export default function OrgMembers() {
                   return (
                     <option key={sp.specialistId} value={sp.specialistId}>
                       {sp.name} — {sp.field} ({sp.type.replace('_', ' ')})
-                      {alreadyAssigned ? ' [Field already assigned]' : ''}
+                      {alreadyAssigned ? t('org.field_already_assigned', ' [Field already assigned]') : ''}
                     </option>
                   )
                 })}
@@ -416,7 +416,7 @@ export default function OrgMembers() {
 
           {specialists.length === 0 && (
             <p className="text-xs text-amber-700 bg-amber-50 p-2.5 rounded-lg border border-amber-200">
-              No specialists are registered under your organization yet. Add specialists on the Specialist Roster page first.
+              {t('org.no_specs_warning', 'No specialists are registered under your organization yet. Add specialists on the Specialist Roster page first.')}
             </p>
           )}
 
@@ -431,13 +431,13 @@ export default function OrgMembers() {
               }}
               disabled={assigning}
             >
-              Cancel
+              {t('common.cancel', 'Cancel')}
             </Btn>
             <Btn
               type="submit"
               disabled={assigning || !selectedSpecialistId || specialists.length === 0}
             >
-              {assigning ? 'Assigning...' : 'Confirm Assignment'}
+              {assigning ? t('org.assigning_btn', 'Assigning...') : t('org.confirm_assign_btn', 'Confirm Assignment')}
             </Btn>
           </div>
         </form>
@@ -450,17 +450,18 @@ export default function OrgMembers() {
           setEndingTarget(null)
           setEndError(null)
         }}
-        title="End Specialist Assignment"
+        title={t('org.end_assign_title', 'End Specialist Assignment')}
       >
         <div className="space-y-4 pt-1">
           <p className="text-sm text-ink-2">
-            Are you sure you want to end the <strong>{endingTarget?.specialist.field}</strong>{' '}
-            assignment with <strong>{endingTarget?.specialist.name}</strong> for{' '}
-            <strong>{endingTarget?.member.name}</strong>?
+            {t('org.end_assign_desc', 'Are you sure you want to end the {field} assignment with {specialist} for {member}?')
+              .replace('{field}', endingTarget?.specialist.field ?? '')
+              .replace('{specialist}', endingTarget?.specialist.name ?? '')
+              .replace('{member}', endingTarget?.member.name ?? '')}
           </p>
 
           <div className="p-3 rounded-xl bg-sand/60 border border-line text-xs text-ink-2 leading-relaxed">
-            This will remove the specialist from the member's care team. Existing past session records and notes will remain securely archived.
+            {t('org.end_assign_note', "This will remove the specialist from the member's care team. Existing past session records and notes will remain securely archived.")}
           </div>
 
           {endError && (
@@ -480,7 +481,7 @@ export default function OrgMembers() {
               }}
               disabled={ending}
             >
-              Cancel
+              {t('common.cancel', 'Cancel')}
             </Btn>
             <Btn
               type="button"
@@ -489,7 +490,7 @@ export default function OrgMembers() {
               onClick={handleEndAssignment}
               disabled={ending}
             >
-              {ending ? 'Ending...' : 'End Assignment'}
+              {ending ? t('org.ending_btn', 'Ending...') : t('org.confirm_end_btn', 'End Assignment')}
             </Btn>
           </div>
         </div>

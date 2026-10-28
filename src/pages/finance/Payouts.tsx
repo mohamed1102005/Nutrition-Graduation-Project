@@ -277,39 +277,44 @@ export default function FinancePayouts() {
       <Dialog
         open={Boolean(selectedSpecialist)}
         onClose={() => setSelectedSpecialist(null)}
-        title="Settle Specialist Disbursement"
+        title={t('finance.settle_modal_title', 'Settle Specialist Disbursement')}
       >
         {selectedSpecialist && (
           <div className="space-y-4">
             <p className="text-[14px] text-ink-2">
-              Transfer settlement for <strong className="text-ink">{selectedSpecialist.name}</strong> ({selectedSpecialist.type.replace('_', ' ')}).
+              {t('finance.settle_desc', 'Transfer settlement for {name} ({type}).')
+                .replace('{name}', selectedSpecialist.name)
+                .replace('{type}', selectedSpecialist.type.replace('_', ' '))}
             </p>
 
             <div className="bg-paper p-4 rounded-xl space-y-2 text-[14px]">
               <div className="flex justify-between">
-                <span className="text-ink-2">Completed Sessions:</span>
+                <span className="text-ink-2">{t('finance.completed_sessions', 'Completed Sessions:')}</span>
                 <span className="font-bold">{selectedSpecialist.completedSessions}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-ink-2">Gross Billings:</span>
+                <span className="text-ink-2">{t('finance.gross_billings', 'Gross Billings:')}</span>
                 <span className="font-bold">{(selectedSpecialist.grossEarned ?? 0).toLocaleString('en-US')} EGP</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-ink-2">Platform Cut (20%):</span>
+                <span className="text-ink-2">{t('finance.settle_platform_cut', 'Platform Cut (20%):')}</span>
                 <span className="font-bold text-ink-2">-{(selectedSpecialist.platformFee ?? 0).toLocaleString('en-US')} EGP</span>
               </div>
               <div className="pt-2 border-t border-line flex justify-between text-[16px]">
-                <span className="font-bold">Net Payout to Specialist:</span>
+                <span className="font-bold">{t('finance.net_payout', 'Net Payout to Specialist:')}</span>
                 <span className="font-bold text-recover">
                   {((selectedSpecialist.pendingAmount > 0 ? selectedSpecialist.pendingAmount : selectedSpecialist.netOwed) ?? 0).toLocaleString('en-US')} EGP
                 </span>
               </div>
             </div>
 
-            <Field label="Settlement Reference / Transfer ID" helper="E.g. Bank wire ref, InstaPay reference, or internal check number.">
+            <Field
+              label={t('finance.settle_ref_label', 'Settlement Reference / Transfer ID')}
+              helper={t('finance.settle_ref_helper', 'E.g. Bank wire ref, InstaPay reference, or internal check number.')}
+            >
               <input
                 className={inputCls}
-                placeholder="PAY-REF-XXXX"
+                placeholder={t('finance.settle_ref_ph', 'PAY-REF-XXXX')}
                 value={payoutRef}
                 onChange={(e) => setPayoutRef(e.target.value)}
               />
@@ -317,10 +322,10 @@ export default function FinancePayouts() {
 
             <div className="flex justify-end gap-3 pt-3">
               <Btn variant="secondary" onClick={() => setSelectedSpecialist(null)}>
-                Cancel
+                {t('common.cancel', 'Cancel')}
               </Btn>
               <Btn onClick={handleSettle} disabled={isSubmitting}>
-                {isSubmitting ? 'Processing...' : 'Confirm & Mark as Paid'}
+                {isSubmitting ? t('common.processing', 'Processing...') : t('finance.confirm_paid_btn', 'Confirm & Mark as Paid')}
               </Btn>
             </div>
           </div>
