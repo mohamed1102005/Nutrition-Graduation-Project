@@ -92,6 +92,17 @@ npm run dev
 - **Backend API:** [http://localhost:4000/api](http://localhost:4000/api)
 - **Health Check:** [http://localhost:4000/api/health](http://localhost:4000/api/health)
 
+### 6. Deploy the Frontend to GitHub Pages
+`.github/workflows/deploy-pages.yml` builds the Vite app and publishes it on every push to `main`
+(site URL: `https://<owner>.github.io/<repo>/`).
+
+1. **One-time:** a repository admin opens *Settings → Pages → Build and deployment* and sets **Source** to **GitHub Actions**.
+2. Push to `main` (or run the workflow from the *Actions* tab).
+3. GitHub Pages only hosts static files, so the Express/SQLite API is **not** deployed. With no API configured, the site runs on the built-in demo data (`VITE_DEMO_MODE=true`) and the role switcher still works.
+4. To connect a real backend, host `server/` elsewhere and set the repository variable `VITE_API_URL` (*Settings → Secrets and variables → Actions → Variables*), e.g. `https://api.example.com/api`. Set the API's `CLIENT_ORIGIN` to the Pages origin (`https://<owner>.github.io`, without the `/<repo>` path), because the server blocks any other origin.
+
+Images, video and fonts live in Git LFS, so the workflow checks out with `lfs: true`.
+
 ---
 
 ## 👥 Demo Accounts & Role Switcher

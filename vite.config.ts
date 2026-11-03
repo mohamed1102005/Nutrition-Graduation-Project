@@ -5,6 +5,8 @@ import path from 'node:path'
 
 // Vite config — https://vitejs.dev/config/
 export default defineConfig({
+  // GitHub Pages serves a project site from /<repo>/; the deploy workflow sets BASE_PATH.
+  base: process.env.BASE_PATH || '/',
   plugins: [
     react(),
     tailwindcss(),

@@ -15,6 +15,7 @@ import {
 import { Btn, Card, Tag } from '../../ui'
 import { api, removeToken } from '../../api'
 import { useLanguage } from '../../context/LanguageContext'
+import { routeUrl } from '../../basePath'
 
 interface WaitingForApprovalProps {
   user: any
@@ -54,7 +55,7 @@ export default function WaitingForApproval({ user, onApproved }: WaitingForAppro
 
   const handleLogout = () => {
     removeToken()
-    window.location.href = '/login'
+    window.location.href = routeUrl('/login')
   }
 
   const roleLabel =

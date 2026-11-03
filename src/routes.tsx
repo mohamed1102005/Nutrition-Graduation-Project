@@ -1,4 +1,5 @@
 import { lazy, Suspense, type ComponentType } from 'react'
+import { routerBasename } from './basePath'
 import { createBrowserRouter, Navigate, useRouteError, isRouteErrorResponse } from 'react-router'
 import { NotFoundState, Btn, Card } from './ui'
 import { RoleOnly } from './components/auth/RoleOnly'
@@ -158,4 +159,4 @@ export const router = createBrowserRouter([
     ),
   },
   { path: '*', Component: NotFound },
-])
+], { basename: routerBasename })

@@ -4,10 +4,11 @@ import { ArrowRight, Menu, X } from 'lucide-react'
 import { Wordmark } from '../ui'
 import { specialists, type Svc } from '../data'
 import { useLanguage } from '../context/LanguageContext'
+import { assetUrl } from '../basePath'
 import './landing.css'
 
 const wrap = 'lp-wrap'
-const media = '/landing'
+const media = assetUrl('landing')
 const movePhoto = 'https://images.unsplash.com/photo-1566568531155-07244e00963d?auto=format&fit=crop&w=1400&q=80'
 const recoverPhoto = 'https://images.unsplash.com/photo-1645005512942-a17817fb7c11?auto=format&fit=crop&w=1400&q=80'
 

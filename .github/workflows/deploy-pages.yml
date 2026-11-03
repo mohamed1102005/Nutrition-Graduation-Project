@@ -1,0 +1,65 @@
+# Builds the Vite frontend and publishes it to GitHub Pages on every push to main.
+# One-time setup: Settings > Pages > Build and deployment > Source: "GitHub Actions".
+# Optional repository variables (Settings > Secrets and variables > Actions > Variables):
+#   VITE_API_URL    public URL of the deployed Express API, e.g. https://api.example.com/api
+#   VITE_DEMO_MODE  "true" (default) keeps the built-in demo accounts and role switcher
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time; a newer push replaces a queued one.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true # images, video and fonts are stored in Git LFS
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npx tsc --noEmit
+
+      - run: npm run build
+        env:
+          # A project site is served from /<repo>/ (e.g. /Nutrition-Graduation-Project/).
+          BASE_PATH: /${{ github.event.repository.name }}/
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+          VITE_DEMO_MODE: ${{ vars.VITE_DEMO_MODE || 'true' }}
+
+      # Pages answers unknown paths with 404.html, so serving the app there makes deep links
+      # and page refreshes (/app/today, /login) load the SPA.
+      - run: cp dist/index.html dist/404.html
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

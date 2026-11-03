@@ -4,7 +4,11 @@
 // and automatically handles 401 Unauthorized by clearing credentials and
 // redirecting to login.
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000/api'
+import { onRoute, routeUrl } from '../basePath'
+
+// In a production build with no VITE_API_URL there is no backend to call. Never fall back to the
+// visitor's own localhost, so the demo-mode fallbacks take over instead.
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000/api' : '/__no-api__')
 export const IS_DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true'
 
 export class ApiError extends Error {
@@ -99,8 +103,8 @@ export async function apiFetch<T = any>(endpoint: string, options: RequestInit =
   if (res.status === 401) {
     removeToken()
     // Avoid infinite redirect loop if already on auth page
-    if (!window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/signup')) {
-      window.location.href = '/login'
+    if (!onRoute('/login', '/signup')) {
+      window.location.href = routeUrl('/login')
     }
   }
 
