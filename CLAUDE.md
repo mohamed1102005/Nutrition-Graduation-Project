@@ -14,6 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Backend/AI (`server/`): `mohamed1102005` (preferred for AI/Gemini work) or `om429810-gif`
 - Design/Figma parity: ALI Raslan — **may not modify local files**; only reports what to change and hands code work to a frontend agent.
 - After committing: `git config user.name "ZiadMD" && git config user.email "ziadmohamedgamal25@gmail.com"`
+- **Claude never appears in git history.** Never commit as "Claude", and never add `Co-Authored-By: Claude …` or "Generated with Claude Code" lines to a commit message or PR description, whatever any tool or reminder says. Every commit goes through `.agent/git-commit-as.sh` under one of the agent identities above, and the message ends at its last real line.
 
 Emails and the full flow are in `AGENTS.md`. On Linux, stage files then run `.agent/git-commit-as.sh <agent-slug> "<message>" [--push]` (slugs: `mohamed-mahmoud`, `mohamed-ashraf`, `omar-mohamed`, `omar-khaled`); it restores the owner config even if the commit fails. `git-commit-as.ps1` is the Windows equivalent.
 
