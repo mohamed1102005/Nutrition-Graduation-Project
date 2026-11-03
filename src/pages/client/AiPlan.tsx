@@ -80,7 +80,7 @@ function build(days: number, goal: string, diet: string, kneeSafe: boolean, isAr
     : [
         { d: 'Daily Target', t: `${kcal.toLocaleString('en-US')} kcal · ${protein}g protein · 2.5L water` },
         { d: 'Primary Meals', t: base[diet] || base['No restriction'] },
-        { d: 'Hydration', t: '2.5 to 3.0 Litres daily (elevate on training days)' },
+        { d: 'Hydration', t: '2.5 to 3.0 Litres daily (drink more on training days)' },
         { d: 'Flexibility', t: 'One structured social meal on weekend within portion targets' },
       ]
 
@@ -206,15 +206,12 @@ export default function AiPlan() {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-line pb-6">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold bg-ink text-white px-3 py-1 rounded-full uppercase tracking-wider">
-              <Sparkles size={13} className="text-sand" aria-hidden /> {t('ai.badge', 'Gemini Health Intelligence')}
-            </span>
-            <span className="text-xs font-semibold text-ink-2">{t('ai.version_badge', 'v3.5 Clinical Tuning')}</span>
-          </div>
-          <h1 className="h-display text-[26px] sm:text-[32px] text-ink leading-tight tracking-tight">
+          <p className="inline-flex items-center gap-1.5 text-[15px] font-semibold text-ink-2 mb-1">
+            <Sparkles size={15} aria-hidden /> {t('ai.badge', 'Gemini Health Intelligence')} · {t('ai.version_badge', 'v3.5 Clinical Tuning')}
+          </p>
+          <h2 className="h-display text-[20px] sm:text-[22px] text-ink leading-tight">
             {t('ai.title', 'AI Protocol Co-Pilot')}
-          </h1>
+          </h2>
           <p className="text-sm text-ink-2 max-w-2xl mt-1">
             {t('ai.subtitle', 'Generate an evidence-based, synchronized training, nutrition, and joint-protection protocol in seconds. Automatically routed to your care team for clinical sign-off.')}
           </p>
@@ -231,7 +228,7 @@ export default function AiPlan() {
 
           {/* Goal Selector */}
           <div>
-            <label className="text-xs uppercase font-bold text-ink-2 tracking-wider block mb-2">
+            <label className="text-[14px] font-semibold text-ink-2 block mb-2">
               {t('ai.primary_goal', 'Primary Objective')}
             </label>
             <div className="grid grid-cols-1 gap-2">
@@ -242,7 +239,7 @@ export default function AiPlan() {
                   onClick={() => setGoal(g.id)}
                   className={`p-3 rounded-xl border transition cursor-pointer ${isRtl ? 'text-right' : 'text-left'} ${
                     goal === g.id
-                      ? 'bg-ink text-white border-ink shadow-sm'
+                      ? 'bg-ink text-white border-ink'
                       : 'bg-white border-line hover:border-ink/30 text-ink'
                   }`}
                 >
@@ -257,7 +254,7 @@ export default function AiPlan() {
 
           {/* Days Per Week */}
           <div>
-            <label className="text-xs uppercase font-bold text-ink-2 tracking-wider block mb-2">
+            <label className="text-[14px] font-semibold text-ink-2 block mb-2">
               {t('ai.sessions_per_week', 'Weekly Training Sessions')}
             </label>
             <Segment
@@ -286,7 +283,7 @@ export default function AiPlan() {
 
           {/* Equipment Chips */}
           <div>
-            <label className="text-xs uppercase font-bold text-ink-2 tracking-wider block mb-2" id="eq-lbl">
+            <label className="text-[14px] font-semibold text-ink-2 block mb-2" id="eq-lbl">
               {t('ai.equipment', 'Equipment Access')}
             </label>
             <div role="group" aria-labelledby="eq-lbl" className="flex flex-wrap gap-2">
@@ -301,7 +298,7 @@ export default function AiPlan() {
 
           {/* Diet Preferences */}
           <div>
-            <label className="text-xs uppercase font-bold text-ink-2 tracking-wider block mb-2">
+            <label className="text-[14px] font-semibold text-ink-2 block mb-2">
               {t('ai.diet_pref', 'Dietary Preference')}
             </label>
             <Segment
@@ -314,7 +311,7 @@ export default function AiPlan() {
 
           {/* Action Button */}
           <Btn
-            className="w-full gap-2 !h-12 text-sm font-bold shadow-sm"
+            className="w-full gap-2 !h-12 text-sm font-bold"
             onClick={generate}
             disabled={phase === 'loading'}
           >
@@ -336,7 +333,7 @@ export default function AiPlan() {
                 <p className="text-xs text-ink-2">{t('ai_plan.safeguard_sub', 'AI generates the draft; your dedicated specialists review and approve it before execution.')}</p>
               </div>
             </div>
-            <span className="text-xs font-bold uppercase tracking-wider text-ok bg-ok-tint px-3 py-1 rounded-full shrink-0">
+            <span className="text-xs font-bold capitalize text-ok bg-ok-tint px-3 py-1 rounded-full shrink-0">
               {t('ai_plan.verified_model', 'Verified Model')}
             </span>
           </div>
@@ -409,8 +406,8 @@ export default function AiPlan() {
             <div className="space-y-5">
               {/* Executive Metrics Overview */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="p-4 rounded-xl border border-line bg-white shadow-xs">
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase text-ink-2">
+                <div className="p-4 rounded-xl border border-line bg-white">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-ink-2">
                     <Dumbbell size={14} aria-hidden /> {t('ai.metric_training_vol', 'Training Volume')}
                   </div>
                   <p className="num font-bold text-2xl text-ink mt-1">
@@ -419,8 +416,8 @@ export default function AiPlan() {
                   <p className="text-xs text-ink-2 mt-0.5">{t('ai.metric_vol_sub', 'Strength & joint stabilization')}</p>
                 </div>
 
-                <div className="p-4 rounded-xl border border-line bg-white shadow-xs">
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase text-ink-2">
+                <div className="p-4 rounded-xl border border-line bg-white">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-ink-2">
                     <Utensils size={14} aria-hidden /> {t('ai.metric_nutrition_target', 'Nutrition Target')}
                   </div>
                   <p className="num font-bold text-2xl text-ink mt-1">
@@ -431,8 +428,8 @@ export default function AiPlan() {
                   </p>
                 </div>
 
-                <div className="p-4 rounded-xl border border-line bg-white shadow-xs">
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase text-ink-2">
+                <div className="p-4 rounded-xl border border-line bg-white">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-ink-2">
                     <HeartPulse size={14} aria-hidden /> {t('ai.metric_clinical_guard', 'Clinical Guard')}
                   </div>
                   <p className="num font-bold text-2xl text-ink mt-1">
@@ -461,7 +458,7 @@ export default function AiPlan() {
                         <ul className="space-y-2.5">
                           {plan[s].map((r, rIdx) => (
                             <li key={rIdx} className="p-3 rounded-xl bg-paper/50 border border-line/60">
-                              <span className="text-[11px] uppercase font-bold text-ink-2 tracking-wider block">
+                              <span className="text-[12px] font-bold text-ink-2 block">
                                 {r.d}
                               </span>
                               <p className="text-xs font-medium text-ink mt-0.5 leading-snug">{r.t}</p>
@@ -475,9 +472,9 @@ export default function AiPlan() {
               </div>
 
               {/* Handoff CTA Bar */}
-              <div className="rounded-2xl border border-line bg-white p-5 flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4 shadow-sm overflow-hidden">
+              <div className="rounded-2xl border border-line bg-white p-5 flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4 overflow-hidden">
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="size-10 rounded-xl bg-ok-tint text-ok grid place-items-center shrink-0">
+                  <span className="size-10 grid place-items-center text-ok shrink-0">
                     <CircleCheck size={20} aria-hidden />
                   </span>
                   <div className="min-w-0">

@@ -80,7 +80,7 @@ export default function FinanceSubscriptions() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <div className="bg-eat-tint rounded-2xl p-5 sm:p-6">
             <div className="flex items-center justify-between">
-              <span className="label uppercase text-ink-2">{t('finance.monthly_recurring_rev', 'Monthly Recurring Revenue')}</span>
+              <span className="label text-ink-2">{t('finance.monthly_recurring_rev', 'Monthly Recurring Revenue')}</span>
               <TrendingUp size={18} className="text-eat" />
             </div>
             <p className="num text-[36px] sm:text-[44px] leading-none mt-3 text-eat">
@@ -91,7 +91,7 @@ export default function FinanceSubscriptions() {
 
           <div className="bg-sand rounded-2xl p-5 sm:p-6">
             <div className="flex items-center justify-between">
-              <span className="label uppercase text-ink-2">{t('finance.active_subscribers', 'Active Subscribers')}</span>
+              <span className="label text-ink-2">{t('finance.active_subscribers', 'Active Subscribers')}</span>
               <Users size={18} className="text-ink-2" />
             </div>
             <p className="num text-[36px] sm:text-[44px] leading-none mt-3">
@@ -102,7 +102,7 @@ export default function FinanceSubscriptions() {
 
           <div className="bg-paper border border-line rounded-2xl p-5 sm:p-6">
             <div className="flex items-center justify-between">
-              <span className="label uppercase text-ink-2">{t('finance.arpu_label', 'Average ARPU')}</span>
+              <span className="label text-ink-2">{t('finance.arpu_label', 'Average ARPU')}</span>
               <Sparkles size={18} className="text-ink-2" />
             </div>
             <p className="num text-[36px] sm:text-[44px] leading-none mt-3">
@@ -164,7 +164,7 @@ export default function FinanceSubscriptions() {
           </div>
 
           <table className="w-full text-left text-[14px]">
-            <thead className="bg-paper border-b border-line text-[12px] uppercase text-ink-2">
+            <thead className="bg-paper border-b border-line text-[12px] text-ink-2">
               <tr>
                 <th className="py-3 px-5 font-semibold">Client</th>
                 <th className="py-3 px-5 font-semibold">Tier</th>

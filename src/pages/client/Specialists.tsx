@@ -667,7 +667,7 @@ export function SpecialistProfile() {
                   <div className="grid md:grid-cols-[220px_1fr] gap-8 items-center border-b border-line pb-8">
                     {/* Overall Score Box */}
                     <div className="text-center md:border-r md:border-line md:pr-8">
-                      <p className="text-[13px] font-bold text-ink-2 uppercase tracking-wider">
+                      <p className="text-[13px] font-bold text-ink-2">
                         {t('reviews.overall_rating')}
                       </p>
                       <p className="num text-[56px] leading-tight font-extrabold text-ink mt-2">
@@ -712,7 +712,7 @@ export function SpecialistProfile() {
                               </span>
                               <div className="flex-1 h-3 rounded-full bg-line overflow-hidden">
                                 <div
-                                  className="h-full bg-amber-400 rounded-full transition-all duration-500"
+                                  className="h-full bg-amber-400 rounded-full transition-[width] duration-500"
                                   style={{ width: `${percentage}%` }}
                                 />
                               </div>
@@ -734,7 +734,7 @@ export function SpecialistProfile() {
                           <div>
                             <div className="flex items-center gap-2">
                               <ShieldCheck size={20} className="text-ok" />
-                              <span className="text-[13px] font-bold text-ok uppercase tracking-wide">
+                              <span className="text-[13px] font-bold text-ok">
                                 {t('reviews.verified_badge')}
                               </span>
                             </div>

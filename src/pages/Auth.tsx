@@ -23,37 +23,40 @@ import { useLanguage } from '../context/LanguageContext'
 
 function AuthLayout({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
   const { t } = useLanguage()
-  const serviceText = {
-    move: 'text-move',
-    eat: 'text-eat',
-    recover: 'text-recover',
-  } as const
-  const bands: [Svc, string, string][] = [
-    ['move', t('auth.banner_move', 'Workouts that fit your week.'), 'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?auto=format&fit=crop&w=900&q=85'],
-    ['eat', t('auth.banner_eat', 'Meals made from real Egyptian food.'), 'https://images.unsplash.com/photo-1568625357288-d3b0051abf0e?auto=format&fit=crop&w=700&q=85'],
-    ['recover', t('auth.banner_recover', 'Rehab your trainer can see.'), 'https://images.unsplash.com/photo-1645005512942-a17817fb7c11?auto=format&fit=crop&w=700&q=85'],
+  // The same sentence and plan cards the landing page opens with, so sign-in feels like the same product.
+  const cards: [Svc, string, string, string, string][] = [
+    ['eat', '14:00', t('landing.lunch', 'Lunch'), t('lp.chip_eat_meta', '560 kcal · 42 g protein'), ''],
+    ['move', '18:00', t('landing.lower_body', 'Lower body'), t('lp.chip_move_meta', '40 min · box squats for the knee'), 'lg:ms-10'],
+    ['recover', '21:00', t('landing.knee_mobility', 'Knee mobility'), t('lp.chip_rec_meta', "15 min · Dr. Mona's routine"), 'lg:ms-20'],
   ]
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
-      <div className="hidden lg:flex flex-col" aria-hidden>
-        {bands.map(([k, text, image]) => {
-          const s = SVC[k]
-          return (
-            <div key={k} className="relative flex flex-1 flex-col justify-end overflow-hidden bg-ink p-8 xl:p-12">
-              <img src={image} alt="" className="absolute inset-0 h-full w-full object-cover" />
-              <div className="absolute inset-0 bg-ink/75" />
-              <div className={`relative ${serviceText[k]}`}>
-                <s.Icon size={32} strokeWidth={2.4} />
-                <p className="h-display mt-3 text-[40px] xl:text-[56px]">{s.label}</p>
-                <p className="mt-1 font-bold xl:text-[18px]">{text}</p>
+      <div className="hidden lg:block bg-ink text-paper" aria-hidden>
+        <div className="sticky top-0 h-screen flex flex-col justify-between gap-12 p-10 xl:p-16">
+          <p className="h-display text-[clamp(44px,5vw,84px)] leading-[0.98]" style={{ letterSpacing: '-0.045em' }}>
+            {t('lp.hero_l1', 'Knee pain')}
+            <br />
+            {t('lp.hero_l2', 'changes lunch.')}
+          </p>
+          <div className="flex flex-col gap-3 max-w-[460px]">
+            <p className="text-[18px] leading-[1.55] mb-4 max-w-[40ch]">
+              {t('lp.hero_sub', 'Rebound puts a trainer, a dietitian and a physical therapist on one plan. Log a sore knee once, and all three adjust your day.')}
+            </p>
+            {cards.map(([k, time, title, meta, offset]) => (
+              <div key={k} className={`${SVC[k].bg} ${offset} rounded-2xl p-5 text-ink`}>
+                <p className="flex justify-between text-[15px] font-bold">
+                  <span>{t(`lp.${k}`, SVC[k].label)}</span>
+                  <span className="tabular-nums">{time}</span>
+                </p>
+                <p className="h-display text-[24px] mt-2">{title}</p>
+                <p className="text-[15px] mt-1 font-medium">{meta}</p>
               </div>
-              <div className="pointer-events-none absolute inset-0 bg-ink/15" />
-            </div>
-          )
-        })}
+            ))}
+          </div>
+        </div>
       </div>
       <div className="flex h-3 lg:hidden" aria-hidden>
-        {bands.map(([k]) => (
+        {(['move', 'eat', 'recover'] as Svc[]).map((k) => (
           <span key={k} className={`flex-1 ${SVC[k].bg}`} />
         ))}
       </div>
@@ -82,7 +85,7 @@ export function Login() {
   const [loading, setLoading] = useState(false)
 
   const validate = (x = f) => ({
-    email: !x.email ? t('auth.err_enter_email', 'Enter your email.') : !emailOk(x.email) ? t('auth.err_incomplete_email', 'That email looks incomplete. Try name@example.com.') : '',
+    email: !x.email ? t('auth.err_enter_email', 'Enter your email.') : !emailOk(x.email) ? t('auth.err_incomplete_email', 'That email looks incomplete. Try name@rebound.eg.') : '',
     password: !x.password ? t('auth.err_enter_pw', 'Enter your password.') : '',
   })
 
@@ -122,7 +125,7 @@ export function Login() {
 
   return (
     <AuthLayout>
-      <h1 className="h-display text-[32px]">{t('auth.welcome_back', 'Welcome back')}</h1>
+      <h1 className="h-display text-[28px] sm:text-[32px]">{t('auth.welcome_back', 'Welcome back')}</h1>
       <p className="text-ink-2 mt-2">{t('auth.login_sub', "Log in to see today's plan.")}</p>
       <form onSubmit={submit} noValidate className="mt-8 space-y-5">
         <Field label={t('auth.email', 'Email')} error={err.email}>
@@ -384,7 +387,7 @@ export function Signup() {
     <AuthLayout wide={specialist}>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="h-display text-[30px] sm:text-[34px]">
+          <h1 className="h-display text-[28px] sm:text-[32px]">
             {specialist ? t('auth.join_specialist_title', 'Join as a verified specialist') : t('auth.signup_title', 'Create your account')}
           </h1>
           <p className="text-ink-2 mt-1.5 text-[15px]">
@@ -403,9 +406,9 @@ export function Signup() {
             <span className={step === 3 ? 'text-ink font-bold' : ''}>{t('auth.step3_title', '3. Practice & Rates')}</span>
           </div>
           <div className="grid grid-cols-3 gap-2">
-            <div className={`h-2 rounded-full transition-all ${step >= 1 ? 'bg-ink' : 'bg-line'}`} />
-            <div className={`h-2 rounded-full transition-all ${step >= 2 ? 'bg-ink' : 'bg-line'}`} />
-            <div className={`h-2 rounded-full transition-all ${step >= 3 ? 'bg-ink' : 'bg-line'}`} />
+            <div className={`h-2 rounded-full transition-[width,background-color,border-color,color] ${step >= 1 ? 'bg-ink' : 'bg-line'}`} />
+            <div className={`h-2 rounded-full transition-[width,background-color,border-color,color] ${step >= 2 ? 'bg-ink' : 'bg-line'}`} />
+            <div className={`h-2 rounded-full transition-[width,background-color,border-color,color] ${step >= 3 ? 'bg-ink' : 'bg-line'}`} />
           </div>
         </div>
       )}
@@ -465,13 +468,13 @@ export function Signup() {
                       key={tag}
                       type="button"
                       onClick={() => toggleFocusTag(tag)}
-                      className={`px-3 py-1.5 rounded-lg text-[13px] font-semibold transition-all border ${
+                      className={`inline-flex items-center gap-1.5 px-3 min-h-9 rounded-full text-[13px] font-semibold transition-[width,background-color,border-color,color] border ${
                         active
-                          ? 'bg-ink text-white border-ink shadow-sm'
+                          ? 'bg-ink text-white border-ink'
                           : 'bg-paper text-ink-2 border-line hover:border-ink hover:text-ink'
                       }`}
                     >
-                      {active ? '✓ ' : '+ '}
+                      {active ? <Check size={14} strokeWidth={3} aria-hidden /> : <Plus size={14} aria-hidden />}
                       {tag}
                     </button>
                   )
@@ -635,7 +638,7 @@ export function Signup() {
               {f.documents.map((doc, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center justify-between p-3 rounded-xl border border-line bg-paper hover:border-ink transition-all"
+                  className="flex items-center justify-between p-3 rounded-xl border border-line bg-paper hover:border-ink transition-[width,background-color,border-color,color]"
                 >
                   <div className="flex items-center gap-3">
                     <FileText size={20} className="text-ink-2" />
@@ -918,15 +921,11 @@ export function JoinOrg() {
 
   return (
     <AuthLayout>
-      <div className="flex items-center gap-3 mb-2">
-        <div className="size-10 rounded-xl bg-move-tint text-move flex items-center justify-center">
-          <Building2 size={22} />
-        </div>
-        <span className="text-xs font-bold tracking-wider uppercase bg-sand px-2.5 py-1 rounded-full text-ink">
-          {t('auth.sponsored_access', 'Sponsored Access')}
-        </span>
-      </div>
-      <h1 className="h-display text-[32px]">{t('auth.join_title', 'Join your organization')}</h1>
+      <p className="inline-flex items-center gap-2 mb-3 text-[14px] font-semibold text-ink-2">
+        <Building2 size={16} aria-hidden />
+        {t('auth.sponsored_access', 'Sponsored access')}
+      </p>
+      <h1 className="h-display text-[28px] sm:text-[32px]">{t('auth.join_title', 'Join your organization')}</h1>
       <p className="text-ink-2 mt-2">
         {t('auth.join_sub', 'Enter the invite code provided by your company, university, or club to get sponsored wellness access.')}
       </p>
@@ -947,7 +946,7 @@ export function JoinOrg() {
             <input
               {...p}
               type="text"
-              className={`${inputCls} font-mono tracking-wider text-base uppercase`}
+              className={`${inputCls} tabular-nums tracking-wider uppercase`}
               placeholder="e.g. APEX2026"
               maxLength={12}
               value={f.inviteCode}
@@ -977,7 +976,7 @@ export function JoinOrg() {
               type="email"
               autoComplete="email"
               className={inputCls}
-              placeholder="name@example.com"
+              placeholder="name@rebound.eg"
               value={f.email}
               onChange={(e) => setF({ ...f, email: e.target.value })}
             />
@@ -1102,17 +1101,17 @@ export function RegisterOrg() {
           <div className="size-16 rounded-2xl bg-ok/10 text-ok flex items-center justify-center mx-auto mb-4">
             <Check size={32} strokeWidth={2.5} />
           </div>
-          <h1 className="h-display text-[32px]">{t('auth.org_registered_title', 'Organization Registered!')}</h1>
+          <h1 className="h-display text-[28px] sm:text-[32px]">{t('auth.org_registered_title', 'Organization Registered!')}</h1>
           <p className="text-ink-2 mt-2 max-w-md mx-auto">
             <strong>{createdOrg.name}</strong> {t('auth.org_registered_sub', 'has been registered with sponsored member seats.')}
           </p>
 
           <div className="mt-8 p-6 bg-paper rounded-2xl border border-line text-left">
-            <span className="text-xs font-bold uppercase tracking-wider text-ink-2 block mb-2">
+            <span className="text-[14px] font-semibold text-ink-2 block mb-2">
               {t('auth.team_invite_code', 'Your Team Invite Code')}
             </span>
             <div className="flex items-center justify-between gap-3 bg-white p-4 rounded-xl border border-line">
-              <span className="font-mono text-2xl font-bold tracking-widest text-ink select-all">
+              <span className="h-display text-[28px] tabular-nums tracking-widest text-ink select-all">
                 {createdOrg.inviteCode}
               </span>
               <Btn
@@ -1152,15 +1151,11 @@ export function RegisterOrg() {
 
   return (
     <AuthLayout wide>
-      <div className="flex items-center gap-3 mb-2">
-        <div className="size-10 rounded-xl bg-eat-tint text-eat flex items-center justify-center">
-          <Building2 size={22} />
-        </div>
-        <span className="text-xs font-bold tracking-wider uppercase bg-sand px-2.5 py-1 rounded-full text-ink">
-          {t('auth.b2b_portal', 'B2B Organization Portal')}
-        </span>
-      </div>
-      <h1 className="h-display text-[32px]">{t('auth.reg_org_title', 'Register your organization')}</h1>
+      <p className="inline-flex items-center gap-2 mb-3 text-[14px] font-semibold text-ink-2">
+        <Building2 size={16} aria-hidden />
+        {t('auth.b2b_portal', 'Organization portal')}
+      </p>
+      <h1 className="h-display text-[28px] sm:text-[32px]">{t('auth.reg_org_title', 'Register your organization')}</h1>
       <p className="text-ink-2 mt-2">
         {t('auth.reg_org_sub', 'Equip your team with personalized nutrition, training, and recovery. Bring your own specialists or use ours.')}
       </p>
@@ -1226,7 +1221,7 @@ export function RegisterOrg() {
         </Field>
 
         <div className="pt-2 border-t border-line">
-          <h2 className="text-sm font-bold text-ink uppercase tracking-wider mb-3">
+          <h2 className="text-[16px] font-bold text-ink mb-3">
             {t('auth.lead_admin_section', 'Lead Administrator Account')}
           </h2>
           <div className="space-y-4">

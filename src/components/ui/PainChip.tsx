@@ -9,7 +9,7 @@ export function PainChip({ n }: { n: number }) {
       : ['bg-bad-tint text-bad', CircleAlert, 'Severe']
   const I = c[1] as typeof CircleCheck
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-3 h-9 font-bold text-[14px] whitespace-nowrap ${c[0]}`}>
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-3 h-8 font-semibold text-[14px] whitespace-nowrap ${c[0]}`}>
       <I size={16} aria-hidden />
       <span className="num">{n}</span>/10 · {c[2] as string}
     </span>

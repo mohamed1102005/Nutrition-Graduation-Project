@@ -14,6 +14,7 @@ import {
   CreditCard,
   CalendarX,
   RefreshCw,
+  X,
 } from 'lucide-react'
 import { Btn, Card, Chip, Gate, inputCls, PageHead, Skeleton } from '../../ui'
 import { api } from '../../api'
@@ -150,7 +151,7 @@ export default function AdminSupport() {
       {/* KPI Tiles */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-5">
-          <p className="text-[13px] font-bold text-ink-2 uppercase tracking-wide">
+          <p className="text-[13px] font-bold text-ink-2">
             {t('support.status_open')}
           </p>
           <p className="num text-[36px] font-extrabold text-ink mt-1">{metrics.totalOpen}</p>
@@ -158,7 +159,7 @@ export default function AdminSupport() {
         </Card>
 
         <Card className="p-5 bg-bad-tint/30 border-bad/30">
-          <p className="text-[13px] font-bold text-bad uppercase tracking-wide flex items-center gap-1.5">
+          <p className="text-[13px] font-bold text-bad flex items-center gap-1.5">
             <AlertTriangle size={15} /> {t('support.prio_urgent')}
           </p>
           <p className="num text-[36px] font-extrabold text-bad mt-1">{metrics.urgentCount}</p>
@@ -166,7 +167,7 @@ export default function AdminSupport() {
         </Card>
 
         <Card className="p-5">
-          <p className="text-[13px] font-bold text-ink-2 uppercase tracking-wide">
+          <p className="text-[13px] font-bold text-ink-2">
             {t('support.status_in_progress')}
           </p>
           <p className="num text-[36px] font-extrabold text-ink mt-1">
@@ -176,7 +177,7 @@ export default function AdminSupport() {
         </Card>
 
         <Card className="p-5">
-          <p className="text-[13px] font-bold text-ok uppercase tracking-wide">
+          <p className="text-[13px] font-bold text-ok">
             {t('support.status_resolved')}
           </p>
           <p className="num text-[36px] font-extrabold text-ok mt-1">{metrics.resolvedCount}</p>
@@ -258,7 +259,7 @@ export default function AdminSupport() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-[14px]">
-              <thead className="bg-paper border-b border-line text-ink-2 text-[12px] font-bold uppercase tracking-wider">
+              <thead className="bg-paper border-b border-line text-ink-2 text-[12px] font-bold">
                 <tr>
                   <th className="py-3 px-5">Ticket</th>
                   <th className="py-3 px-5">Reporter</th>
@@ -291,7 +292,7 @@ export default function AdminSupport() {
                     </td>
                     <td className="py-4 px-5">
                       <span
-                        className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase ${
+                        className={`px-2.5 py-1 rounded-full text-[12px] font-bold capitalize ${
                           tk.priority === 'urgent'
                             ? 'bg-bad text-white'
                             : tk.priority === 'high'
@@ -335,17 +336,17 @@ export default function AdminSupport() {
       {/* Inspect Ticket Slide-over / Modal */}
       {selectedTicketId && selectedTicket && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4"
           onClick={() => setSelectedTicketId(null)}
         >
           <div
-            className="relative flex flex-col w-full max-w-3xl max-h-[92vh] bg-white rounded-3xl border border-line shadow-2xl overflow-hidden"
+            className="relative flex flex-col w-full max-w-3xl max-h-[92vh] bg-white rounded-3xl border border-line shadow-[0_16px_48px_rgba(20,22,26,0.25)] overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div className="flex items-center justify-between p-5 border-b border-line bg-paper">
               <div className="flex items-center gap-3">
-                <div className="size-10 rounded-xl bg-move-tint text-move grid place-items-center">
+                <div className="size-10 grid place-items-center text-ink-2 shrink-0">
                   <Headset size={20} />
                 </div>
                 <div>
@@ -359,9 +360,10 @@ export default function AdminSupport() {
               </div>
               <button
                 onClick={() => setSelectedTicketId(null)}
+                aria-label="Close"
                 className="size-9 rounded-lg grid place-items-center hover:bg-ink/5 transition cursor-pointer text-ink-2"
               >
-                ✕
+                <X size={18} aria-hidden />
               </button>
             </div>
 

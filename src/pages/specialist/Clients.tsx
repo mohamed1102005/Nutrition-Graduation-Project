@@ -7,6 +7,9 @@ import { Flag, PainTrend } from '@/components'
 import { api } from '../../api'
 import { useLanguage } from '../../context/LanguageContext'
 
+// The API stores goals as snake_case values (lose_fat); show them as words.
+const goalLabel = (g?: string) => (g ? g.replace(/_/g, ' ').replace(/^./, (m) => m.toUpperCase()) : '—')
+
 export default function Clients() {
   const { t } = useLanguage()
   const [q, setQ] = useState('')
@@ -99,7 +102,7 @@ export default function Clients() {
                           <Avatar initials={c.initials} svc="recover" size={40} /> {c.name}
                         </Link>
                       </td>
-                      <td className="px-5 py-3 text-[15px] max-w-[200px]">{c.goal}</td>
+                      <td className="px-5 py-3 text-[15px] max-w-[200px]">{goalLabel(c.goal)}</td>
                       <td className="px-5 py-3 whitespace-nowrap"><span className="num">{c.week}</span> <span className="text-ink-2">of {c.of}</span></td>
                       <td className="px-5 py-3"><PainTrend c={c} /></td>
                       <td className="px-5 py-3 text-[15px] whitespace-nowrap">{c.lastCheckin}</td>
@@ -118,7 +121,7 @@ export default function Clients() {
                       <Avatar initials={c.initials} svc="recover" size={44} />
                       <div className="flex-1 min-w-0">
                         <p className="font-bold">{c.name}</p>
-                        <p className="text-[14px] text-ink-2 truncate">{c.goal}</p>
+                        <p className="text-[14px] text-ink-2 truncate">{goalLabel(c.goal)}</p>
                       </div>
                       <ChevronRight size={20} aria-hidden />
                     </div>

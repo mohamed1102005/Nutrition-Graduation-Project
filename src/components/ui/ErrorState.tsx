@@ -12,10 +12,8 @@ export function ErrorState({
 }) {
   return (
     <div role="alert" className="text-center py-12 px-6">
-      <span className="mx-auto size-14 rounded-2xl bg-bad-tint grid place-items-center mb-4">
-        <CircleAlert size={26} className="text-bad" aria-hidden />
-      </span>
-      <p className="h-display text-[22px]">{title}</p>
+      <CircleAlert size={24} className="mx-auto mb-3 text-bad" aria-hidden />
+      <p className="h-display text-[20px]">{title}</p>
       <p className="text-ink-2 mt-2 max-w-sm mx-auto">{text}</p>
       <div className="mt-5">
         <Btn variant="secondary" onClick={onRetry}>

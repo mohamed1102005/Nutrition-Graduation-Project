@@ -194,13 +194,13 @@ export function SupportModal({
         role="dialog"
         aria-modal="true"
         aria-label={t('support.modal_title')}
-        className="relative flex flex-col w-full max-w-2xl max-h-[90vh] bg-white rounded-3xl border border-line shadow-2xl overflow-hidden"
+        className="relative flex flex-col w-full max-w-2xl max-h-[90vh] bg-white rounded-3xl border border-line shadow-[0_16px_48px_rgba(20,22,26,0.25)] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
         <div className="flex items-center justify-between p-5 border-b border-line bg-paper">
           <div className="flex items-center gap-3">
-            <div className="size-10 rounded-xl bg-move-tint text-move grid place-items-center">
+            <div className="size-10 grid place-items-center text-ink-2 shrink-0">
               <Headset size={20} />
             </div>
             <div>
@@ -284,7 +284,7 @@ export function SupportModal({
                         onClick={() => setCategory(c.id)}
                         className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition cursor-pointer ${
                           selected
-                            ? 'border-ink bg-paper shadow-xs ring-1 ring-ink'
+                            ? 'border-ink bg-paper ring-1 ring-ink'
                             : 'border-line hover:border-ink/40 bg-white'
                         }`}
                       >
@@ -377,7 +377,7 @@ export function SupportModal({
                           {selectedTicket.ticketNumber}
                         </span>
                         <div className="flex items-center gap-1.5">
-                          <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold uppercase ${
+                          <span className={`px-2 py-0.5 rounded-full text-[12px] font-bold capitalize ${
                             selectedTicket.priority === 'urgent'
                               ? 'bg-bad-tint text-bad'
                               : 'bg-sand text-ink'

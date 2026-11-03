@@ -110,16 +110,12 @@ export default function FinanceOverview() {
       {/* Executive Financial Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-[13px] font-semibold text-ink-2 mb-1.5">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sand text-ink text-[12px] font-bold">
-              {t('finance.treasury', 'Treasury & Settlement')}
-            </span>
-            <span>·</span>
-            <span>{t('finance.treasury_sub', 'Recurring Revenue & Egyptian Gateway Inflow')}</span>
-          </div>
-          <h1 className="h-display text-[28px] sm:text-[32px] tracking-tight text-ink font-bold">
+          <p className="text-[15px] font-semibold text-ink-2 mb-1">
+            {t('finance.treasury', 'Treasury & Settlement')} · {t('finance.treasury_sub', 'Recurring Revenue & Egyptian Gateway Inflow')}
+          </p>
+          <h2 className="h-display text-[20px] sm:text-[22px] text-ink leading-tight">
             {t('finance.title', 'Financial Health & Revenue Inflow')}
-          </h1>
+          </h2>
         </div>
         <div className="flex items-center gap-3">
           <Btn
@@ -157,7 +153,7 @@ export default function FinanceOverview() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
           <div className="bg-white border border-line rounded-2xl p-5 sm:p-6">
             <div className="flex items-center justify-between">
-              <span className="label uppercase text-ink-2">{t('finance.gross_revenue', 'Gross Revenue')}</span>
+              <span className="label text-ink-2">{t('finance.gross_revenue', 'Gross Revenue')}</span>
               <DollarSign size={18} className="text-ink-2" />
             </div>
             <p className="num text-[36px] sm:text-[44px] leading-none mt-3 text-ink">
@@ -168,8 +164,8 @@ export default function FinanceOverview() {
 
           <div className="bg-white border border-line rounded-2xl p-5 sm:p-6">
             <div className="flex items-center justify-between">
-              <span className="label uppercase text-ink-2">{t('finance.mrr_label', 'MRR (Subscriptions)')}</span>
-              <div className="size-8 rounded-lg bg-eat-tint grid place-items-center">
+              <span className="label text-ink-2">{t('finance.mrr_label', 'MRR (Subscriptions)')}</span>
+              <div className="size-8 grid place-items-center text-ink-2 shrink-0">
                 <TrendingUp size={16} className="text-eat" />
               </div>
             </div>
@@ -181,8 +177,8 @@ export default function FinanceOverview() {
 
           <div className="bg-white border border-line rounded-2xl p-5 sm:p-6">
             <div className="flex items-center justify-between">
-              <span className="label uppercase text-ink-2">{t('finance.payouts_label', 'Specialist Payouts')}</span>
-              <div className="size-8 rounded-lg bg-recover-tint grid place-items-center">
+              <span className="label text-ink-2">{t('finance.payouts_label', 'Specialist Payouts')}</span>
+              <div className="size-8 grid place-items-center text-ink-2 shrink-0">
                 <Coins size={16} className="text-recover" />
               </div>
             </div>
@@ -196,8 +192,8 @@ export default function FinanceOverview() {
 
           <div className="bg-white border border-line rounded-2xl p-5 sm:p-6">
             <div className="flex items-center justify-between">
-              <span className="label uppercase text-ink-2">{t('finance.net_profit', 'Net Platform Profit')}</span>
-              <div className="size-8 rounded-lg bg-move-tint grid place-items-center">
+              <span className="label text-ink-2">{t('finance.net_profit', 'Net Platform Profit')}</span>
+              <div className="size-8 grid place-items-center text-ink-2 shrink-0">
                 <Wallet size={16} className="text-move" />
               </div>
             </div>
@@ -275,25 +271,25 @@ export default function FinanceOverview() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="p-3 bg-paper rounded-xl border border-line">
-                <p className="label uppercase text-ink-2 text-[11px]">InstaPay</p>
+                <p className="label text-ink-2 text-[12px]">InstaPay</p>
                 <p className="num text-[22px] mt-1">{methods.instapay?.total?.toLocaleString('en-US') || 0} <span className="text-[12px] font-normal font-sans">EGP</span></p>
                 <p className="text-[12px] text-ink-2 mt-1">{methods.instapay?.count || 0} transactions</p>
               </div>
 
               <div className="p-3 bg-paper rounded-xl border border-line">
-                <p className="label uppercase text-ink-2 text-[11px]">Vodafone Cash</p>
+                <p className="label text-ink-2 text-[12px]">Vodafone Cash</p>
                 <p className="num text-[22px] mt-1">{methods.vodafone_cash?.total?.toLocaleString('en-US') || 0} <span className="text-[12px] font-normal font-sans">EGP</span></p>
                 <p className="text-[12px] text-ink-2 mt-1">{methods.vodafone_cash?.count || 0} transactions</p>
               </div>
 
               <div className="p-3 bg-paper rounded-xl border border-line">
-                <p className="label uppercase text-ink-2 text-[11px]">Credit / Debit Card</p>
+                <p className="label text-ink-2 text-[12px]">Credit / Debit Card</p>
                 <p className="num text-[22px] mt-1">{methods.card?.total?.toLocaleString('en-US') || 0} <span className="text-[12px] font-normal font-sans">EGP</span></p>
                 <p className="text-[12px] text-ink-2 mt-1">{methods.card?.count || 0} transactions</p>
               </div>
 
               <div className="p-3 bg-paper rounded-xl border border-line">
-                <p className="label uppercase text-ink-2 text-[11px]">Fawry Pay</p>
+                <p className="label text-ink-2 text-[12px]">Fawry Pay</p>
                 <p className="num text-[22px] mt-1">{methods.fawry?.total?.toLocaleString('en-US') || 0} <span className="text-[12px] font-normal font-sans">EGP</span></p>
                 <p className="text-[12px] text-ink-2 mt-1">{methods.fawry?.count || 0} transactions</p>
               </div>
@@ -315,7 +311,7 @@ export default function FinanceOverview() {
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-[14px]">
-              <thead className="text-[12px] uppercase text-ink-2 border-b border-line">
+              <thead className="text-[12px] text-ink-2 border-b border-line">
                 <tr>
                   <th className="pb-3 font-semibold">{t('finance.th_ref', 'Reference')}</th>
                   <th className="pb-3 font-semibold">{t('finance.th_customer', 'Customer')}</th>

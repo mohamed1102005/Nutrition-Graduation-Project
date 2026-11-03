@@ -143,14 +143,14 @@ export default function Checkout() {
           </div>
 
           <div>
-            <span className="text-xs uppercase font-bold text-ok tracking-wider">
+            <span className="text-xs font-bold text-ok">
               {isSponsored
                 ? (lang === 'ar' ? 'تم التحقق من رعاية جهة العمل' : 'Corporate Sponsorship Verified')
                 : (lang === 'ar' ? 'تمت معالجة الدفع بنجاح' : 'Payment Successfully Processed')}
             </span>
-            <h1 className="h-display text-[26px] sm:text-[30px] font-bold text-ink mt-1">
+            <h2 className="h-display text-[22px] sm:text-[24px] text-ink mt-1">
               {t('checkout.confirmed_title', 'Your Session is Confirmed')}
-            </h1>
+            </h2>
             <p className="text-sm text-ink-2 mt-1 max-w-md mx-auto">
               {lang === 'ar'
                 ? 'تم إرسال دعوة التقويم ورابط غرفة الكشف الطبي الافتراضية إلى بريدك الإلكتروني.'
@@ -160,11 +160,11 @@ export default function Checkout() {
 
           {/* Reference Card */}
           <div className="p-4 rounded-xl border border-line bg-paper/60 text-center">
-            <span className="text-xs uppercase font-semibold text-ink-2 block">
+            <span className="text-xs font-semibold text-ink-2 block">
               {t('checkout.ref_code', 'Booking Confirmation Reference')}
             </span>
             <div className="flex items-center justify-center gap-2 mt-1">
-              <span className="num font-bold text-xl text-ink tracking-wider">{reference}</span>
+              <span className="num font-bold text-xl text-ink">{reference}</span>
               <button
                 type="button"
                 onClick={copyReference}
@@ -215,12 +215,12 @@ export default function Checkout() {
       {/* Header */}
       <div className="border-b border-line pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1">
+          <div className="flex items-center gap-2 text-xs font-semibold text-ink-2 mb-1">
             <ShieldCheck size={14} className="text-ok" aria-hidden /> {t('checkout.encrypted', '256-bit Encrypted Checkout')}
           </div>
-          <h1 className="h-display text-[26px] sm:text-[30px] font-bold text-ink">
+          <h2 className="h-display text-[22px] sm:text-[24px] text-ink">
             {t('checkout.title', 'Confirm & Reserve Session')}
-          </h1>
+          </h2>
         </div>
 
         <Link
@@ -237,7 +237,7 @@ export default function Checkout() {
           {/* Corporate Sponsorship Pass if applicable */}
           {isSponsored ? (
             <Card className="p-6 bg-sand/30 border border-line space-y-3">
-              <div className="flex items-center gap-2 text-xs uppercase font-bold text-ink tracking-wider">
+              <div className="flex items-center gap-2 text-xs font-bold text-ink">
                 <Building2 size={16} aria-hidden /> {lang === 'ar' ? 'ميزة مؤسسية مغطاة' : 'Corporate Benefit Covered'}
               </div>
               <h2 className="text-lg font-bold text-ink">
@@ -252,7 +252,7 @@ export default function Checkout() {
           ) : (
             <div className="space-y-4">
               <div>
-                <label className="text-xs uppercase font-bold text-ink-2 tracking-wider block mb-2">
+                <label className="text-xs font-bold text-ink-2 block mb-2">
                   {t('checkout.select_method', 'Select Payment Method')}
                 </label>
 
@@ -267,7 +267,7 @@ export default function Checkout() {
                         onClick={() => setM(method.id)}
                         className={`text-left rtl:text-right p-4 rounded-xl border transition cursor-pointer flex items-start gap-3 ${
                           isSelected
-                            ? 'bg-ink text-white border-ink shadow-sm'
+                            ? 'bg-ink text-white border-ink'
                             : 'bg-white border-line hover:border-ink/40 text-ink'
                         }`}
                       >
@@ -388,7 +388,7 @@ export default function Checkout() {
           <Btn
             onClick={submit}
             disabled={submitting}
-            className="w-full !h-12 text-sm font-bold shadow-sm"
+            className="w-full !h-12 text-sm font-bold"
           >
             {submitting
               ? (lang === 'ar' ? 'جارٍ حجز الجلسة...' : 'Securing Reservation...')

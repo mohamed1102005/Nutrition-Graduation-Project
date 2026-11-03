@@ -52,7 +52,7 @@ export function StarRating({
                   size={size}
                   className={
                     isFilled
-                      ? 'text-amber-400 fill-amber-400 drop-shadow-sm'
+                      ? 'text-amber-400 fill-amber-400'
                       : 'text-line hover:text-amber-300'
                   }
                   strokeWidth={isFilled ? 1.5 : 1.5}

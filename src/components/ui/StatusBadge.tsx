@@ -8,7 +8,7 @@ export function StatusBadge({ status }: { status: 'Confirmed' | 'Completed' | 'C
   } as const
   const [I, c] = m[status]
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-3 h-8 font-bold text-[14px] ${c}`}>
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-3 h-7 font-semibold text-[13px] ${c}`}>
       <I size={16} aria-hidden /> {status}
     </span>
   )

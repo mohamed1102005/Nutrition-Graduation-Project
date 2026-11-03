@@ -199,9 +199,9 @@ export default function OrgSpecialists() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="h-display text-2xl sm:text-3xl font-bold text-ink">
+          <h2 className="h-display text-[22px] sm:text-[24px] text-ink">
             {t('org.specialists_title', 'Organization Specialists')}
-          </h1>
+          </h2>
           <p className="text-sm text-ink-2 mt-1">
             {t('org.specialists_sub', 'Dedicated trainers, nutritionists, and physical therapists affiliated with your organization.')}
           </p>
@@ -262,7 +262,7 @@ export default function OrgSpecialists() {
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
           {specialists.map((sp) => (
-            <Card key={sp.specialistId} className="p-6 flex flex-col justify-between hover:shadow-sm transition-all">
+            <Card key={sp.specialistId} className="p-6 flex flex-col justify-between transition-colors">
               <div>
                 {/* Pillar Tag & Caseload */}
                 <div className="flex items-center justify-between gap-2 mb-3">
@@ -446,16 +446,16 @@ export default function OrgSpecialists() {
 
           <div className="p-4 rounded-xl bg-paper border border-line space-y-3">
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-ink-2 block">
+              <span className="text-[12px] font-bold text-ink-2 block">
                 {t('org.login_email_label', 'Login Email')}
               </span>
-              <span className="text-sm font-semibold text-ink font-mono select-all">
+              <span className="text-sm font-semibold text-ink select-all">
                 {createdSpecInfo?.email}
               </span>
             </div>
 
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-ink-2 block mb-1">
+              <span className="text-[12px] font-bold text-ink-2 block mb-1">
                 {t('org.temp_password_label', 'Temporary Password')}
               </span>
               <div className="flex items-center justify-between gap-2 bg-white p-2.5 rounded-lg border border-line">

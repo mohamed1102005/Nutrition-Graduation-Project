@@ -113,7 +113,7 @@ export default function FinancePayouts() {
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div className="bg-sand rounded-2xl p-5 sm:p-6">
-          <p className="label uppercase text-ink-2">{t('finance.total_settled', 'Total Settled')}</p>
+          <p className="label text-ink-2">{t('finance.total_settled', 'Total Settled')}</p>
           <p className="num text-[36px] sm:text-[40px] leading-none mt-2">
             {totalDisbursed.toLocaleString('en-US')} <span className="text-[14px] font-normal font-sans">EGP</span>
           </p>
@@ -121,7 +121,7 @@ export default function FinancePayouts() {
         </div>
 
         <div className="bg-recover-tint rounded-2xl p-5 sm:p-6">
-          <p className="label uppercase text-ink-2">{t('finance.pending_balance', 'Pending Balance')}</p>
+          <p className="label text-ink-2">{t('finance.pending_balance', 'Pending Balance')}</p>
           <p className="num text-[36px] sm:text-[40px] leading-none mt-2 text-recover">
             {totalPending.toLocaleString('en-US')} <span className="text-[14px] font-normal font-sans">EGP</span>
           </p>
@@ -129,7 +129,7 @@ export default function FinancePayouts() {
         </div>
 
         <div className="bg-paper border border-line rounded-2xl p-5 sm:p-6">
-          <p className="label uppercase text-ink-2">{t('finance.platform_cut', 'Platform Fee (20%)')}</p>
+          <p className="label text-ink-2">{t('finance.platform_cut', 'Platform Fee (20%)')}</p>
           <p className="num text-[36px] sm:text-[40px] leading-none mt-2">
             20% <span className="text-[14px] font-normal font-sans text-ink-2">{lang === 'ar' ? 'عمولة المنصة' : 'Commission'}</span>
           </p>
@@ -158,7 +158,7 @@ export default function FinancePayouts() {
           </div>
 
           <table className="w-full text-left text-[14px]">
-            <thead className="bg-paper border-b border-line text-[12px] uppercase text-ink-2">
+            <thead className="bg-paper border-b border-line text-[12px] text-ink-2">
               <tr>
                 <th className="py-3 px-5 font-semibold">Specialist</th>
                 <th className="py-3 px-5 font-semibold">Role</th>
@@ -229,7 +229,7 @@ export default function FinancePayouts() {
           </div>
 
           <table className="w-full text-left text-[14px]">
-            <thead className="bg-paper border-b border-line text-[12px] uppercase text-ink-2">
+            <thead className="bg-paper border-b border-line text-[12px] text-ink-2">
               <tr>
                 <th className="py-3 px-5 font-semibold">Reference</th>
                 <th className="py-3 px-5 font-semibold">Provider</th>

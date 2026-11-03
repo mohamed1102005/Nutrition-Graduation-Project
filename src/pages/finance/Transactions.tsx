@@ -89,7 +89,7 @@ export default function FinanceTransactions() {
 
       <div className="flex flex-wrap gap-x-6 gap-y-3 mb-6">
         <div>
-          <p className="label text-ink-2 mb-1.5 uppercase text-[11px]">{t('finance.type', 'Type')}</p>
+          <p className="label text-ink-2 mb-1.5 text-[12px]">{t('finance.type', 'Type')}</p>
           <Segment
             label={t('finance.type', 'Type')}
             options={[
@@ -102,7 +102,7 @@ export default function FinanceTransactions() {
           />
         </div>
         <div>
-          <p className="label text-ink-2 mb-1.5 uppercase text-[11px]">{t('finance.gateway', 'Payment Method')}</p>
+          <p className="label text-ink-2 mb-1.5 text-[12px]">{t('finance.gateway', 'Payment Method')}</p>
           <Segment
             label={t('finance.gateway', 'Payment Method')}
             options={[
@@ -132,7 +132,7 @@ export default function FinanceTransactions() {
       >
         <Card className="overflow-x-auto">
           <table className={`w-full text-[14px] ${isRtl ? 'text-right' : 'text-left'}`}>
-            <thead className="bg-paper border-b border-line text-[12px] uppercase text-ink-2">
+            <thead className="bg-paper border-b border-line text-[12px] text-ink-2">
               <tr>
                 <th className="py-3.5 px-5 font-semibold">{t('finance.th_ref', 'Reference')}</th>
                 <th className="py-3.5 px-5 font-semibold">{t('finance.th_customer', 'Customer')}</th>

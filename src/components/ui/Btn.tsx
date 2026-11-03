@@ -16,7 +16,7 @@ export type BtnProps = {
 } & Omit<ComponentProps<'button'>, 'className' | 'children'>
 
 export function Btn({ variant = 'primary', to, className = '', children, ...rest }: BtnProps) {
-  const cls = `inline-flex items-center justify-center gap-2 min-h-12 px-6 rounded-xl font-bold text-[16px] transition active:scale-[.98] cursor-pointer disabled:opacity-50 ${variants[variant]} ${className}`
+  const cls = `inline-flex items-center justify-center gap-2 min-h-12 px-6 rounded-full font-bold text-[16px] transition-[transform,background-color,border-color] active:scale-[.98] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed ${variants[variant]} ${className}`
   if (to)
     return (
       <Link to={to} className={cls}>

@@ -13,7 +13,7 @@ export function useWidth() {
 }
 
 export const H = 240
-export const pad = { l: 40, r: 56, t: 16, b: 32 }
+export const pad = { l: 40, r: 24, t: 32, b: 32 }
 
 export function Axes({
   w,

@@ -256,7 +256,7 @@ export default function Booking() {
 
         <aside className="lg:sticky lg:top-24">
           <Card className="p-6">
-            <p className="label text-ink-2 uppercase">Your booking</p>
+            <p className="label text-ink-2">Your booking</p>
             <div className="flex items-center gap-3 mt-3">
               <Avatar initials={s.initials} svc={s.svc} />
               <div>

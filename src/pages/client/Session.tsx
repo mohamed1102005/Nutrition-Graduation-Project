@@ -85,7 +85,7 @@ export default function Session() {
         <aside className="bg-white border border-line rounded-[28px] p-5 flex flex-col min-h-0">
           <div className={`${SVC.recover.tint} rounded-2xl p-4 flex items-baseline justify-between`}>
             <div>
-              <p className="label uppercase">Session time</p>
+              <p className="label">Session time</p>
               <p className="num text-[36px] leading-none mt-1">{pad(Math.floor(sec / 60))}:{pad(sec % 60)}</p>
             </div>
             <p className="text-[14px] font-semibold">of <span className="num">30:00</span></p>
@@ -94,7 +94,7 @@ export default function Session() {
           <ul className="mt-3 space-y-2 flex-1 overflow-y-auto min-h-[160px]">
             {notes.map((n, i) => (
               <li key={i} className={`${(SVC[n.svc as keyof typeof SVC] || SVC.move).tint} rounded-xl p-3`}>
-                <p className="label uppercase">{n.by}</p>
+                <p className="label">{n.by}</p>
                 <p className="text-[15px] leading-6">{n.text}</p>
               </li>
             ))}

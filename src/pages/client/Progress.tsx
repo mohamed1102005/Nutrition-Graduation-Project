@@ -138,15 +138,10 @@ export default function Progress() {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-line pb-6">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-xs uppercase font-bold px-2.5 py-0.5 rounded-full bg-ink text-white tracking-wider">
-              {t('nav.progress', 'Progress')}
-            </span>
-            <span className="text-xs text-ink-2 font-medium">Synchronized Daily Log</span>
-          </div>
-          <h1 className="h-display text-[26px] sm:text-[32px] text-ink leading-tight tracking-tight">
+          <p className="text-[15px] font-semibold text-ink-2 mb-1">Synchronized Daily Log</p>
+          <h2 className="h-display text-[20px] sm:text-[22px] text-ink leading-tight">
             {t('progress.title', 'Progress & Recovery Trends')}
-          </h1>
+          </h2>
           <p className="text-sm text-ink-2 max-w-2xl mt-1">
             {t('progress.subtitle', 'Tracking the relationship between body weight, training volume adherence, and patellar joint pain reduction.')}
           </p>
@@ -170,7 +165,7 @@ export default function Progress() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Weight Stat */}
         <Card className="p-5 bg-white border border-line">
-          <div className="flex items-center justify-between text-xs font-semibold text-ink-2 uppercase tracking-wider">
+          <div className="flex items-center justify-between text-xs font-semibold text-ink-2">
             <span className="flex items-center gap-1.5"><Scale size={14} /> {t('progress.current_weight', 'Current Weight')}</span>
             <span className="text-ok font-bold">{t('progress.trend_down', 'Trend Down')}</span>
           </div>
@@ -185,7 +180,7 @@ export default function Progress() {
 
         {/* Knee Pain Stat */}
         <Card className="p-5 bg-white border border-line">
-          <div className="flex items-center justify-between text-xs font-semibold text-ink-2 uppercase tracking-wider">
+          <div className="flex items-center justify-between text-xs font-semibold text-ink-2">
             <span className="flex items-center gap-1.5"><HeartPulse size={14} /> {t('progress.joint_symptoms', 'Joint Symptom Score')}</span>
             <span className="text-ok font-bold">{t('progress.protected', 'Protected')}</span>
           </div>
@@ -200,7 +195,7 @@ export default function Progress() {
 
         {/* Adherence Stat */}
         <Card className="p-5 bg-white border border-line">
-          <div className="flex items-center justify-between text-xs font-semibold text-ink-2 uppercase tracking-wider">
+          <div className="flex items-center justify-between text-xs font-semibold text-ink-2">
             <span className="flex items-center gap-1.5"><Dumbbell size={14} /> {t('progress.consistency', 'Target Consistency')}</span>
             <span className="text-ink font-bold num">{Math.round((targetWorkoutsMet / wk.length) * 100)}%</span>
           </div>
@@ -338,7 +333,7 @@ export default function Progress() {
           </Field>
 
           <div>
-            <label className="text-xs uppercase font-bold text-ink-2 tracking-wider block mb-2">
+            <label className="text-xs font-bold text-ink-2 block mb-2">
               {t('progress.workout_completed_q', 'Did you complete your scheduled workout?')}
             </label>
             <Segment
@@ -354,7 +349,7 @@ export default function Progress() {
           </div>
 
           <div>
-            <label className="text-xs uppercase font-bold text-ink-2 tracking-wider block mb-2" id="pain-lbl">
+            <label className="text-xs font-bold text-ink-2 block mb-2" id="pain-lbl">
               {t('progress.pain_level_lbl', 'Knee Joint Discomfort (0 to 10 Scale)')}
             </label>
             <div role="radiogroup" aria-labelledby="pain-lbl" className="grid grid-cols-6 gap-2">
@@ -370,7 +365,7 @@ export default function Progress() {
                     onClick={() => setForm({ ...form, pain: String(i) })}
                     className={`min-h-12 rounded-xl border font-bold text-sm cursor-pointer num transition ${
                       isSelected
-                        ? 'bg-ink text-white border-ink shadow-sm'
+                        ? 'bg-ink text-white border-ink'
                         : isSevere
                         ? 'bg-warn-tint/40 border-warn-tint hover:border-ink/40 text-ink'
                         : 'bg-white border-line hover:border-ink text-ink'

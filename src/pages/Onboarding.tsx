@@ -636,7 +636,7 @@ function Row({ svc, Icon, head, lines }: { svc: 'move' | 'eat' | 'recover'; Icon
         <Icon size={24} aria-hidden />
       </span>
       <div>
-        <p className="label uppercase">{head}</p>
+        <p className="label">{head}</p>
         {lines.filter(Boolean).map((l) => (
           <p key={l} className="font-semibold">
             {l}

@@ -32,7 +32,7 @@ export function LanguageToggle({ className = '', variant = 'button' }: LanguageT
       type="button"
       onClick={toggleLang}
       aria-label={`Switch language to ${lang === 'en' ? 'Arabic' : 'English'}`}
-      className={`min-h-11 px-3.5 rounded-xl border border-line bg-white hover:bg-paper font-semibold text-[14px] inline-flex items-center gap-2 cursor-pointer transition select-none ${className}`}
+      className={`min-h-11 px-3.5 rounded-full hover:bg-ink/[0.06] font-semibold text-[14px] inline-flex items-center gap-2 cursor-pointer transition-colors select-none ${className}`}
     >
       <Globe size={18} className="text-ink-2 shrink-0" aria-hidden />
       <span className="font-bold tracking-tight">{label}</span>

@@ -23,7 +23,7 @@ export function Segment({
             role="radio"
             aria-checked={value === val}
             onClick={() => onChange(val)}
-            className={`min-h-11 min-w-11 px-4 rounded-xl border font-semibold cursor-pointer ${
+            className={`min-h-11 min-w-11 px-4 rounded-full border font-semibold cursor-pointer transition-[background-color,border-color] ${
               value === val ? 'bg-ink text-white border-ink' : 'bg-white border-ink/25 hover:border-ink'
             }`}
           >

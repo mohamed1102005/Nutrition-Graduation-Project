@@ -66,7 +66,7 @@ function SpecialistToday() {
       } else if (clientsList.length > 0) {
         const rows = clientsList.slice(0, 3).map((c: any) => {
           const status = (c.latestPain ?? 0) >= 7 ? 'bad' : (c.latestPain ?? 0) >= 4 ? 'warn' : 'ok'
-          return [c.name, String(c.id), c.goal || 'Session check-in', '16:00', status]
+          return [c.name, String(c.id), (c.goal ? String(c.goal).replace(/_/g, ' ').replace(/^./, (m: string) => m.toUpperCase()) : 'Session check-in'), '16:00', status]
         })
         setBookedSessions(rows)
       }
@@ -90,16 +90,12 @@ function SpecialistToday() {
       {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-[13px] font-semibold text-ink-2 mb-1.5">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sand text-ink text-[12px] font-bold">
-              {t('specialist.badge_practice', 'Specialist Practice')}
-            </span>
-            <span>·</span>
-            <span>{t('specialist.sub_discipline', 'Clinical Rehabilitation & Training')}</span>
-          </div>
-          <h1 className="h-display text-[28px] sm:text-[32px] tracking-tight text-ink font-bold">
+          <p className="text-[15px] font-semibold text-ink-2 mb-1">
+            {t('specialist.badge_practice', 'Specialist Practice')} · {t('specialist.sub_discipline', 'Clinical Rehabilitation & Training')}
+          </p>
+          <h2 className="h-display text-[20px] sm:text-[22px] text-ink leading-tight">
             {t('specialist.header_today', "Today's Consultations")} · {lang === 'ar' ? 'الثلاثاء، 14 أكتوبر' : 'Tuesday, 14 October'}
-          </h1>
+          </h2>
         </div>
         <div className="flex items-center gap-3">
           <Btn
@@ -121,7 +117,7 @@ function SpecialistToday() {
       {/* KPI Triage Panel (Flat, High Contrast) */}
       <Card className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-line">
         <div className="p-6">
-          <div className="flex items-center justify-between text-ink-2 text-[13px] font-semibold uppercase tracking-wider">
+          <div className="flex items-center justify-between text-ink-2 text-[13px] font-semibold">
             <span>{t('specialist.scheduled_today', 'Scheduled Today')}</span>
             <CalendarCheck size={16} className="text-ink-2" aria-hidden />
           </div>
@@ -135,7 +131,7 @@ function SpecialistToday() {
         </div>
 
         <div className="p-6">
-          <div className="flex items-center justify-between text-ink-2 text-[13px] font-semibold uppercase tracking-wider">
+          <div className="flex items-center justify-between text-ink-2 text-[13px] font-semibold">
             <span>{t('specialist.triage_priority', 'Triage Priority')}</span>
             <Activity size={16} className={needsAttention > 0 ? 'text-warn' : 'text-ok'} aria-hidden />
           </div>
@@ -151,7 +147,7 @@ function SpecialistToday() {
         </div>
 
         <div className="p-6">
-          <div className="flex items-center justify-between text-ink-2 text-[13px] font-semibold uppercase tracking-wider">
+          <div className="flex items-center justify-between text-ink-2 text-[13px] font-semibold">
             <span>{t('specialist.interdisciplinary_sync', 'Interdisciplinary Sync')}</span>
             <ShieldCheck size={16} className="text-ok" aria-hidden />
           </div>
@@ -182,7 +178,7 @@ function SpecialistToday() {
         <div className="overflow-x-auto">
           <table className="w-full text-left rtl:text-right min-w-[620px]">
             <thead>
-              <tr className="text-[12px] uppercase text-ink-2 bg-paper/60 border-b border-line">
+              <tr className="text-[12px] text-ink-2 border-b border-line">
                 <th className="px-6 py-3 font-semibold">{t('specialist.col_patient', 'Patient / Client')}</th>
                 <th className="px-6 py-3 font-semibold">{t('specialist.col_scope', 'Session Scope')}</th>
                 <th className="px-6 py-3 font-semibold">{t('specialist.col_time', 'Scheduled Time')}</th>

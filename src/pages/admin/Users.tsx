@@ -10,16 +10,16 @@ type Role = 'Client' | 'Specialist' | 'Admin' | 'Finance' | 'Org Admin' | 'Org_a
 type U = { id: number; name: string; email: string; role: Role; status: Status; joined: string; active: string }
 
 const seed: U[] = [
-  { id: 1, name: 'Sara Hassan', email: 'sara.hassan@example.com', role: 'Client', status: 'Active', joined: '22 Sep 2026', active: 'Today' },
-  { id: 2, name: 'Omar Khaled', email: 'omar.khaled@example.com', role: 'Client', status: 'Active', joined: '10 Aug 2026', active: 'Today' },
-  { id: 3, name: 'Laila Mostafa', email: 'laila.mostafa@example.com', role: 'Client', status: 'Active', joined: '2 Sep 2026', active: 'Today' },
-  { id: 4, name: 'Youssef Nabil', email: 'youssef.nabil@example.com', role: 'Client', status: 'Active', joined: '14 Jun 2026', active: 'Yesterday' },
-  { id: 5, name: 'Mariam Adel', email: 'mariam.adel@example.com', role: 'Client', status: 'Suspended', joined: '3 Jul 2026', active: '9 Oct' },
-  { id: 6, name: 'Dr. Mona Fathy', email: 'mona.fathy@example.com', role: 'Specialist', status: 'Active', joined: '5 Jan 2026', active: 'Today' },
-  { id: 7, name: 'Coach Karim Adel', email: 'karim.adel@example.com', role: 'Specialist', status: 'Active', joined: '5 Jan 2026', active: 'Today' },
-  { id: 8, name: 'Hana Mostafa, RD', email: 'hana.mostafa@example.com', role: 'Specialist', status: 'Active', joined: '19 Feb 2026', active: 'Yesterday' },
-  { id: 9, name: 'Dr. Yasmin Farouk', email: 'yasmin.farouk@example.com', role: 'Specialist', status: 'Pending', joined: '12 Oct 2026', active: '12 Oct' },
-  { id: 10, name: 'Ali Tarek, RD', email: 'ali.tarek@example.com', role: 'Specialist', status: 'Pending', joined: '11 Oct 2026', active: '11 Oct' },
+  { id: 1, name: 'Sara Hassan', email: 'sara.hassan@demo.com', role: 'Client', status: 'Active', joined: '22 Sep 2026', active: 'Today' },
+  { id: 2, name: 'Omar Khaled', email: 'omar.khaled@demo.com', role: 'Client', status: 'Active', joined: '10 Aug 2026', active: 'Today' },
+  { id: 3, name: 'Laila Mostafa', email: 'laila.mostafa@demo.com', role: 'Client', status: 'Active', joined: '2 Sep 2026', active: 'Today' },
+  { id: 4, name: 'Youssef Nabil', email: 'youssef.nabil@demo.com', role: 'Client', status: 'Active', joined: '14 Jun 2026', active: 'Yesterday' },
+  { id: 5, name: 'Mariam Adel', email: 'mariam.adel@demo.com', role: 'Client', status: 'Suspended', joined: '3 Jul 2026', active: '9 Oct' },
+  { id: 6, name: 'Dr. Mona Fathy', email: 'mona.fathy@demo.com', role: 'Specialist', status: 'Active', joined: '5 Jan 2026', active: 'Today' },
+  { id: 7, name: 'Coach Karim Adel', email: 'karim.adel@demo.com', role: 'Specialist', status: 'Active', joined: '5 Jan 2026', active: 'Today' },
+  { id: 8, name: 'Hana Mostafa, RD', email: 'hana.mostafa@demo.com', role: 'Specialist', status: 'Active', joined: '19 Feb 2026', active: 'Yesterday' },
+  { id: 9, name: 'Dr. Yasmin Farouk', email: 'yasmin.farouk@demo.com', role: 'Specialist', status: 'Pending', joined: '12 Oct 2026', active: '12 Oct' },
+  { id: 10, name: 'Ali Tarek, RD', email: 'ali.tarek@demo.com', role: 'Specialist', status: 'Pending', joined: '11 Oct 2026', active: '11 Oct' },
   { id: 11, name: 'Tamer Fahmy', email: 'finance@demo.com', role: 'Finance', status: 'Active', joined: '15 Oct 2026', active: 'Today' },
 ]
 

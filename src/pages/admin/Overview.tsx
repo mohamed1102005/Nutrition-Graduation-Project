@@ -113,16 +113,12 @@ export default function Overview() {
       {/* Executive Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-[13px] font-semibold text-ink-2 mb-1.5">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sand text-ink text-[12px] font-bold">
-              {t('admin.ops_center', 'Operations Center')}
-            </span>
-            <span>·</span>
-            <span>{t('admin.governance_sub', 'Platform Governance & Telehealth Compliance')}</span>
-          </div>
-          <h1 className="h-display text-[28px] sm:text-[32px] tracking-tight text-ink font-bold">
+          <p className="text-[15px] font-semibold text-ink-2 mb-1">
+            {t('admin.ops_center', 'Operations Center')} · {t('admin.governance_sub', 'Platform Governance & Telehealth Compliance')}
+          </p>
+          <h2 className="h-display text-[20px] sm:text-[22px] text-ink leading-tight">
             {t('admin.ops_title', 'Platform Operations & Analytics')}
-          </h1>
+          </h2>
         </div>
         <div className="flex items-center gap-3">
           <Btn
@@ -159,7 +155,7 @@ export default function Overview() {
           {tiles.map(([l, v, d, Icon]) => (
             <Card key={l} className="p-6 flex flex-col justify-between">
               <div className="flex items-center justify-between text-ink-2">
-                <span className="text-xs font-semibold uppercase text-ink-2">{l}</span>
+                <span className="text-xs font-semibold text-ink-2">{l}</span>
                 <Icon size={18} className="text-ink-2" aria-hidden />
               </div>
               <div className="mt-4">
@@ -173,7 +169,7 @@ export default function Overview() {
         {/* Action Callout Banner: Credential Queue */}
         <div className="p-5 rounded-2xl bg-warn-tint/60 border border-warn/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-start sm:items-center gap-3.5">
-            <span className="size-10 rounded-xl bg-warn-tint text-warn grid place-items-center shrink-0">
+            <span className="size-10 grid place-items-center text-warn shrink-0">
               <TriangleAlert size={20} aria-hidden />
             </span>
             <div>
@@ -214,7 +210,7 @@ export default function Overview() {
                   className="flex items-center justify-between p-4 rounded-xl border border-line hover:border-ink hover:bg-paper transition"
                 >
                   <div className="flex items-center gap-3.5">
-                    <div className="size-10 rounded-xl bg-move-tint text-move flex items-center justify-center">
+                    <div className="size-10 flex items-center justify-center text-ink-2 shrink-0">
                       <ShieldCheck size={20} aria-hidden />
                     </div>
                     <div>
@@ -232,7 +228,7 @@ export default function Overview() {
                   className="flex items-center justify-between p-4 rounded-xl border border-line hover:border-ink hover:bg-paper transition"
                 >
                   <div className="flex items-center gap-3.5">
-                    <div className="size-10 rounded-xl bg-eat-tint text-eat flex items-center justify-center">
+                    <div className="size-10 flex items-center justify-center text-ink-2 shrink-0">
                       <Users size={20} aria-hidden />
                     </div>
                     <div>
@@ -248,7 +244,7 @@ export default function Overview() {
                   className="flex items-center justify-between p-4 rounded-xl border border-line hover:border-ink hover:bg-paper transition"
                 >
                   <div className="flex items-center gap-3.5">
-                    <div className="size-10 rounded-xl bg-recover-tint text-recover flex items-center justify-center">
+                    <div className="size-10 flex items-center justify-center text-ink-2 shrink-0">
                       <Headset size={20} aria-hidden />
                     </div>
                     <div>
@@ -277,7 +273,7 @@ export default function Overview() {
                 <p className="text-xs text-ink-2 mt-0.5">{t('admin.live_activity_sub', 'Real-time audit events across Move, Eat, and Recover.')}</p>
               </div>
               <span className="text-xs font-semibold text-ink-2 flex items-center gap-1.5">
-                <span className="size-2 rounded-full bg-ok animate-pulse" aria-hidden /> Real-time
+                <span className="size-2 rounded-full bg-ok" aria-hidden /> Real-time
               </span>
             </div>
 
@@ -294,7 +290,7 @@ export default function Overview() {
                     <p className="text-[14px] font-semibold text-ink leading-tight truncate">{t}</p>
                     <span className="text-[12px] text-ink-2 mt-0.5 block">{w}</span>
                   </div>
-                  <span className={`text-[11px] font-bold uppercase px-2 py-0.5 rounded-full ${(SVC[s] || SVC.move).tint} text-ink shrink-0`}>
+                  <span className={`text-[12px] font-bold capitalize px-2 py-0.5 rounded-full ${(SVC[s] || SVC.move).tint} text-ink shrink-0`}>
                     {(SVC[s] || SVC.move).label}
                   </span>
                 </li>

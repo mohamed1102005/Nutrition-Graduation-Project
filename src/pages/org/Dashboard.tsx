@@ -134,10 +134,10 @@ export default function OrgDashboard() {
             </span>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="h-display text-2xl sm:text-3xl font-bold text-ink">
+                <h2 className="h-display text-[22px] sm:text-[24px] text-ink">
                   {info?.name || t('org.title', 'Organization Dashboard')}
-                </h1>
-                <span className="px-2.5 py-0.5 rounded-full bg-sand text-[11px] font-bold uppercase text-ink">
+                </h2>
+                <span className="px-2.5 py-0.5 rounded-full bg-sand text-[12px] font-bold capitalize text-ink">
                   {info?.type || (lang === 'ar' ? 'مؤسسي' : 'Enterprise')}
                 </span>
               </div>
@@ -154,7 +154,7 @@ export default function OrgDashboard() {
             <span className="text-[11px] font-semibold text-ink-2 block">
               {t('org.invite_code', 'Team Invite Code')}
             </span>
-            <span className="font-mono text-base font-bold tracking-widest text-ink">
+            <span className="text-base font-bold tabular-nums text-ink">
               {info?.inviteCode || '--------'}
             </span>
           </div>
@@ -183,9 +183,9 @@ export default function OrgDashboard() {
           <ShieldCheck size={20} className="text-ok shrink-0 mt-0.5 sm:mt-0" aria-hidden />
           <p className="text-ink-2">
             {lang === 'ar' ? (
-              <>شارك الرمز <strong className="font-mono text-ink font-bold px-1.5 py-0.5 rounded bg-sand/80">{info?.inviteCode}</strong> مع فريقك للانضمام عبر <strong className="text-ink">/join</strong> بتغطية مؤسسية 100%.</>
+              <>شارك الرمز <strong className="tabular-nums text-ink font-bold px-1.5 py-0.5 rounded bg-sand/80">{info?.inviteCode}</strong> مع فريقك للانضمام عبر <strong className="text-ink">/join</strong> بتغطية مؤسسية 100%.</>
             ) : (
-              <>Share code <strong className="font-mono text-ink font-bold px-1.5 py-0.5 rounded bg-sand/80">{info?.inviteCode}</strong> with your team. Members join via <strong className="text-ink">/join</strong> with 100% corporate coverage.</>
+              <>Share code <strong className="tabular-nums text-ink font-bold px-1.5 py-0.5 rounded bg-sand/80">{info?.inviteCode}</strong> with your team. Members join via <strong className="text-ink">/join</strong> with 100% corporate coverage.</>
             )}
           </p>
         </div>
@@ -239,7 +239,7 @@ export default function OrgDashboard() {
         {/* Total Members */}
         <Card className="p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between text-ink-2 mb-3">
-            <span className="text-xs font-semibold uppercase text-ink-2">{t('org.stat_members', 'Total Members')}</span>
+            <span className="text-xs font-semibold text-ink-2">{t('org.stat_members', 'Total Members')}</span>
             <Users size={18} className="text-ink-2" aria-hidden />
           </div>
           <div>
@@ -253,7 +253,7 @@ export default function OrgDashboard() {
         {/* Members With Care Team */}
         <Card className="p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between text-ink-2 mb-3">
-            <span className="text-xs font-semibold uppercase text-ink-2">{t('org.stat_assigned', 'Assigned')}</span>
+            <span className="text-xs font-semibold text-ink-2">{t('org.stat_assigned', 'Assigned')}</span>
             <UserCheck size={18} className="text-move" aria-hidden />
           </div>
           <div>
@@ -267,7 +267,7 @@ export default function OrgDashboard() {
         {/* Members Pending Match */}
         <Card className="p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between text-ink-2 mb-3">
-            <span className="text-xs font-semibold uppercase text-ink-2">{t('org.stat_unassigned', 'Unassigned')}</span>
+            <span className="text-xs font-semibold text-ink-2">{t('org.stat_unassigned', 'Unassigned')}</span>
             <UserMinus size={18} className="text-warn" aria-hidden />
           </div>
           <div>
@@ -281,7 +281,7 @@ export default function OrgDashboard() {
         {/* Active Members (Last 7 Days) */}
         <Card className="p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between text-ink-2 mb-3">
-            <span className="text-xs font-semibold uppercase text-ink-2">{t('org.stat_active', '7d Active')}</span>
+            <span className="text-xs font-semibold text-ink-2">{t('org.stat_active', '7d Active')}</span>
             <Activity size={18} className="text-ok" aria-hidden />
           </div>
           <div>
@@ -383,7 +383,7 @@ export default function OrgDashboard() {
                 className="flex items-center justify-between p-4 rounded-xl border border-line hover:border-ink hover:bg-paper transition"
               >
                 <div className="flex items-center gap-3">
-                  <div className="size-10 rounded-xl bg-move-tint text-move flex items-center justify-center">
+                  <div className="size-10 flex items-center justify-center text-ink-2 shrink-0">
                     <Users size={18} aria-hidden />
                   </div>
                   <div>
@@ -399,7 +399,7 @@ export default function OrgDashboard() {
                 className="flex items-center justify-between p-4 rounded-xl border border-line hover:border-ink hover:bg-paper transition"
               >
                 <div className="flex items-center gap-3">
-                  <div className="size-10 rounded-xl bg-recover-tint text-recover flex items-center justify-center">
+                  <div className="size-10 flex items-center justify-center text-ink-2 shrink-0">
                     <Dumbbell size={18} aria-hidden />
                   </div>
                   <div>

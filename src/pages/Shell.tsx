@@ -79,8 +79,8 @@ function RoleSwitch({
   if (!IS_DEMO_MODE) return null
   return (
     <div>
-      <p className="label text-ink-2 uppercase mb-2">Demo role</p>
-      <div role="radiogroup" aria-label="Demo role" className="grid grid-cols-2 gap-1 p-1 bg-paper border border-line rounded-xl">
+      <p className="label text-ink-2 mb-2">Demo role</p>
+      <div role="radiogroup" aria-label="Demo role" className="grid grid-cols-2 gap-1 p-1 bg-ink/[0.06] rounded-2xl">
         {(Object.keys(DEMO_ACCOUNTS) as DemoAccountKey[]).map((k) => (
           <button
             key={k}
@@ -88,8 +88,8 @@ function RoleSwitch({
             role="radio"
             aria-checked={activeKey === k}
             onClick={() => onSelect(k)}
-            className={`min-h-10 px-2 rounded-lg text-[11px] font-bold cursor-pointer transition truncate ${
-              activeKey === k ? 'bg-ink text-white' : 'hover:bg-ink/5 text-ink'
+            className={`min-h-10 px-2 rounded-xl text-[12px] font-semibold cursor-pointer transition-colors truncate ${
+              activeKey === k ? 'bg-white text-ink ring-1 ring-line' : 'text-ink-2 hover:text-ink'
             }`}
             title={DEMO_ACCOUNTS[k].label}
           >
@@ -116,7 +116,7 @@ function Pop({ open, onClose, children, className = '' }: { open: boolean; onClo
   }, [open, onClose])
   if (!open) return null
   return (
-    <div ref={ref} className={`absolute right-0 top-14 bg-white border border-line rounded-2xl shadow-[0_12px_32px_rgba(20,22,26,0.14)] z-50 ${className}`}>
+    <div ref={ref} className={`absolute right-0 top-14 bg-white border border-line rounded-xl shadow-[0_12px_32px_rgba(20,22,26,0.14)] z-50 ${className}`}>
       {children}
     </div>
   )
@@ -168,7 +168,7 @@ export default function Shell() {
     : navs[role] || navs.Client
   const title = isSpecialistPending
     ? t('nav.verification_title', 'Specialist Verification')
-    : (allNav.find((n) => loc.pathname.startsWith(n.to))?.label ?? 'Rebound')
+    : ([...allNav].sort((x, y) => y.to.length - x.to.length).find((n) => loc.pathname.startsWith(n.to))?.label ?? 'Rebound')
   const home = (r: Role) => {
     if (r === 'OrgAdmin') return '/app/org'
     if (r === 'Admin') return '/app/overview'
@@ -266,18 +266,19 @@ export default function Shell() {
       >
         Skip to main content
       </a>
-      <aside className={`hidden lg:flex fixed inset-y-0 ${isRtl ? 'right-0 border-l' : 'left-0 border-r'} w-[264px] bg-white border-line flex-col p-5 z-30`}>
+      <aside className={`hidden lg:flex fixed inset-y-0 ${isRtl ? 'right-0 border-l' : 'left-0 border-r'} w-[248px] bg-paper border-line flex-col p-4 z-30`}>
         <Link to={home(role)} className="px-3 h-12 flex items-center" aria-label="Rebound">
           <Wordmark />
         </Link>
-        <nav className="mt-6 flex flex-col gap-1" aria-label="App">
+        <nav className="mt-6 flex flex-col gap-0.5" aria-label="App">
           {items.map(({ to, label, Icon }) => (
             <NavLink
               key={to}
               to={to}
-              className={({ isActive }) => `min-h-12 px-4 rounded-full flex items-center gap-3 font-semibold transition ${isActive ? 'bg-ink text-white' : 'text-ink hover:bg-ink/5'}`}
+              end={to === '/app/org'}
+              className={({ isActive }) => `min-h-11 px-3 rounded-xl flex items-center gap-3 text-[15px] font-semibold transition-colors ${isActive ? 'bg-ink/[0.07] text-ink' : 'text-ink-2 hover:bg-ink/[0.04] hover:text-ink'}`}
             >
-              <Icon size={20} aria-hidden /> {label}
+              <Icon size={18} aria-hidden /> {label}
             </NavLink>
           ))}
         </nav>
@@ -286,8 +287,8 @@ export default function Shell() {
         </div>
       </aside>
 
-      <div className={isRtl ? 'lg:pr-[264px]' : 'lg:pl-[264px]'}>
-        <header className="sticky top-0 z-20 bg-paper border-b border-line h-16 lg:h-[72px] px-5 lg:px-10 flex items-center justify-between">
+      <div className={isRtl ? 'lg:pr-[248px]' : 'lg:pl-[248px]'}>
+        <header className="sticky top-0 z-20 bg-paper border-b border-line h-16 px-5 lg:px-10 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link to={home(role)} className="lg:hidden" aria-label="Rebound">
               <span className="flex gap-[3px] items-end h-6" aria-hidden>
@@ -296,12 +297,12 @@ export default function Shell() {
                 <span className="w-[7px] h-5 rounded-full bg-recover" />
               </span>
             </Link>
-            <h1 className="h-display text-[24px] lg:text-[30px]">
+            <h1 className="h-display text-[22px] lg:text-[24px]">
               {title}
             </h1>
             {currentUser?.organization?.name && (
-              <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sand/80 border border-line text-[12px] font-bold text-ink">
-                <Building2 size={13} className="text-move" aria-hidden />
+              <span className="hidden sm:inline-flex items-center gap-1.5 px-3 h-7 rounded-full bg-ink/[0.06] text-[13px] font-semibold text-ink">
+                <Building2 size={14} className="text-ink-2" aria-hidden />
                 {currentUser.organization.name}
               </span>
             )}
@@ -312,7 +313,7 @@ export default function Shell() {
               onClick={() => setSupportModalOpen(true)}
               title={t('support.modal_title')}
               aria-label={t('support.modal_title')}
-              className="relative size-11 grid place-items-center rounded-xl bg-white border border-line hover:bg-paper cursor-pointer text-ink transition"
+              className="relative size-11 grid place-items-center rounded-full hover:bg-ink/[0.06] cursor-pointer text-ink transition-colors"
             >
               <Headset size={20} />
             </button>
@@ -320,16 +321,16 @@ export default function Shell() {
               onClick={() => { setBell(!bell); setMenu(false) }}
               aria-label="Notifications, 2 new"
               aria-expanded={bell}
-              className="relative size-11 grid place-items-center rounded-xl bg-white border border-line cursor-pointer"
+              className="relative size-11 grid place-items-center rounded-full hover:bg-ink/[0.06] cursor-pointer transition-colors"
             >
               <Bell size={20} />
-              <span className="absolute -top-1 -right-1 grid size-5 place-items-center rounded-full border-2 border-white bg-move text-[12px] font-extrabold leading-none text-ink">2</span>
+              <span className="absolute top-0.5 end-0.5 grid size-5 place-items-center rounded-full border-2 border-paper bg-ink text-[11px] font-bold leading-none text-white">2</span>
             </button>
             <button
               onClick={() => { setMenu(!menu); setBell(false) }}
               aria-label="Profile menu"
               aria-expanded={menu}
-              className="hidden size-11 place-items-center rounded-xl bg-sand font-display font-extrabold text-[14px] cursor-pointer lg:grid"
+              className="hidden size-11 place-items-center rounded-full bg-sand font-display font-extrabold text-[14px] cursor-pointer lg:grid"
             >
               {initials}
             </button>
@@ -337,7 +338,7 @@ export default function Shell() {
               onClick={() => { setMore(!moreOpen); setBell(false) }}
               aria-label={moreOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={moreOpen}
-              className="grid size-11 place-items-center rounded-xl border border-line bg-white cursor-pointer lg:hidden"
+              className="grid size-11 place-items-center rounded-full hover:bg-ink/[0.06] cursor-pointer lg:hidden"
             >
               {moreOpen ? <X size={22} aria-hidden /> : <Menu size={22} aria-hidden />}
             </button>
@@ -350,7 +351,7 @@ export default function Shell() {
                 Finance: [['October payouts ready for review', '1 h ago'], ['New Full Team subscription activated', '3 h ago']],
                 OrgAdmin: [['New members joined with invite code', '1 h ago'], ['Specialist assignment confirmed', 'Yesterday']],
               }[role] || []).map(([t, w]) => (
-                <div key={t} className="px-3 py-3 rounded-xl hover:bg-paper">
+                <div key={t} className="px-3 py-3 rounded-xl hover:bg-ink/[0.04]">
                   <p className="text-[15px] font-semibold">{t}</p>
                   <p className="text-[14px] text-ink-2">{w}</p>
                 </div>
@@ -373,7 +374,7 @@ export default function Shell() {
                 )
               })}
               <button
-                className="w-full min-h-11 px-3 rounded-xl flex items-center gap-3 font-semibold hover:bg-paper cursor-pointer text-emerald-700"
+                className="w-full min-h-11 px-3 rounded-xl flex items-center gap-3 font-semibold hover:bg-ink/[0.04] cursor-pointer"
                 onClick={() => {
                   setMenu(false)
                   setSupportModalOpen(true)
@@ -415,14 +416,14 @@ export default function Shell() {
               <p className="h-display text-[24px]">{t('nav.menu')}</p>
               <div className="flex items-center gap-2">
                 <LanguageToggle variant="pill" />
-                <button onClick={() => setMore(false)} aria-label={t('common.close', 'Close')} className="size-11 grid place-items-center rounded-xl hover:bg-ink/5 cursor-pointer">
+                <button onClick={() => setMore(false)} aria-label={t('common.close', 'Close')} className="size-11 grid place-items-center rounded-full hover:bg-ink/5 cursor-pointer">
                   <X size={22} aria-hidden />
                 </button>
               </div>
             </div>
 
-            <div className="my-5 flex items-center gap-3 rounded-2xl bg-sand p-4">
-              <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-white font-display font-extrabold">{initials}</span>
+            <div className="my-5 flex items-center gap-3">
+              <span className="grid size-12 shrink-0 place-items-center rounded-full bg-sand font-display font-extrabold">{initials}</span>
               <div className="min-w-0">
                 <p className="truncate font-bold">{name}</p>
                 <p className="text-[14px] text-ink-2">{role}</p>
@@ -434,8 +435,9 @@ export default function Shell() {
                 <NavLink
                   key={to}
                   to={to}
+                  end={to === '/app/org'}
                   onClick={() => setMore(false)}
-                  className={({ isActive }) => `min-h-12 rounded-xl px-4 flex items-center gap-3 font-semibold ${isActive ? 'bg-ink text-white' : 'hover:bg-paper'}`}
+                  className={({ isActive }) => `min-h-12 rounded-xl px-4 flex items-center gap-3 font-semibold ${isActive ? 'bg-ink/[0.07] text-ink' : 'text-ink-2 hover:bg-ink/[0.04]'}`}
                 >
                   <Icon size={20} aria-hidden /> {label}
                 </NavLink>
@@ -450,7 +452,7 @@ export default function Shell() {
                 <Settings size={20} aria-hidden /> {t('nav.settings')}
               </button>
               <button
-                className="w-full min-h-12 px-4 rounded-xl flex items-center gap-3 font-semibold hover:bg-paper cursor-pointer text-emerald-700"
+                className="w-full min-h-12 px-4 rounded-xl flex items-center gap-3 font-semibold hover:bg-ink/[0.04] cursor-pointer"
                 onClick={() => {
                   setMore(false)
                   setSupportModalOpen(true)

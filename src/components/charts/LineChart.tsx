@@ -59,7 +59,7 @@ export function LineChart({
             <text x={x(0)} y={y(data[0]) - 12} fontSize="13" fontWeight="700" fill="#14161A" textAnchor="start">
               {data[0]} {unit}
             </text>
-            <text x={x(last) + 10} y={y(data[last]) + 4} fontSize="14" fontWeight="800" fill="#14161A">
+            <text x={x(last)} y={y(data[last]) - 12} fontSize="14" fontWeight="800" fill="#14161A" textAnchor="end">
               {data[last]} {unit}
             </text>
           </>

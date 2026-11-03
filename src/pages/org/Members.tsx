@@ -193,16 +193,16 @@ export default function OrgMembers() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="h-display text-2xl sm:text-3xl font-bold text-ink">
+          <h2 className="h-display text-[22px] sm:text-[24px] text-ink">
             {t('org.members_title', 'Organization Members')}
-          </h1>
+          </h2>
           <p className="text-sm text-ink-2 mt-1">
             {t('org.members_sub', 'Manage your sponsored team members and their assigned Move, Eat, and Recover specialists.')}
           </p>
         </div>
 
         {/* Member Count Pill */}
-        <div className="flex items-center gap-2 bg-white border border-line px-3.5 py-1.5 rounded-full shadow-sm self-start sm:self-auto">
+        <div className="flex items-center gap-2 bg-white border border-line px-3.5 py-1.5 rounded-full self-start sm:self-auto">
           <Users size={16} className="text-ink-2" />
           <span className="text-xs font-bold text-ink">
             {members.length} {lang === 'ar' ? 'أعضاء' : (members.length === 1 ? 'Member' : 'Members')}
@@ -269,7 +269,7 @@ export default function OrgMembers() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-sm">
               <thead>
-                <tr className="border-b border-line bg-paper text-ink-2 text-xs uppercase font-bold tracking-wider">
+                <tr className="border-b border-line text-ink-2 text-xs font-bold">
                   <th className="py-3.5 px-5">Member</th>
                   <th className="py-3.5 px-4">Status</th>
                   <th className="py-3.5 px-4">Joined Date</th>

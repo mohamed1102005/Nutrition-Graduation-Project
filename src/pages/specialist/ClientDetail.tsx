@@ -219,10 +219,10 @@ function Inner({ id }: { id?: string }) {
 
             <div className="space-y-1">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="h-display text-[24px] sm:text-[28px] font-bold text-ink leading-tight">
+                <h2 className="h-display text-[22px] sm:text-[24px] text-ink leading-tight">
                   {c.name}
-                </h1>
-                <span className="text-xs uppercase font-bold px-2.5 py-0.5 rounded-full bg-paper text-ink border border-line">
+                </h2>
+                <span className="text-xs capitalize font-bold px-2.5 py-0.5 rounded-full bg-paper text-ink border border-line">
                   {lang === 'ar' ? `رقم المريض #${c.id}` : `Patient ID #${c.id}`}
                 </span>
                 <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-ok-tint text-[#1d6b3d]">
@@ -247,14 +247,14 @@ function Inner({ id }: { id?: string }) {
           {/* Quick Metrics & Actions */}
           <div className="flex flex-wrap items-center gap-3 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-line">
             <div className="px-4 py-2.5 rounded-xl border border-line bg-paper/60 text-center">
-              <span className="text-[11px] font-semibold text-ink-2 uppercase tracking-wider block">{t('client_detail.pain_score', 'Pain Score')}</span>
+              <span className="text-[12px] font-semibold text-ink-2 block">{t('client_detail.pain_score', 'Pain Score')}</span>
               <span className="num font-bold text-[20px] text-ink leading-none mt-0.5 block">
                 {trend.now} <span className="text-xs font-normal text-ink-2">/ 10</span>
               </span>
             </div>
 
             <div className="px-4 py-2.5 rounded-xl border border-line bg-paper/60 text-center">
-              <span className="text-[11px] font-semibold text-ink-2 uppercase tracking-wider block">{t('client_detail.safe_limit', 'Safe Threshold')}</span>
+              <span className="text-[12px] font-semibold text-ink-2 block">{t('client_detail.safe_limit', 'Safe Threshold')}</span>
               <span className="num font-bold text-[20px] text-ink leading-none mt-0.5 block">
                 {limit} <span className="text-xs font-normal text-ink-2">/ 10</span>
               </span>
@@ -459,7 +459,7 @@ function Inner({ id }: { id?: string }) {
             </div>
 
             <div>
-              <label className="text-xs uppercase font-bold text-ink-2 tracking-wider block mb-2">
+              <label className="text-xs font-bold text-ink-2 block mb-2">
                 {t('client_detail.pain_threshold', 'Safe Pain Threshold (Out of 10)')}
               </label>
               <Segment

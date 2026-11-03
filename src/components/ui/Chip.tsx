@@ -7,7 +7,7 @@ export function Chip({ selected, onClick, children }: { selected: boolean; onCli
       type="button"
       aria-pressed={selected}
       onClick={onClick}
-      className={`min-h-11 px-4 rounded-full border font-semibold text-[15px] transition cursor-pointer inline-flex items-center gap-2 ${
+      className={`min-h-11 px-4 rounded-full border font-semibold text-[15px] transition-[background-color,border-color] cursor-pointer inline-flex items-center gap-2 ${
         selected ? 'bg-ink text-white border-ink' : 'bg-white border-ink/25 hover:border-ink'
       }`}
     >

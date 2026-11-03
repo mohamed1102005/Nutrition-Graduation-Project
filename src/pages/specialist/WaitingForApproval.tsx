@@ -34,7 +34,7 @@ export default function WaitingForApproval({ user, onApproved }: WaitingForAppro
     try {
       const refreshedUser = await api.getMe()
       if (refreshedUser?.approvalStatus === 'approved') {
-        setStatusMsg('🎉 Congratulations! Your account has been approved.')
+        setStatusMsg('Congratulations! Your account has been approved.')
         if (onApproved) {
           onApproved()
         } else {
@@ -98,12 +98,12 @@ export default function WaitingForApproval({ user, onApproved }: WaitingForAppro
                   : 'bg-warn-tint text-[#8c4e00]'
               }`}
             >
-              {isRejected ? <ShieldAlert size={26} /> : <Clock size={26} className="animate-pulse" />}
+              {isRejected ? <ShieldAlert size={26} /> : <Clock size={26} />}
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <span
-                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold tracking-wide uppercase ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold capitalize ${
                     isRejected
                       ? 'bg-bad-tint text-[#a02a2a] border border-[#a02a2a]/20'
                       : 'bg-warn-tint text-[#8c4e00] border border-[#8c4e00]/20'
@@ -113,9 +113,9 @@ export default function WaitingForApproval({ user, onApproved }: WaitingForAppro
                 </span>
                 <Tag svc={svcType}>{roleLabel}</Tag>
               </div>
-              <h1 className="h-display text-[26px] sm:text-[30px] mt-1 text-ink">
+              <h2 className="h-display text-[22px] sm:text-[24px] mt-1 text-ink">
                 {isRejected ? t('waiting_approval.title_rejected', 'Application Not Approved') : t('waiting_approval.title_pending', 'Your account is under review')}
-              </h1>
+              </h2>
             </div>
           </div>
         </div>
@@ -128,7 +128,7 @@ export default function WaitingForApproval({ user, onApproved }: WaitingForAppro
 
         {/* Verification Progress Tracker */}
         <div className="bg-sand/60 border border-line rounded-2xl p-5 mb-6">
-          <p className="font-bold text-[14px] text-ink mb-3 uppercase tracking-wider text-xs">
+          <p className="font-bold text-[14px] text-ink mb-3 text-xs">
             {t('waiting_approval.timeline_title', 'Licensing & Review Timeline')}
           </p>
           <div className="space-y-4">
@@ -145,7 +145,7 @@ export default function WaitingForApproval({ user, onApproved }: WaitingForAppro
             <div className="flex items-start gap-3">
               <div
                 className={`size-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
-                  isRejected ? 'bg-[#a02a2a] text-white' : 'bg-[#e07a38] text-white animate-pulse'
+                  isRejected ? 'bg-[#a02a2a] text-white' : 'bg-[#e07a38] text-white'
                 }`}
               >
                 {isRejected ? <AlertTriangle size={12} /> : <div className="size-2 bg-white rounded-full" />}
@@ -167,7 +167,7 @@ export default function WaitingForApproval({ user, onApproved }: WaitingForAppro
               <div>
                 <p className="text-[14px] font-bold text-ink">Clinical Workspace Activation</p>
                 <p className="text-[13px] text-ink-2">
-                  Patient care roster, video consultation rooms, and calendar slots will unlock automatically once approved.
+                  Patient care roster, video consultation rooms, and calendar slots become available automatically once approved.
                 </p>
               </div>
             </div>
@@ -187,7 +187,7 @@ export default function WaitingForApproval({ user, onApproved }: WaitingForAppro
 
         {statusMsg && (
           <div className="mt-4 p-3 rounded-xl bg-paper border border-line text-[14px] font-medium text-ink flex items-center gap-2">
-            <span className="size-2 rounded-full bg-ink animate-ping" />
+            <span className="size-2 rounded-full bg-ink" aria-hidden />
             {statusMsg}
           </div>
         )}
@@ -202,29 +202,29 @@ export default function WaitingForApproval({ user, onApproved }: WaitingForAppro
 
         <div className="grid sm:grid-cols-2 gap-4 pb-5 border-b border-line text-[14px]">
           <div>
-            <p className="text-ink-2 text-xs font-semibold uppercase">Practitioner Name</p>
+            <p className="text-ink-2 text-xs font-semibold">Practitioner Name</p>
             <p className="font-bold text-ink text-[16px] mt-0.5">{user?.name || 'Dr. Specialist'}</p>
           </div>
           <div>
-            <p className="text-ink-2 text-xs font-semibold uppercase">Account Email</p>
+            <p className="text-ink-2 text-xs font-semibold">Account Email</p>
             <p className="font-medium text-ink mt-0.5">{user?.email || 'N/A'}</p>
           </div>
           <div>
-            <p className="text-ink-2 text-xs font-semibold uppercase">National ID / Passport</p>
+            <p className="text-ink-2 text-xs font-semibold">National ID / Passport</p>
             <p className="font-mono font-medium text-ink mt-0.5">{user?.nationalId || 'Verified on file'}</p>
           </div>
           <div>
-            <p className="text-ink-2 text-xs font-semibold uppercase">Syndicate License ID</p>
+            <p className="text-ink-2 text-xs font-semibold">Syndicate License ID</p>
             <p className="font-mono font-medium text-ink mt-0.5">{user?.syndicateId || 'Egyptian Health Syndicate'}</p>
           </div>
           <div>
-            <p className="text-ink-2 text-xs font-semibold uppercase">Practice City & Experience</p>
+            <p className="text-ink-2 text-xs font-semibold">Practice City & Experience</p>
             <p className="font-medium text-ink mt-0.5">
               {user?.city || 'Cairo'} · {user?.yearsExperience || 5} years experience
             </p>
           </div>
           <div>
-            <p className="text-ink-2 text-xs font-semibold uppercase">Standard Session Rate</p>
+            <p className="text-ink-2 text-xs font-semibold">Standard Session Rate</p>
             <p className="font-bold text-ink mt-0.5">
               {user?.rateEgp ? `${user.rateEgp} EGP / session` : '500 EGP / session'}
             </p>
@@ -233,7 +233,7 @@ export default function WaitingForApproval({ user, onApproved }: WaitingForAppro
 
         {/* Attached Documents */}
         <div className="pt-4">
-          <p className="text-ink-2 text-xs font-semibold uppercase mb-3">Submitted Legal Documents</p>
+          <p className="text-ink-2 text-xs font-semibold mb-3">Submitted Legal Documents</p>
           <div className="grid sm:grid-cols-2 gap-2.5">
             {docs.map((doc: any, i: number) => (
               <div

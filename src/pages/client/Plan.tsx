@@ -118,7 +118,7 @@ function MacroBar({ label, value, target, color }: { label: string; value: numbe
         </span>
       </div>
       <div className="h-1.5 w-full bg-paper rounded-full overflow-hidden border border-line/60">
-        <div className="h-full rounded-full transition-all duration-300" style={{ width: `${pct}%`, backgroundColor: color }} />
+        <div className="h-full rounded-full transition-[width] duration-300" style={{ width: `${pct}%`, backgroundColor: color }} />
       </div>
     </div>
   )
@@ -142,10 +142,10 @@ function ExerciseCard({
 
   return (
     <div
-      className={`rounded-2xl border transition-all duration-200 ${
+      className={`rounded-2xl border transition-colors duration-200 ${
         completed
           ? 'bg-paper/40 border-line/50 opacity-80'
-          : 'bg-white border-line hover:border-ink/30 shadow-[0_2px_8px_rgba(0,0,0,0.02)]'
+          : 'bg-white border-line hover:border-ink/30'
       }`}
     >
       <div className="p-4 sm:p-5 flex items-start gap-3.5">
@@ -156,7 +156,7 @@ function ExerciseCard({
           className={`mt-0.5 size-7 rounded-xl flex items-center justify-center shrink-0 transition cursor-pointer ${
             completed
               ? 'bg-ok text-white'
-              : 'border-2 border-line hover:border-ink text-transparent hover:text-ink-2'
+              : 'border-2 border-line hover:border-ink [&>svg]:opacity-0 hover:[&>svg]:opacity-60'
           }`}
         >
           {completed ? <CheckCircle2 size={18} strokeWidth={2.5} /> : <Circle size={14} />}
@@ -200,7 +200,7 @@ function ExerciseCard({
 
           {open && (
             <div className="mt-3.5 pt-3.5 border-t border-line text-[14px] leading-relaxed text-ink-2 bg-sand/30 p-3.5 rounded-xl">
-              <p className="font-medium text-ink mb-1 flex items-center gap-1.5 text-xs uppercase tracking-wider">
+              <p className="font-medium text-ink mb-1 flex items-center gap-1.5 text-xs">
                 <Info size={13} className="text-ink-2" aria-hidden /> {t('plan.cues_title', 'Execution & Form Cues')}
               </p>
               <p>{e.how}</p>
@@ -237,11 +237,11 @@ function MealCard({
   const isAlt = swapped && swaps[m.name]
 
   return (
-    <div className="bg-white rounded-2xl border border-line p-5 shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition hover:border-ink/20">
+    <div className="bg-white rounded-2xl border border-line p-5 transition hover:border-ink/20">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-xs uppercase font-bold text-ink-2 tracking-wider">{m.name}</span>
+            <span className="text-xs font-bold text-ink-2">{m.name}</span>
             <span className="text-xs text-ink-2 font-medium">· {m.timing}</span>
             {isAlt && (
               <span className="rounded-full bg-eat-tint text-[#24583b] px-2 py-0.5 text-[11px] font-bold">
@@ -258,7 +258,7 @@ function MealCard({
           <span className="num font-bold text-[20px] text-ink leading-tight block">
             {currentMeal.kcal}
           </span>
-          <span className="text-[11px] uppercase font-semibold text-ink-2 tracking-wider">
+          <span className="text-[12px] font-semibold text-ink-2">
             kcal
           </span>
         </div>
@@ -266,15 +266,15 @@ function MealCard({
 
       <div className="grid grid-cols-3 gap-3 mt-4 pt-3.5 border-t border-line/60 bg-paper/50 -mx-5 -mb-5 p-4 rounded-b-2xl">
         <div className="text-center">
-          <span className="text-[11px] font-semibold text-ink-2 uppercase block">Protein</span>
+          <span className="text-[12px] font-semibold text-ink-2 block">Protein</span>
           <span className="num font-bold text-[15px] text-ink">{currentMeal.p}g</span>
         </div>
         <div className="text-center border-x border-line/60">
-          <span className="text-[11px] font-semibold text-ink-2 uppercase block">Carbs</span>
+          <span className="text-[12px] font-semibold text-ink-2 block">Carbs</span>
           <span className="num font-bold text-[15px] text-ink">{currentMeal.c}g</span>
         </div>
         <div className="text-center">
-          <span className="text-[11px] font-semibold text-ink-2 uppercase block">Fats</span>
+          <span className="text-[12px] font-semibold text-ink-2 block">Fats</span>
           <span className="num font-bold text-[15px] text-ink">{currentMeal.f}g</span>
         </div>
       </div>
@@ -308,12 +308,12 @@ function CareTeamBadge({
 }) {
   const S = SVC[service]
   return (
-    <div className="flex items-center gap-3 p-3.5 rounded-xl border border-line bg-white shadow-xs">
+    <div className="flex items-center gap-3 p-3.5 rounded-xl border border-line bg-white">
       <div className={`size-10 rounded-xl ${S.bg} text-white grid place-items-center font-bold text-sm shrink-0`}>
         {avatarInitial}
       </div>
       <div className="min-w-0">
-        <p className="text-xs uppercase font-semibold text-ink-2 tracking-wider">{S.label} Specialist</p>
+        <p className="text-xs font-semibold text-ink-2">{S.label} Specialist</p>
         <p className="font-bold text-[14px] text-ink truncate">{authorName}</p>
         <p className="text-[12px] text-ink-2 truncate">{authorRole}</p>
       </div>
@@ -463,17 +463,12 @@ export default function Plan() {
       {/* Top Protocol Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-line pb-6">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="num font-bold text-xs bg-ink text-white px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-              {t('plan.active_protocol', 'Active Protocol')}
-            </span>
-            <span className="text-sm font-semibold text-ink-2">
-              {t('plan.week_of', 'Week {cur} of {total}').replace('{cur}', String(programInfo.week)).replace('{total}', String(programInfo.total))}
-            </span>
-          </div>
-          <h1 className="h-display text-[26px] sm:text-[32px] text-ink leading-tight tracking-tight">
+          <p className="text-[15px] font-semibold text-ink-2 mb-1">
+            {t('plan.active_protocol', 'Active Protocol')} · {t('plan.week_of', 'Week {cur} of {total}').replace('{cur}', String(programInfo.week)).replace('{total}', String(programInfo.total))}
+          </p>
+          <h2 className="h-display text-[20px] sm:text-[22px] text-ink leading-tight">
             {t('plan.title', 'Integrated Health & Performance Plan')}
-          </h1>
+          </h2>
           <p className="text-ink-2 text-sm max-w-2xl mt-1">
             {t('plan.subtitle', 'Coordinated care managed in real-time by your designated trainer, clinical dietitian, and physical therapist.')}
           </p>
@@ -564,11 +559,11 @@ export default function Plan() {
                     onClick={() => setDay(d)}
                     className={`min-h-14 p-2 rounded-xl border flex flex-col items-center justify-center transition cursor-pointer ${
                       isSelected
-                        ? 'bg-ink text-white border-ink shadow-sm'
+                        ? 'bg-ink text-white border-ink'
                         : 'bg-white border-line hover:border-ink/40 text-ink'
                     }`}
                   >
-                    <span className="text-[11px] uppercase tracking-wider font-semibold opacity-80">{d}</span>
+                    <span className="text-[12px] font-semibold opacity-80">{d}</span>
                     <span className={`size-1.5 rounded-full mt-1 ${isSelected ? 'bg-white' : isTrainingDay ? 'bg-ink' : 'bg-line'}`} />
                   </button>
                 )
@@ -585,7 +580,7 @@ export default function Plan() {
                 <Card className="p-5 sm:p-6 bg-white border border-line">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-ink-2 mb-1">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-ink-2 mb-1">
                         <Calendar size={13} aria-hidden /> {day}{t('plan.training_session', "'S TRAINING SESSION · ")}{currentMoveWorkout.duration}
                       </div>
                       <h2 className="h-display text-[22px] sm:text-[24px] font-bold text-ink">
@@ -641,7 +636,7 @@ export default function Plan() {
             <Card className="p-5 sm:p-6 bg-white border-line">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                 <div>
-                  <span className="text-xs uppercase font-bold text-ink-2 tracking-wider">
+                  <span className="text-xs font-bold text-ink-2">
                     {day}'s Nutritional Blueprint
                   </span>
                   <div className="flex items-baseline gap-2 mt-1">
@@ -688,7 +683,7 @@ export default function Plan() {
             <Card className="p-5 sm:p-6 bg-white border-line">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-ok mb-1">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-ok mb-1">
                     <ShieldCheck size={14} aria-hidden /> {t('plan.pt_routine', 'Daily Physical Therapy Routine')}
                   </div>
                   <h2 className="h-display text-[22px] sm:text-[24px] font-bold text-ink">

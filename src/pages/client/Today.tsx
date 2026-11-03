@@ -164,16 +164,11 @@ export default function ClientToday() {
       {/* Top Header & Immediate Action */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
         <div>
-          <div className="flex items-center gap-2 text-[13px] font-semibold text-ink-2 mb-1.5">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sand text-ink text-[12px] font-bold">
-              {t('plan.week_of', 'Week {cur} of {total}').replace('{cur}', String(currentWeek)).replace('{total}', String(totalWeeks))}
-            </span>
-            <span>·</span>
-            <span>{t('today.active_protocol', 'Active Care Protocol')}</span>
-          </div>
-          <h2 className="h-display text-[28px] sm:text-[32px] tracking-tight text-ink">
-            {t('today.badge', 'Today')} · {t('today.title', "Today's Health & Training Dashboard")}
-          </h2>
+          <p className="text-[16px] text-ink-2">
+            {t('plan.week_of', 'Week {cur} of {total}').replace('{cur}', String(currentWeek)).replace('{total}', String(totalWeeks))}
+            {' · '}
+            {t('today.active_protocol', 'Active Care Protocol')}
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
           <Btn
@@ -204,7 +199,7 @@ export default function ClientToday() {
       <Card className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-line mb-8">
         {/* Metric 1: Workouts This Week */}
         <div className="p-6">
-          <div className="flex items-center justify-between text-ink-2 text-[13px] font-semibold uppercase tracking-wider">
+          <div className="flex items-center justify-between text-ink-2 text-[13px] font-semibold">
             <span>{t('today.metric_workouts_title', 'Workouts this week')}</span>
             <Dumbbell size={16} className="text-move" aria-hidden />
           </div>
@@ -231,7 +226,7 @@ export default function ClientToday() {
 
         {/* Metric 2: Consistency Streak */}
         <div className="p-6">
-          <div className="flex items-center justify-between text-ink-2 text-[13px] font-semibold uppercase tracking-wider">
+          <div className="flex items-center justify-between text-ink-2 text-[13px] font-semibold">
             <span>{t('today.metric_streak_title', 'Daily habit streak')}</span>
             <Flame size={16} className="text-warn" aria-hidden />
           </div>
@@ -252,7 +247,7 @@ export default function ClientToday() {
 
         {/* Metric 3: Joint Pain Status */}
         <div className="p-6">
-          <div className="flex items-center justify-between text-ink-2 text-[13px] font-semibold uppercase tracking-wider">
+          <div className="flex items-center justify-between text-ink-2 text-[13px] font-semibold">
             <span>{t('today.metric_joint_title', 'Knee joint status')}</span>
             <Activity size={16} className="text-recover" aria-hidden />
           </div>
@@ -371,7 +366,7 @@ export default function ClientToday() {
         <aside className="space-y-4">
           {/* Card 1: Next Video Consultation */}
           <Card className="p-6">
-            <div className="flex items-center justify-between text-ink-2 text-[13px] font-semibold uppercase tracking-wider mb-3">
+            <div className="flex items-center justify-between text-ink-2 text-[13px] font-semibold mb-3">
               <span>{t('today.next_consultation', 'Next consultation')}</span>
               <span className="text-[12px] font-bold text-move bg-move-tint px-2.5 py-0.5 rounded-full">
                 {t('today.video_call', 'Video Call')}
@@ -425,11 +420,11 @@ export default function ClientToday() {
 
           {/* Card 3: Upcoming Program Forecast */}
           <Card className="p-5 flex items-center gap-4 bg-sand/30">
-            <span className="size-11 rounded-xl bg-move-tint text-move grid place-items-center shrink-0">
+            <span className="size-11 grid place-items-center text-ink-2 shrink-0">
               <Dumbbell size={20} aria-hidden />
             </span>
             <div>
-              <p className="text-[13px] text-ink-2 font-semibold uppercase">{t('today.coming_up', 'Coming up next')}</p>
+              <p className="text-[13px] text-ink-2 font-semibold">{t('today.coming_up', 'Coming up next')}</p>
               <p className="text-[15px] font-bold text-ink">Thursday · Upper Body Pull & Posterior Chain</p>
             </div>
           </Card>
