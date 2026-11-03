@@ -1,6 +1,6 @@
 # Rebound: Backend & Database Spec
 
-This file is the source of truth for the backend. `schema.sql` (same folder) is the database schema. Read both fully before doing anything.
+This file is the source of truth for the backend. `server/src/db/schema.sql` is the database schema. Read both fully before doing anything.
 
 ---
 
@@ -60,7 +60,7 @@ rebound/
 │     ├─ app.js             express setup and route mounting
 │     ├─ db/
 │     │   ├─ connection.js  opens SQLite, PRAGMA foreign_keys = ON, WAL mode
-│     │   ├─ schema.sql     copy of schema.sql from this spec
+│     │   ├─ schema.sql     the database schema (applied by reset.js)
 │     │   ├─ seed.js        fills the database with demo data
 │     │   └─ reset.js       deletes the db file, applies schema, runs seed
 │     ├─ middleware/        auth.js, requireRole.js, validate.js, errorHandler.js

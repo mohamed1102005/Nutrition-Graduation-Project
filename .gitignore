@@ -35,3 +35,7 @@ scripts/optimize-image.ps1
 # Design skill output (screenshots, reports)
 .taste-skill/
 .impeccable/
+
+# Editor / extension state
+.specstory/
+.vscode/

@@ -198,7 +198,6 @@ All demo accounts share the password: **`demo1234`**
 │   │   └── app.js                # Express app configuration
 │   └── api.http                  # VS Code REST Client test requests
 │
-├── api.http                      # Root copy of REST test requests
 ├── TEST_CHECKLIST.md             # Complete manual testing checklist per screen
 ├── BACKEND_SPEC.md               # Technical specification & requirements
 └── package.json                  # Scripts & dependencies
@@ -248,10 +247,10 @@ The AI workout and meal planner in `/api/ai/plan`:
 
 ## 🧪 API & Manual Testing
 
-### Option A: VS Code REST Client (`api.http`)
+### Option A: VS Code REST Client (`server/api.http`)
 Rebound includes a comprehensive `api.http` file containing **52 pre-written requests** for every endpoint:
 1. Install the **REST Client** extension by *Huachao Mao* in VS Code.
-2. Open `api.http` (in the project root or `server/`).
+2. Open `server/api.http`.
 3. Click **"Send Request"** above any block to execute endpoints directly.
 
 ### Option B: Manual Testing Checklist

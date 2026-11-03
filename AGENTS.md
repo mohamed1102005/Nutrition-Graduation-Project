@@ -1,4 +1,3 @@
-<!-- Auto-synced with agent.md -->
 # Virtual Development Team & Agent Operations Guide
 
 This document defines the team of virtual agents for the **Rebound Fitness / Nutrition Project**, their GitHub identities, roles, assignment rules, git commit protocol, and strict permissions.
@@ -109,4 +108,22 @@ git config user.email "omarkhaledd22222-del@users.noreply.github.com"
 ```powershell
 git config user.name "ZiadMD"
 git config user.email "ziadmohamedgamal25@gmail.com"
+```
+
+---
+
+## 📁 Agent Directory Structure
+
+The `.agent/` folder contains individual definitions and manifests:
+
+```
+.agent/
+├── manifest.json         # Machine-readable agent registry and configs
+├── git-commit-as.ps1     # Commit as an agent and restore owner config (Windows)
+├── git-commit-as.sh      # Same, for Linux/macOS
+├── ali-raslan.md         # UI/UX Designer & Figma Specialist profile
+├── mohamed-mahmoud.md    # Backend & AI Developer profile
+├── mohamed-ashraf.md     # Frontend Developer profile
+├── omar-mohamed.md       # Backend Developer profile
+└── omar-khaled.md        # Frontend Developer profile
 ```

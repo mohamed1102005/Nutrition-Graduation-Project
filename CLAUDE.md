@@ -8,10 +8,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Team / commit protocol (mandatory)
 
-`AGENTS.md` (also mirrored in `agent.md` and `.agent/`) defines virtual agent identities. Every commit must be made under the assigned agent's git identity, then the owner config restored:
+`AGENTS.md` (with per-agent profiles in `.agent/`) defines virtual agent identities. Every commit must be made under the assigned agent's git identity, then the owner config restored:
 
 - Frontend (`src/`): `mohamedashraff8` or `omarkhaledd22222-del`
-- Backend/AI (`server/`, `schema.sql`): `mohamed1102005` (preferred for AI/Gemini work) or `om429810-gif`
+- Backend/AI (`server/`): `mohamed1102005` (preferred for AI/Gemini work) or `om429810-gif`
 - Design/Figma parity: ALI Raslan — **may not modify local files**; only reports what to change and hands code work to a frontend agent.
 - After committing: `git config user.name "ZiadMD" && git config user.email "ziadmohamedgamal25@gmail.com"`
 
@@ -21,7 +21,7 @@ Design skills `design-taste-frontend` and `impeccable` live in `.agents/skills/`
 
 ## Commands
 
-Node 22 (see `.mise.toml`). Root and `server/` each have their own `package.json` / `node_modules` — run `npm install` in both.
+Node 22 (see `.mise.toml`); npm only. Root and `server/` each have their own `package.json` / `node_modules` — run `npm install` in both.
 
 ```bash
 npm run dev              # Vite (port 8443) + Express API (port 4000, node --watch) concurrently
@@ -42,14 +42,14 @@ node server/test-phase3.js        # run a single suite
 
 `scripts/verify-*.mjs` are headless-browser screenshot checks (pages, i18n, dialogs) that need `npm run dev` running and write to `screenshots-test/`; they depend on a CDP helper under `.agents/skills/design-taste-frontend/`.
 
-`api.http` (root and `server/`) holds REST Client requests for every endpoint. All demo accounts use password `demo1234` (see README for the account list: `sara@demo.com` client, `mona@demo.com` specialist, `admin@demo.com`, `finance@demo.com`, `admin@apex.com` org admin, etc.).
+`server/api.http` holds REST Client requests for every endpoint. All demo accounts use password `demo1234` (see README for the account list: `sara@demo.com` client, `mona@demo.com` specialist, `admin@demo.com`, `finance@demo.com`, `admin@apex.com` org admin, etc.).
 
 ## Architecture
 
 ### Backend (`server/src`, Express 4, ES modules, plain JS)
 - `app.js` builds the app (exported for tests); `index.js` only calls `listen`. Env loaded from `server/.env`.
 - `db/connection.js`: a single synchronous `better-sqlite3` handle (WAL, foreign keys on), imported directly by routes — there is no ORM or repository layer; routes contain SQL inline. `DB_PATH` env overrides the file location.
-- Schema lives in `server/src/db/schema.sql` (root `schema.sql` is a copy — keep both in sync). There are no migrations: schema changes require `db:reset`, and seeds (`seed.js`, `seedHistory.js`, `seed-content/*.json`) must be updated to match.
+- Schema lives in `server/src/db/schema.sql`. There are no migrations: schema changes require `db:reset`, and seeds (`seed.js`, `seedHistory.js`, `seed-content/*.json`) must be updated to match.
 - Response envelope: success `{ data: ... }`, error `{ error: { code, message } }` with SCREAMING_SNAKE codes (e.g. `SLOT_TAKEN`, `TOO_LATE_TO_CANCEL`). JSON keys are camelCase, DB columns snake_case — convert with `utils/case.js`.
 - Middleware: `requireAuth` (JWT Bearer; reloads user, rejects suspended, sets `req.user = {id, name, email, role, organizationId}`), `requireRole(...)`, `requireOrgAdmin`, `validate(zodSchema)` for bodies.
 - Roles: `client`, `specialist`, `admin`, `finance`, `org_admin`.
