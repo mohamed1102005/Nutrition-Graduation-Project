@@ -7,6 +7,7 @@
   --lp-ease: cubic-bezier(0.16, 1, 0.3, 1);
   --lp-gutter: clamp(20px, 3vw, 40px);
   --lp-band: 72px;
+  --lp-header: 76px;
 }
 @media (max-width: 767px) {
   .lp {
@@ -46,20 +47,16 @@ html[dir='rtl'] .lp-h2 {
   line-height: 1.25;
 }
 
-/* The picture that sits inside the sentence, one line tall. */
-.lp-slot {
-  display: inline-block;
-  width: 2.3em;
-  height: 0.74em;
-  margin-inline: 0.12em;
-  border-radius: 0.14em;
-  overflow: hidden;
-  vertical-align: baseline;
+.lp p {
+  text-wrap: pretty;
 }
-.lp-slot img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+
+/* The global focus ring is ink; on ink sections it would vanish, so it turns paper there. */
+.lp .bg-ink :focus-visible {
+  outline-color: var(--color-paper);
+}
+.lp .bg-ink .bg-paper :focus-visible {
+  outline-color: var(--color-ink);
 }
 
 /* Masked line reveal */
@@ -85,12 +82,12 @@ html[dir='rtl'] .lp-h2 {
 .lp-range::-webkit-slider-runnable-track {
   height: 14px;
   border-radius: 999px;
-  background: var(--lp-track, #e6e2da);
+  background: var(--color-line);
 }
 .lp-range::-moz-range-track {
   height: 14px;
   border-radius: 999px;
-  background: var(--lp-track, #e6e2da);
+  background: var(--color-line);
 }
 .lp-range::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -155,15 +152,6 @@ details[open] .lp-chev {
   .lp-swap {
     animation: lp-fade-up 420ms var(--lp-ease) both;
   }
-  .lp-drift {
-    animation: lp-drift 18s ease-in-out infinite alternate;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .lp video {
-    display: none;
-  }
 }
 
 @keyframes lp-line-up {
@@ -179,13 +167,5 @@ details[open] .lp-chev {
   to {
     opacity: 1;
     transform: none;
-  }
-}
-@keyframes lp-drift {
-  from {
-    transform: scale(1.02);
-  }
-  to {
-    transform: scale(1.1) translateX(-2%);
   }
 }
