@@ -31,3 +31,7 @@ screenshots-test/
 scripts/optimize-image.ps1
 
 
+
+# Design skill output (screenshots, reports)
+.taste-skill/
+.impeccable/
