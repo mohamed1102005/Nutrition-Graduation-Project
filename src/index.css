@@ -10,13 +10,16 @@
   --color-paper: #faf8f4;
   --color-line: #e6e2da;
   --color-sand: #f1e9db;
+  --color-sand-deep: #e6dac4;
 
   --color-move: #ff6a3d;
   --color-move-tint: #ffe4da;
   --color-eat: #ffc93c;
   --color-eat-tint: #fff2cc;
+  --color-eat-deep: #eab22a;
   --color-recover: #3db7a5;
   --color-recover-tint: #d9f2ee;
+  --color-recover-deep: #33a291;
 
   --color-ok: #2e9e5b;
   --color-warn: #e39b00;
