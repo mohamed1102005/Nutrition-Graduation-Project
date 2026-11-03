@@ -1,0 +1,191 @@
+/* Landing page: type steps, the masked headline and section entrances. */
+.lp {
+  --lp-display: clamp(52px, 8.4vw, 132px);
+  --lp-h2: clamp(40px, 5.2vw, 80px);
+  --lp-h3: clamp(28px, 3vw, 44px);
+  --lp-lead: clamp(21px, 1.9vw, 26px);
+  --lp-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --lp-gutter: clamp(20px, 3vw, 40px);
+  --lp-band: 72px;
+}
+@media (max-width: 767px) {
+  .lp {
+    --lp-band: 56px;
+    --lp-display: 10.4vw;
+    --lp-h2: 9vw;
+    --lp-h3: 22px;
+  }
+}
+
+.lp-wrap {
+  margin-inline: auto;
+  max-width: 1440px;
+  padding-inline: var(--lp-gutter);
+}
+
+.lp-display {
+  font-size: var(--lp-display);
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+}
+.lp-h2 {
+  font-size: var(--lp-h2);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+.lp-h3 {
+  font-size: var(--lp-h3);
+  line-height: 1.05;
+}
+.lp-lead {
+  font-size: var(--lp-lead);
+  line-height: 1.3;
+}
+html[dir='rtl'] .lp-display,
+html[dir='rtl'] .lp-h2 {
+  line-height: 1.25;
+}
+
+/* The picture that sits inside the sentence, one line tall. */
+.lp-slot {
+  display: inline-block;
+  width: 2.3em;
+  height: 0.74em;
+  margin-inline: 0.12em;
+  border-radius: 0.14em;
+  overflow: hidden;
+  vertical-align: baseline;
+}
+.lp-slot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Masked line reveal */
+.lp-lines .lp-line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
+}
+.lp-lines [data-line] {
+  display: block;
+}
+
+/* Range input on Sara's pain score */
+.lp-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 48px;
+  background: transparent;
+  cursor: pointer;
+}
+.lp-range::-webkit-slider-runnable-track {
+  height: 14px;
+  border-radius: 999px;
+  background: var(--lp-track, #e6e2da);
+}
+.lp-range::-moz-range-track {
+  height: 14px;
+  border-radius: 999px;
+  background: var(--lp-track, #e6e2da);
+}
+.lp-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 44px;
+  height: 44px;
+  margin-top: -15px;
+  border-radius: 999px;
+  background: var(--color-ink);
+  border: 6px solid var(--color-paper);
+  transition: transform 160ms var(--lp-ease);
+}
+.lp-range::-moz-range-thumb {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: var(--color-ink);
+  border: 6px solid var(--color-paper);
+}
+.lp-range:active::-webkit-slider-thumb {
+  transform: scale(1.12);
+}
+
+/* FAQ chevron, two 2px strokes */
+.lp-chev {
+  width: 14px;
+  height: 14px;
+  border-inline-end: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg) translate(-3px, -3px);
+  transition: transform 240ms var(--lp-ease);
+  flex-shrink: 0;
+}
+details[open] .lp-chev {
+  transform: rotate(225deg) translate(-3px, -3px);
+}
+.lp summary::-webkit-details-marker {
+  display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lp-js .lp-lines [data-line] {
+    transform: translateY(105%);
+    animation: lp-line-up 900ms var(--lp-ease) forwards;
+    animation-delay: calc(var(--i) * 110ms + 150ms);
+  }
+  .lp-js [data-fade] {
+    opacity: 0;
+    animation: lp-fade-up 700ms var(--lp-ease) 520ms forwards;
+  }
+  .lp-js [data-reveal] {
+    opacity: 0;
+    transform: translateY(24px);
+    transition:
+      opacity 700ms var(--lp-ease),
+      transform 900ms var(--lp-ease);
+    transition-delay: calc(var(--d, 0) * 80ms);
+  }
+  .lp-js [data-reveal].is-in {
+    opacity: 1;
+    transform: none;
+  }
+  .lp-swap {
+    animation: lp-fade-up 420ms var(--lp-ease) both;
+  }
+  .lp-drift {
+    animation: lp-drift 18s ease-in-out infinite alternate;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp video {
+    display: none;
+  }
+}
+
+@keyframes lp-line-up {
+  to {
+    transform: none;
+  }
+}
+@keyframes lp-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes lp-drift {
+  from {
+    transform: scale(1.02);
+  }
+  to {
+    transform: scale(1.1) translateX(-2%);
+  }
+}

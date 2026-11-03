@@ -1,135 +1,291 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
-import { ArrowRight, Check, ChevronDown, Menu, X, TriangleAlert, ShieldCheck } from 'lucide-react'
-import { Btn, Card, Tag, SVC, Wordmark, Tabs, Avatar, StarRating, LanguageToggle } from '../ui'
-import { specialists, week, type Svc } from '../data'
+import { ArrowRight, Menu, X } from 'lucide-react'
+import { Wordmark } from '../ui'
+import { specialists, type Svc } from '../data'
 import { useLanguage } from '../context/LanguageContext'
+import './landing.css'
 
-const wrap = 'mx-auto max-w-[1280px] px-5 lg:px-10'
+const wrap = 'lp-wrap'
+const media = '/landing'
+const recoverPhoto = 'https://images.unsplash.com/photo-1645005512942-a17817fb7c11?auto=format&fit=crop&w=1400&q=80'
+
+const pill = 'inline-flex min-h-12 items-center gap-3 rounded-full px-6 text-[18px] font-bold transition-[transform,background-color] hover:-translate-y-0.5 active:scale-[.97]'
+
+const fill: Record<Svc, string> = { move: 'bg-move', eat: 'bg-eat', recover: 'bg-recover' }
+const tint: Record<Svc, string> = { move: 'bg-move-tint', eat: 'bg-eat-tint', recover: 'bg-recover-tint' }
+
+// Adds the class that arms entrances, then reveals [data-reveal] once as it enters.
+function useReveal() {
+  useEffect(() => {
+    const root = document.documentElement
+    root.classList.add('lp-js')
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries)
+          if (e.isIntersecting) {
+            e.target.classList.add('is-in')
+            io.unobserve(e.target)
+          }
+      },
+      { rootMargin: '0px 0px -10% 0px' },
+    )
+    const watch = () => document.querySelectorAll<HTMLElement>('.lp [data-reveal]:not(.is-in)').forEach((el) => io.observe(el))
+    watch()
+    // Nodes that mount later (a language switch re-keys some lists) need observing too.
+    const mo = new MutationObserver(watch)
+    const lp = document.querySelector('.lp')
+    if (lp) mo.observe(lp, { childList: true, subtree: true })
+    return () => {
+      mo.disconnect()
+      io.disconnect()
+      root.classList.remove('lp-js')
+    }
+  }, [])
+}
+
+function Arrow() {
+  const { isRtl } = useLanguage()
+  return <ArrowRight size={20} aria-hidden className={`transition-transform group-hover:translate-x-1 ${isRtl ? 'rotate-180 group-hover:-translate-x-1' : ''}`} />
+}
 
 function Header() {
   const [open, setOpen] = useState(false)
-  const { t } = useLanguage()
-  const navLinks = [
+  const { t, lang, toggleLang } = useLanguage()
+  const links = [
     [t('landing.nav_how', 'How it works'), '#how'],
     [t('landing.nav_services', 'Services'), '#services'],
-    [t('landing.nav_specialists', 'Specialists'), '#specialists'],
+    [t('landing.nav_specialists', 'Specialists'), '#team'],
     [t('landing.nav_pricing', 'Pricing'), '#pricing'],
   ]
+  const langBtn = (
+    <button
+      type="button"
+      onClick={toggleLang}
+      aria-label={lang === 'en' ? 'Switch language to Arabic' : 'Switch language to English'}
+      className="min-h-11 px-2 font-semibold text-[15px] text-paper/85 hover:text-paper cursor-pointer"
+    >
+      {lang === 'en' ? 'العربية' : 'English'}
+    </button>
+  )
   return (
-    <header className="sticky top-0 z-40 bg-paper border-b border-line">
-      <div className={`${wrap} h-[72px] flex items-center justify-between`}>
-        <Link to="/" aria-label="Rebound home">
+    <header className="bg-ink text-paper relative z-30">
+      <div className={`${wrap} h-[76px] flex items-center justify-between gap-6`}>
+        <Link to="/" aria-label="Rebound home" className="rounded-lg">
           <Wordmark />
         </Link>
         <nav className="hidden lg:flex gap-8" aria-label="Main">
-          {navLinks.map(([l, h]) => (
-            <a key={h} href={h} className="font-semibold text-[15px] py-3 hover:underline underline-offset-8 decoration-2">
+          {links.map(([l, h]) => (
+            <a key={h} href={h} className="font-semibold text-[15px] py-3 text-paper/85 hover:text-paper transition-colors">
               {l}
             </a>
           ))}
         </nav>
-        <div className="hidden lg:flex items-center gap-3">
-          <LanguageToggle />
-          <Btn variant="ghost" to="/login">
+        <div className="hidden lg:flex items-center gap-4">
+          {langBtn}
+          <Link to="/login" className="min-h-11 inline-flex items-center px-2 font-semibold text-[15px] text-paper/85 hover:text-paper">
             {t('landing.login', 'Log in')}
-          </Btn>
-          <Btn to="/signup">{t('landing.start_assessment', 'Start assessment')}</Btn>
+          </Link>
+          <Link to="/signup" className="group min-h-11 inline-flex items-center gap-2 px-5 rounded-full bg-paper text-ink font-bold text-[15px] transition-transform active:scale-[.97]">
+            {t('landing.start_assessment', 'Start assessment')}
+          </Link>
         </div>
-        <div className="flex items-center gap-2 lg:hidden">
-          <LanguageToggle variant="pill" />
+        <div className="flex items-center gap-1 lg:hidden">
+          {langBtn}
           <button
-            className="size-11 grid place-items-center rounded-xl border border-line bg-white cursor-pointer"
-            aria-label={open ? 'Close menu' : 'Open menu'}
+            className="size-11 grid place-items-center rounded-full bg-paper/10 cursor-pointer"
+            aria-label={open ? t('lp.menu_close', 'Close menu') : t('lp.menu_open', 'Open menu')}
             aria-expanded={open}
             onClick={() => setOpen(!open)}
           >
-            {open ? <X size={22} /> : <Menu size={22} />}
+            {open ? <X aria-hidden /> : <Menu aria-hidden />}
           </button>
         </div>
       </div>
       {open && (
-        <div className="lg:hidden border-t border-line bg-paper px-5 pb-5 pt-2 flex flex-col">
-          {navLinks.map(([l, h]) => (
-            <a key={h} href={h} onClick={() => setOpen(false)} className="min-h-12 flex items-center font-semibold border-b border-line">
-              {l}
-            </a>
-          ))}
-          <div className="grid grid-cols-2 gap-3 mt-4">
-            <Btn variant="secondary" to="/login">
+        <div className="lg:hidden absolute inset-x-0 top-full bg-ink">
+          <nav className={`${wrap} pb-8 flex flex-col`} aria-label="Mobile">
+            {links.map(([l, h]) => (
+              <a key={h} href={h} onClick={() => setOpen(false)} className="min-h-12 flex items-center text-[22px] font-bold">
+                {l}
+              </a>
+            ))}
+            <Link to="/login" className="min-h-12 flex items-center text-[22px] font-bold">
               {t('landing.login', 'Log in')}
-            </Btn>
-            <Btn to="/signup">{t('landing.start_assessment', 'Start assessment')}</Btn>
-          </div>
+            </Link>
+          </nav>
         </div>
       )}
     </header>
   )
 }
 
-function PlanCard({ svc, time, title, meta, offset }: { svc: Svc; time: string; title: string; meta: string; offset: string }) {
-  const s = SVC[svc]
+function Hero() {
+  const { t } = useLanguage()
+  const chips: [Svc, string, string, string][] = [
+    ['eat', '14:00', t('landing.lunch', 'Lunch'), t('landing.lunch_meta', '620 kcal · 42 g protein')],
+    ['move', '18:00', t('landing.lower_body', 'Lower body'), t('landing.lower_body_meta', '45 min · adjusted for your knee')],
+    ['recover', '21:00', t('landing.knee_mobility', 'Knee mobility'), t('landing.knee_mobility_meta', "10 min · Dr. Mona's routine")],
+  ]
+  const tilt = ['-rotate-2', 'rotate-1', '-rotate-1']
   return (
-    <div className={`${s.bg} rounded-2xl p-5 border-2 border-sand relative ${offset} text-ink`}>
-      <div className="flex items-center justify-between">
-        <span className="inline-flex items-center gap-2 label uppercase tracking-wider">
-          <s.Icon size={18} strokeWidth={2.4} aria-hidden /> {s.label}
-        </span>
-        <span className="num text-[20px]">{time}</span>
+    <section className="bg-ink text-paper">
+      <div className={`${wrap} pt-10 lg:pt-20 pb-16 lg:pb-24 min-h-[calc(100svh-76px)] flex flex-col`}>
+        <h1 className="h-display lp-display lp-lines max-w-[1200px]">
+          <span className="lp-line">
+            <span data-line style={{ '--i': 0 } as React.CSSProperties}>
+              {t('lp.hero_l1', 'Knee pain')}
+              <span className="lp-slot">
+                <img src={`${media}/koshari-tahrir.jpg`} alt={t('lp.hero_alt', 'A bowl of koshari with tomato sauce on the side')} width={1920} height={1440} />
+              </span>
+            </span>
+          </span>
+          <span className="lp-line">
+            <span data-line style={{ '--i': 1 } as React.CSSProperties}>
+              {t('lp.hero_l2', 'changes lunch.')}
+            </span>
+          </span>
+        </h1>
+        <div className="mt-auto pt-14 grid gap-10 lg:grid-cols-12 items-end" data-fade>
+          <div className="lg:col-span-5">
+            <p className="text-[18px] leading-[1.55] max-w-[44ch]">
+              {t('lp.hero_sub', 'Rebound puts a trainer, a dietitian and a physical therapist on one plan. Log a sore knee once, and all three adjust your day.')}
+            </p>
+            <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
+              <Link
+                to="/signup"
+                className="group inline-flex min-h-14 items-center gap-3 rounded-full bg-move px-8 text-[18px] font-bold text-ink transition-transform hover:-translate-y-0.5 active:scale-[.97]"
+              >
+                {t('landing.hero_cta', 'Start free assessment')} <Arrow />
+              </Link>
+              <a href="#try" className="min-h-11 inline-flex items-center font-semibold underline underline-offset-[6px] decoration-2 hover:decoration-move">
+                {t('lp.hero_try', "Try it on Sara's Tuesday")}
+              </a>
+            </div>
+          </div>
+          <ul className="lg:col-span-7 grid gap-3 sm:grid-cols-3" data-ui aria-label={t('lp.hero_chips', "Sara's Tuesday plan")}>
+            {chips.map(([svc, time, title, meta], i) => (
+              <li key={svc} className={`${fill[svc]} ${tilt[i]} rounded-2xl p-5 text-ink transition-transform hover:rotate-0 hover:-translate-y-1`}>
+                <p className="flex justify-between font-bold text-[15px]">
+                  <span>{t(`lp.${svc}`, svc)}</span>
+                  <span className="tabular-nums">{time}</span>
+                </p>
+                <p className="h-display text-[26px] mt-3">{title}</p>
+                <p className="text-[15px] mt-1 font-medium">{meta}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
-      <p className="h-display text-[28px] mt-3" style={{ letterSpacing: '-0.03em' }}>
-        {title}
-      </p>
-      <p className="text-[15px] font-medium mt-1">{meta}</p>
-    </div>
+    </section>
   )
 }
 
-function Hero() {
-  const { t, isRtl } = useLanguage()
-  const mark = (c: string, text: string) => <span className={`${c} px-2 -mx-1 rounded-xl box-decoration-clone`}>{text}</span>
+type Level = 0 | 1 | 2 | 3
+const levelOf = (p: number): Level => (p <= 2 ? 0 : p <= 5 ? 1 : p <= 8 ? 2 : 3)
+
+function TryIt() {
+  const { t } = useLanguage()
+  const [pain, setPain] = useState(4)
+  const lv = levelOf(pain)
+  const who = {
+    move: t('lp.who_karim', 'Coach Karim'),
+    eat: t('lp.who_hana', 'Hana, RD'),
+    recover: t('lp.who_mona', 'Dr. Mona'),
+  }
+  const rows: { svc: Svc; title: string; meta: string; changed: boolean }[] = [
+    {
+      svc: 'eat',
+      title: t('lp.eat_t', 'Lunch · 14:00'),
+      meta: t(`lp.l${lv}_eat`, ''),
+      changed: lv > 0,
+    },
+    {
+      svc: 'move',
+      title: lv < 2 ? t('lp.move_t', 'Lower body · 18:00') : lv === 2 ? t('lp.l2_move_t', 'Upper body instead · 18:00') : t('lp.l3_move_t', 'Rest day'),
+      meta: t(`lp.l${lv}_move`, ''),
+      changed: lv > 0,
+    },
+    {
+      svc: 'recover',
+      title: lv < 2 ? t('lp.rec_t', 'Knee mobility · 21:00') : lv === 2 ? t('lp.l2_rec_t', 'Pain check · 21:00') : t('lp.l3_rec_t', 'See a doctor today'),
+      meta: t(`lp.l${lv}_rec`, ''),
+      changed: lv > 0,
+    },
+  ]
+  const presets: [number, string][] = [
+    [0, t('lp.preset_0', 'No pain')],
+    [4, t('lp.preset_4', 'Sore after stairs')],
+    [7, t('lp.preset_7', 'Sharp when bending')],
+    [9, t('lp.preset_9', "Can't bear weight")],
+  ]
   return (
-    <section className={`${wrap} pt-10 lg:pt-16 pb-16 lg:pb-24 grid xl:grid-cols-[1.25fr_1fr] gap-12 xl:gap-12 items-center`}>
-      <div>
-        <h1 className="h-display text-[44px] sm:text-[60px] xl:text-[72px] leading-[1.04]" style={{ fontStretch: '100%' }}>
-          {isRtl ? (
-            <>
-              جدول {mark('bg-move-tint', t('landing.hero_workouts', 'تمارينك'))}، {mark('bg-eat-tint', t('landing.hero_meals', 'وجباتك'))} و{mark('bg-recover-tint', t('landing.hero_recovery', 'استشفاءك'))}، بتخطيط أخصائيين يتواصلون معاً.
-            </>
-          ) : (
-            <>
-              Your {mark('bg-move-tint', t('landing.hero_workouts', 'workouts'))}, {mark('bg-eat-tint', t('landing.hero_meals', 'meals'))} and {mark('bg-recover-tint', t('landing.hero_recovery', 'recovery'))}, planned by people who talk to each other.
-            </>
-          )}
-        </h1>
-        <p className="mt-6 text-[18px] leading-7 text-ink-2 max-w-[560px]">
-          {t('landing.hero_sub', 'One plan, three specialists. Your trainer, dietitian and physical therapist share notes, so a sore knee changes your lunch and your squats on the same day.')}
-        </p>
-        <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-4">
-          <Btn to="/signup" className="h-14 px-8 text-[17px]">
-            {t('landing.hero_cta', 'Start free assessment')} <ArrowRight size={20} className={isRtl ? 'rotate-180' : ''} aria-hidden />
-          </Btn>
-          <a href="#how" className="font-bold underline underline-offset-4 decoration-2 min-h-11 inline-flex items-center">
-            {t('landing.hero_how_btn', 'See how it works')}
-          </a>
-        </div>
-        <p className="mt-8 text-[14px] text-ink-2 flex items-center gap-2">
-          <ShieldCheck size={18} className="text-ink shrink-0" aria-hidden />
-          {t('landing.hero_trust', 'Licensed physical therapists · Registered dietitians · Certified trainers')}
-        </p>
-      </div>
-      <div className="rounded-[28px] bg-sand p-6 sm:p-10">
-        <div className="flex items-end justify-between mb-6">
-          <div>
-            <p className="label text-ink-2 uppercase">{t('landing.sara_tuesday', "Sara's Tuesday")}</p>
-            <p className="h-display text-[28px] mt-1">{t('landing.oct_14', '14 October')}</p>
+    <section id="try" className="bg-paper py-[clamp(96px,12vw,180px)]">
+      <div className={`${wrap} grid gap-12 lg:grid-cols-12 lg:gap-8`}>
+        <div className="lg:col-span-5">
+          <h2 className="h-display lp-h2" data-reveal>
+            {t('lp.try_title', "Set Sara's knee pain")}
+          </h2>
+          <p className="mt-6 text-[18px] leading-[1.55] max-w-[40ch]" data-reveal style={{ '--d': 1 } as React.CSSProperties}>
+            {t('lp.try_sub', 'She logs it in the app on Monday night. Move the score and watch what her team changes for Tuesday.')}
+          </p>
+          <div className="mt-12" data-ui data-reveal style={{ '--d': 2 } as React.CSSProperties}>
+            <label htmlFor="pain" className="block font-bold text-[18px]">
+              {t('lp.try_label', 'Knee pain, 0 to 10')}
+            </label>
+            <output htmlFor="pain" className="block h-display lp-display tabular-nums mt-2" aria-live="polite">
+              {pain}
+              <span className="text-ink/35">/10</span>
+            </output>
+            <input
+              id="pain"
+              type="range"
+              min={0}
+              max={10}
+              step={1}
+              value={pain}
+              onChange={(e) => setPain(Number(e.target.value))}
+              className="lp-range mt-4"
+            />
+            <div className="mt-6 flex flex-wrap gap-2">
+              {presets.map(([v, l]) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setPain(v)}
+                  aria-pressed={pain === v}
+                  className={`min-h-11 rounded-full px-4 text-[15px] font-semibold cursor-pointer transition-[background-color,color,transform] active:scale-[.97] ${
+                    pain === v ? 'bg-ink text-paper' : 'bg-sand text-ink hover:bg-[#e8dcc6]'
+                  }`}
+                >
+                  {v} · {l}
+                </button>
+              ))}
+            </div>
           </div>
-          <span className="num text-[44px] leading-none">3</span>
         </div>
-        <div className="flex flex-col">
-          <PlanCard svc="eat" time="14:00" title={t('landing.lunch', 'Lunch')} meta={t('landing.lunch_meta', '620 kcal · 42 g protein')} offset="" />
-          <PlanCard svc="move" time="18:00" title={t('landing.lower_body', 'Lower body')} meta={t('landing.lower_body_meta', '45 min · adjusted for your knee')} offset={isRtl ? '-mt-3 sm:mr-8 z-10' : '-mt-3 sm:ml-8 z-10'} />
-          <PlanCard svc="recover" time="21:00" title={t('landing.knee_mobility', 'Knee mobility')} meta={t('landing.knee_mobility_meta', "10 min · Dr. Mona's routine")} offset={isRtl ? '-mt-3 sm:mr-16 z-20' : '-mt-3 sm:ml-16 z-20'} />
+        <div className="lg:col-span-7 lg:ps-8" data-reveal style={{ '--d': 2 } as React.CSSProperties}>
+          <div className="rounded-[28px] bg-white p-5 sm:p-8" data-ui>
+            <p className="h-display text-[26px] px-1">{t('lp.try_tuesday', "Sara's Tuesday")}</p>
+            <ul className="mt-6 grid gap-3" key={lv}>
+              {rows.map((r, i) => (
+                <li key={r.svc} className={`lp-swap rounded-2xl p-5 ${tint[r.svc]}`} style={{ animationDelay: `${i * 70}ms` }}>
+                  <div>
+                    <p className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                      <span className="h-display text-[26px]">{r.title}</span>
+                      <span className="text-[15px] font-semibold">
+                        {r.changed ? `${t('lp.changed_by', 'Changed by')} ${who[r.svc]}` : t('lp.as_planned', 'As planned')}
+                      </span>
+                    </p>
+                    <p className="mt-2 text-[18px] leading-[1.5]">{r.meta}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <p className="lp-swap mt-6 px-1 text-[18px] font-semibold" key={`n${lv}`}>
+              {t(`lp.l${lv}_note`, '')}
+            </p>
+          </div>
         </div>
       </div>
     </section>
@@ -138,406 +294,158 @@ function Hero() {
 
 function How() {
   const { t } = useLanguage()
-  const steps: [Svc, string, string][] = [
-    ['move', t('landing.how_step1_title', 'Tell us about you'), t('landing.how_step1_desc', 'Goals, training days, any pain, and what you eat. About 8 minutes.')],
-    ['eat', t('landing.how_step2_title', 'Meet your specialists'), t('landing.how_step2_desc', 'We match you with a trainer, dietitian or PT. You pick who you like.')],
-    ['recover', t('landing.how_step3_title', 'Follow one plan'), t('landing.how_step3_desc', 'Workouts, meals and rehab on one calendar. Your team adjusts it as you go.')],
+  const stages: [Svc, string, string, string][] = [
+    ['move', '14%', t('lp.how_s1_d', '8 minutes'), t('lp.how_s1', 'First, tell us your goals, training days, any pain and what you eat.')],
+    ['eat', '26%', t('lp.how_s2_d', 'Within a day'), t('lp.how_s2', 'Then pick the trainer, dietitian or PT you like from your matches.')],
+    ['recover', '60%', t('lp.how_s3_d', 'Every week after'), t('lp.how_s3', 'After that, follow one calendar while your team adjusts it each week.')],
   ]
   return (
-    <section id="how" className="bg-white border-y border-line">
-      <div className={`${wrap} py-20 lg:py-28`}>
-        <div className="lg:hidden">
-          <h2 className="h-display text-[40px] max-w-xl">{t('landing.how_title', 'Three steps to a plan that fits your week')}</h2>
-          <div className="relative mt-14 grid md:grid-cols-3 gap-10 md:gap-8">
-            <div className="hidden md:block absolute top-[52px] left-[52px] right-[52px] h-1 bg-ink" aria-hidden />
-            {steps.map(([svc, textTitle, d], i) => (
-              <div key={textTitle} className="relative">
-                <div className={`${SVC[svc].bg} size-[104px] rounded-[28px] grid place-items-center num text-[64px] relative`}>{i + 1}</div>
-                <h3 className="h-display text-[24px] mt-6" style={{ letterSpacing: '-0.02em' }}>
-                  {textTitle}
-                </h3>
-                <p className="text-ink-2 mt-2 max-w-[320px]">{d}</p>
+    <section id="how" className="bg-paper pb-[clamp(96px,12vw,180px)]">
+      <div className={wrap}>
+        <h2 className="h-display lp-h2" data-reveal>
+          {t('lp.how_title', 'A plan by tomorrow')}
+        </h2>
+        <ol className="mt-16 flex flex-col gap-[6px] md:flex-row" data-ui>
+          {stages.map(([svc, basis, dur, clause], i) => (
+            <li key={svc} className="flex flex-col md:min-w-0" style={{ flexBasis: basis, flexGrow: 0, flexShrink: 1 }} data-reveal>
+              <div className={`${fill[svc]} min-h-[120px] md:h-[22vh] md:min-h-[180px] rounded-xl p-5 text-ink`} style={{ transitionDelay: `${i * 80}ms` }}>
+                <p className="h-display text-[clamp(22px,2vw,30px)]">{dur}</p>
               </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="hidden lg:grid grid-cols-[0.72fr_1.28fr] items-center gap-16">
-          <div>
-            <p className="label uppercase tracking-wider text-ink-2">{t('landing.how_label', 'How Rebound works')}</p>
-            <h2 className="h-display mt-4 text-[48px] max-w-md">{t('landing.how_title', 'Three steps to a plan that fits your week')}</h2>
-            <p className="mt-6 max-w-md text-[18px] leading-7 text-ink-2">
-              {t('landing.how_sub', 'Start with your real routine, choose the specialists you trust, then follow one plan they manage together.')}
-            </p>
-            <div className="mt-8 flex h-2 max-w-[240px] overflow-hidden rounded-full" aria-hidden>
-              <span className="flex-1 bg-move" />
-              <span className="flex-1 bg-eat" />
-              <span className="flex-1 bg-recover" />
-            </div>
-          </div>
-
-          <div className="overflow-hidden rounded-[28px] border-2 border-ink bg-white">
-            {steps.map(([svc, textTitle, d], i) => {
-              const service = SVC[svc]
-              return (
-                <div key={textTitle} className={`grid min-h-40 grid-cols-[112px_1fr_112px] items-stretch ${i > 0 ? 'border-t-2 border-ink' : ''}`}>
-                  <div className={`${service.bg} grid place-items-center`}>
-                    <span className="num text-[52px] leading-none">0{i + 1}</span>
-                  </div>
-                  <div className="flex flex-col justify-center px-8 py-6">
-                    <p className="h-display text-[26px]">{textTitle}</p>
-                    <p className="mt-2 max-w-lg text-ink-2">{d}</p>
-                  </div>
-                  <div className="flex flex-col items-center justify-center gap-2 border-l border-line">
-                    <service.Icon size={26} strokeWidth={2.4} aria-hidden />
-                    <span className="label uppercase">{service.label}</span>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
+              <p className="mt-4 text-[18px] leading-[1.5] max-w-[24ch] pe-2">{clause}</p>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   )
 }
 
-function Services() {
+function Sheets() {
   const { t } = useLanguage()
-  const [tab, setTab] = useState<Svc>('move')
-  const serviceContent = {
-    move: {
-      title: t('services.move_title', 'Strength and conditioning you can actually keep up with'),
-      who: specialists[0],
-      items: [
-        t('services.move_item1', '3 to 5 workouts a week, at home or in a gym'),
-        t('services.move_item2', 'Video demos for every exercise'),
-        t('services.move_item3', 'Weekly check-in and load changes'),
-      ],
-      sample: {
-        head: t('services.move_sample_head', 'Tuesday · Lower body'),
-        rows: [t('services.move_sample_row1', 'Goblet squat · 3 × 10'), t('services.move_sample_row2', 'Romanian deadlift · 3 × 8')],
-        foot: t('services.move_sample_foot', '45 min'),
-      },
-      image: 'https://images.unsplash.com/photo-1566568531155-07244e00963d?auto=format&fit=crop&w=500&q=85',
+  const sheets: { svc: Svc; name: string; body: string; by: string; pic: React.ReactNode }[] = [
+    {
+      svc: 'move',
+      name: t('lp.sheet_move', 'Move: strength you can keep'),
+      body: t('lp.sheet_move_p', 'Three to five workouts a week, at home or in a gym, with a video demo for every exercise and a weekly check-in that changes the load.'),
+      by: t('lp.sheet_move_by', 'With Coach Karim Adel, 9 years coaching'),
+      pic: (
+        <video autoPlay muted loop playsInline preload="metadata" poster={`${media}/squat-exercise-demonstration-video-poster.jpg`} width={854} height={480} aria-hidden="true" className="h-full w-full object-cover object-[38%_50%]">
+          <source src={`${media}/squat-exercise-demonstration-video.webm`} type="video/webm" />
+        </video>
+      ),
     },
-    eat: {
-      title: t('services.eat_title', 'Meals built from the food you already eat'),
-      who: specialists[1],
-      items: [
-        t('services.eat_item1', 'Meal plan with ful, koshari, grilled chicken and more'),
-        t('services.eat_item2', 'Calories and protein set to your goal'),
-        t('services.eat_item3', 'Swap any meal, your dietitian re-balances the day'),
-      ],
-      sample: {
-        head: t('services.eat_sample_head', 'Lunch · Grilled chicken with rice'),
-        rows: [t('services.eat_sample_row1', '150 g chicken, 1 cup rice, green salad'), t('services.eat_sample_row2', '42 g protein · 68 g carbs · 18 g fat')],
-        foot: t('services.eat_sample_foot', '620 kcal'),
-      },
-      image: 'https://images.unsplash.com/photo-1568625357288-d3b0051abf0e?auto=format&fit=crop&w=500&q=85',
+    {
+      svc: 'eat',
+      name: t('lp.sheet_eat', 'Eat: food you already like'),
+      body: t('lp.sheet_eat_p', 'Meal plans built from ful, koshari, grilled chicken and lentil soup, with calories and protein set to your goal. Swap any meal and your dietitian rebalances the day.'),
+      by: t('lp.sheet_eat_by', 'With Hana Ibrahim, RD, 7 years'),
+      pic: <img src={`${media}/ful-medames.jpg`} alt={t('lp.ful_alt', 'A plate of ful medames with eggs, bread, olives and salad')} width={1920} height={1957} loading="lazy" className="lp-drift h-full w-full object-cover" />,
     },
-    recover: {
-      title: t('services.recover_title', 'Rehab and pain checks, handled by a licensed PT'),
-      who: specialists[2],
-      items: [
-        t('services.recover_item1', 'Short daily routines for your injured area'),
-        t('services.recover_item2', 'Pain check-ins reviewed within 24 hours'),
-        t('services.recover_item3', 'Your trainer sees every change they make'),
-      ],
-      sample: {
-        head: t('services.recover_sample_head', 'Knee mobility'),
-        rows: [t('services.recover_sample_row1', 'Terminal knee extension · 2 × 15'), t('services.recover_sample_row2', 'Heel slides · 2 × 10')],
-        foot: t('services.recover_sample_foot', '10 min'),
-      },
-      image: 'https://images.unsplash.com/photo-1645005512942-a17817fb7c11?auto=format&fit=crop&w=500&q=85',
+    {
+      svc: 'recover',
+      name: t('lp.sheet_rec', 'Recover: rehab with a PT'),
+      body: t('lp.sheet_rec_p', 'Short daily routines for the injured area, pain check-ins reviewed within 24 hours, and limits your trainer sees the moment they change.'),
+      by: t('lp.sheet_rec_by', 'With Dr. Mona Fathy, PT, 11 years'),
+      pic: <img src={recoverPhoto} alt={t('lp.rec_alt', 'A physical therapist guiding a resistance band exercise')} width={1400} height={933} loading="lazy" className="h-full w-full object-cover" />,
     },
-  }
-  const c = serviceContent[tab]
-  const s = SVC[tab]
+  ]
   return (
-    <section id="services" className={`${wrap} py-20 lg:py-28`}>
-      <h2 className="h-display text-[40px] max-w-xl">{t('landing.services_title', 'Three services, one plan')}</h2>
-      <div className="mt-8">
-        <Tabs
-          label="Services"
-          value={tab}
-          onChange={setTab}
-          tabs={(['move', 'eat', 'recover'] as Svc[]).map((id) => {
-            const Icon = SVC[id].Icon
-            return { id, label: SVC[id].label, icon: <Icon size={18} aria-hidden /> }
-          })}
-        />
+    <section id="services" className="bg-paper">
+      <div className={wrap}>
+        <h2 className="h-display lp-h2 pb-12" data-reveal>
+          {t('lp.sheets_title', 'Three experts, one plan')}
+        </h2>
       </div>
-      <div className={`mt-6 rounded-[28px] p-6 sm:p-10 lg:min-h-[660px] lg:p-14 grid lg:grid-cols-[1.1fr_1fr] gap-10 transition-colors lg:[&>div:last-child>div]:h-full ${s.bg}`} role="tabpanel">
-        <div className="flex flex-col">
-          <h3 className="h-display text-[32px] sm:text-[40px] max-w-lg" style={{ letterSpacing: '-0.03em' }}>
-            {c.title}
-          </h3>
-          <div className="mt-6 flex items-center gap-4 bg-white/90 rounded-2xl p-4 max-w-md">
-            <Avatar initials={c.who.initials} svc={tab} />
-            <div>
-              <p className="label text-ink-2 uppercase">{t('landing.delivered_by', 'Delivered by')}</p>
-              <p className="font-bold">{c.who.name}</p>
-              <p className="text-[14px] text-ink-2">{c.who.role}, {c.who.years} {t('landing.years', 'years')}</p>
+      <div className="px-[max(0px,calc((100vw-1440px)/2))]">
+        {sheets.map((s, i) => (
+          <article
+            key={s.svc}
+            className={`${fill[s.svc]} text-ink sticky rounded-t-[28px] overflow-hidden md:h-[66svh] grid md:grid-cols-12`}
+            style={{ top: `calc(${i} * var(--lp-band))` }}
+          >
+            <h3 className="md:col-span-12 h-display lp-h3 h-[var(--lp-band)] flex items-center px-[var(--lp-gutter)] whitespace-nowrap overflow-hidden">{s.name}</h3>
+            <div className="md:col-span-6 flex flex-col justify-between gap-8 p-[var(--lp-gutter)] pt-4">
+              <p className="text-[18px] leading-[1.55] max-w-[40ch]">{s.body}</p>
+              <p className="text-[18px] font-bold pb-2">{s.by}</p>
             </div>
-          </div>
-          <p className="label uppercase mt-8">{t('landing.what_you_get', 'What you get')}</p>
-          <ul className="mt-3 space-y-3">
-            {c.items.map((i) => (
-              <li key={i} className="flex gap-3 font-medium">
-                <Check size={22} strokeWidth={3} className="shrink-0 mt-0.5" aria-hidden /> {i}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="relative">
-          <Card className="overflow-hidden">
-            <div className="aspect-[16/9] overflow-hidden border-b border-line bg-white">
-              <img
-                src={c.image}
-                alt=""
-                loading="lazy"
-                className="h-full w-full object-cover transition-opacity"
-              />
-            </div>
-            <div className="p-6">
-              <Tag svc={tab}>{t('landing.sample', 'Sample')}</Tag>
-              <p className="h-display text-[22px] mt-3" style={{ letterSpacing: '-0.02em' }}>
-                {c.sample.head}
-              </p>
-              <ul className="mt-4 divide-y divide-line">
-                {c.sample.rows.map((r) => (
-                  <li key={r} className="py-3 text-[15px]">
-                    {r}
-                  </li>
-                ))}
-              </ul>
-              <p className="num text-[32px] mt-2">{c.sample.foot}</p>
-            </div>
-          </Card>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-export function SampleWeek() {
-  const { t, isRtl } = useLanguage()
-  return (
-    <div>
-      <div className="flex flex-wrap gap-4 mb-5" aria-label="Legend">
-        {(['move', 'eat', 'recover'] as Svc[]).map((k) => (
-          <span key={k} className="inline-flex items-center gap-2 text-[14px] font-semibold">
-            <span className={`size-4 rounded ${SVC[k].bg}`} />
-            {SVC[k].label}
-          </span>
+            <div className="md:col-span-6 aspect-[4/3] md:aspect-auto md:h-[calc(66svh-var(--lp-band))] overflow-hidden bg-ink/10">{s.pic}</div>
+          </article>
         ))}
       </div>
-      <div className="overflow-x-auto -mx-5 px-5 lg:mx-0 lg:px-0">
-        <div className="grid grid-cols-7 gap-3 min-w-[980px] lg:min-w-0">
-          {week.map((d) => (
-            <div key={d.day} className="bg-white border border-line rounded-2xl p-3 flex flex-col gap-2">
-              <p className="num text-[18px] px-1">{isRtl ? (
-                d.day === 'Mon' ? 'الإثنين' :
-                d.day === 'Tue' ? 'الثلاثاء' :
-                d.day === 'Wed' ? 'الأربعاء' :
-                d.day === 'Thu' ? 'الخميس' :
-                d.day === 'Fri' ? 'الجمعة' :
-                d.day === 'Sat' ? 'السبت' : 'الأحد'
-              ) : d.day}</p>
-              {d.blocks.map((b) => (
-                <div key={b.text} className={`${SVC[b.svc].bg} rounded-xl p-3 text-[14px] leading-5 font-medium text-ink`}>
-                  <span className="label uppercase block mb-1">{SVC[b.svc].label}</span>
-                  {b.text}
-                  {b.adjusted && (
-                    <span className="mt-2 inline-flex items-center gap-1 bg-white rounded-full px-2 h-6 label">
-                      <TriangleAlert size={12} aria-hidden /> {t('landing.adjusted_badge', 'Adjusted')}
-                    </span>
-                  )}
-                </div>
-              ))}
+    </section>
+  )
+}
+
+function Team() {
+  const { t } = useLanguage()
+  const people = (['mona', 'karim', 'hana'] as const).map((id) => {
+    const s = specialists.find((p) => p.id === id)!
+    return {
+      id,
+      photo: s.photo,
+      name: t(`lp.${id}_name`, s.name),
+      bio: t(`lp.${id}_bio`, s.about),
+      facts: [t(`lp.${id}_role`, s.role), t(`lp.${id}_years`, `${s.years} years`), t(`lp.${id}_langs`, s.langs)],
+    }
+  })
+  return (
+    <section id="team" className="bg-paper py-[clamp(96px,12vw,180px)]">
+      <div className={wrap}>
+        <div className="grid gap-6 lg:grid-cols-12 items-end">
+          <h2 className="h-display lp-h2 lg:col-span-8" data-reveal>
+            {t('lp.team_title', "The people on Sara's plan")}
+          </h2>
+          <div className="lg:col-span-4 lg:justify-self-end" data-reveal style={{ '--d': 1 } as React.CSSProperties}>
+            <Link to="/signup" className={`group ${pill} bg-sand text-ink hover:bg-[#e8dcc6]`}>
+              {t('landing.browse_all', 'Browse all specialists')} <Arrow />
+            </Link>
+          </div>
+        </div>
+        <div className="mt-20 grid gap-20">
+          {people.map((p) => (
+            <div key={p.id} className="grid gap-6 lg:grid-cols-12" data-reveal>
+              <ul className="lg:col-span-2 flex flex-wrap gap-x-4 gap-y-1 lg:block text-[15px] font-semibold lg:pt-2 order-2 lg:order-1">
+                {p.facts.map((f) => (
+                  <li key={f}>{f}</li>
+                ))}
+              </ul>
+              <p className="lp-lead lg:col-span-9 lg:col-start-4 order-1 lg:order-2">
+                <img src={p.photo} alt="" width={240} height={240} loading="lazy" className="float-start me-[0.5em] mb-1 size-[3.9em] object-cover object-top" />
+                <strong className="font-bold">{p.name}</strong> {p.bio}
+              </p>
             </div>
           ))}
         </div>
-      </div>
-    </div>
-  )
-}
-
-function Week() {
-  const { t } = useLanguage()
-  return (
-    <section className="bg-white">
-      <div className={`${wrap} py-20 lg:py-28`}>
-        <div className="grid items-end gap-8 lg:grid-cols-[1fr_0.55fr]">
-          <div>
-            <p className="label uppercase tracking-wider text-ink-2">{t('landing.week_label', 'One plan, always in sync')}</p>
-            <h2 className="h-display mt-4 max-w-2xl text-[40px] lg:text-[52px]">{t('landing.week_title', 'A real week that responds when your body does')}</h2>
-            <p className="mt-5 max-w-2xl text-[18px] leading-7 text-ink-2">
-              {t('landing.week_sub', "Every block comes from a different specialist. When Sara's knee hurt on Monday night, Tuesday's plan changed before her next session.")}
-            </p>
-          </div>
-          <div className="rounded-2xl border border-line bg-paper p-6">
-            <div className="flex items-center gap-3">
-              <span className="grid size-11 place-items-center rounded-xl bg-recover-tint text-ink">
-                <Check size={22} strokeWidth={3} aria-hidden />
-              </span>
-              <p className="h-display text-[22px]">{t('landing.sync_title', 'One change, shared instantly')}</p>
-            </div>
-            <p className="mt-3 text-[15px] leading-6 text-ink-2">{t('landing.sync_sub', 'The trainer, dietitian, and PT all work from the same live plan.')}</p>
-          </div>
-        </div>
-
-        <div className="mt-10 rounded-[28px] border border-line bg-paper p-5 lg:p-8">
-          <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <p className="label uppercase text-ink-2">{t('landing.sara_plan', "Sara's coordinated plan")}</p>
-              <p className="h-display mt-1 text-[28px]">{t('landing.this_week', 'This week')}</p>
-            </div>
-            <p className="text-[14px] font-semibold text-ink-2">{t('landing.scroll_days', 'Scroll to see all seven days')}</p>
-          </div>
-          <SampleWeek />
-        </div>
-
-        <div className="mt-6 overflow-hidden rounded-[28px] border border-line bg-paper lg:grid lg:grid-cols-[0.85fr_1.15fr]" role="note">
-          <div className="bg-recover-tint p-6 lg:p-8">
-            <Tag svc="recover">{t('landing.pt_update', 'PT update')}</Tag>
-            <p className="h-display mt-5 text-[28px]">{t('landing.pt_update_title', 'Tuesday changed before Sara trained')}</p>
-            <p className="mt-3 leading-6 text-ink-2">
-              {t('landing.pt_update_sub', 'Sara logged knee pain at 4 out of 10. Dr. Mona Fathy changed two exercises and told Coach Karim before the session.')}
-            </p>
-          </div>
-
-          <div className="p-6 lg:p-8">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="label uppercase text-ink-2">{t('plan.plan_change', 'Plan change')}</p>
-                <p className="h-display mt-1 text-[22px]">{t('plan.lower_body_session', 'Lower body session')}</p>
-              </div>
-              <SVC.recover.Icon className="shrink-0 text-recover" aria-hidden />
-            </div>
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl border border-line bg-paper p-4">
-                <p className="label uppercase text-ink-2">{t('landing.before', 'Before')}</p>
-                <p className="mt-2 font-semibold">Goblet squat · 3 × 10</p>
-                <p className="font-semibold">Walking lunge · 3 × 8</p>
-              </div>
-              <div className="rounded-xl border border-recover bg-recover-tint p-4">
-                <p className="label uppercase">{t('landing.updated_by_pt', 'Updated by Dr. Mona')}</p>
-                <p className="mt-2 font-semibold">Box squat to 90° · 3 × 8</p>
-                <p className="font-semibold">Terminal knee extension · 3 × 12</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function Specialists() {
-  const { t, isRtl } = useLanguage()
-  return (
-    <section id="specialists" className={`${wrap} py-20 lg:py-28`}>
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="label uppercase tracking-wider text-ink-2 mb-3">{t('landing.spec_label', 'Your care team')}</p>
-          <h2 className="h-display text-[40px] max-w-xl">{t('landing.spec_title', 'Real specialists, checked and licensed')}</h2>
-          <p className="text-ink-2 mt-4 max-w-2xl">
-            {t('landing.spec_sub', 'Choose the people you trust. Every Rebound specialist is vetted, experienced, and ready to work as one team.')}
-          </p>
-        </div>
-        <Btn variant="secondary" to="/signup">
-          {t('landing.find_yours', 'Find yours')}
-        </Btn>
-      </div>
-      <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {specialists.map((s) => (
-          <li key={s.id}>
-            <Link
-              to="/signup"
-              className="group flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-white transition duration-300 hover:-translate-y-1 hover:border-ink hover:ring-2 hover:ring-ink focus-visible:-translate-y-1"
-              aria-label={`Meet ${s.name}, ${s.role}`}
-            >
-              <div className="relative aspect-[4/3] overflow-hidden bg-sand">
-                <img
-                  src={s.photo}
-                  alt=""
-                  loading="lazy"
-                  className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-[1.04] motion-reduce:transition-none"
-                />
-                <div className="absolute left-4 top-4">
-                  <Tag svc={s.svc}>{s.role}</Tag>
-                </div>
-              </div>
-              <div className="flex flex-1 flex-col p-5">
-                <p className="h-display text-[22px] leading-6">{s.name}</p>
-                <div className="flex items-center gap-2 mt-2">
-                  <StarRating rating={s.rating ?? 4.9} size={15} showValue />
-                  <span className="text-[13px] text-ink-2 font-medium">({s.reviewsCount ?? 4} {t('specialists.reviews', 'reviews')})</span>
-                </div>
-                <p className="mt-2 text-[15px] text-ink-2 line-clamp-2">{s.cred}</p>
-                <div className="mt-5 flex items-center justify-between border-t border-line pt-4">
-                  <span className="text-[13px] font-semibold text-ink-2">
-                    <strong className="text-ink">{s.clientsCount ?? 120}</strong> {t('landing.worked_with_clients', 'clients worked with')}
-                  </span>
-                  <span className="inline-flex items-center gap-1 text-[14px] font-bold">
-                    {t('landing.meet', 'Meet')} {s.name.split(' ')[1]}
-                    <ArrowRight size={17} aria-hidden className={`transition-transform group-hover:translate-x-1 motion-reduce:transition-none ${isRtl ? 'rotate-180' : ''}`} />
-                  </span>
-                </div>
-              </div>
-            </Link>
-          </li>
-        ))}
-      </ul>
-      <div className="mt-8 flex flex-col items-start justify-between gap-5 rounded-2xl border-2 border-ink bg-sand p-6 sm:flex-row sm:items-center lg:p-8">
-        <div>
-          <p className="h-display text-[28px]">{t('landing.more_spec_title', 'And many more specialists')}</p>
-          <p className="mt-2 max-w-2xl text-ink-2">
-            {t('landing.more_spec_sub', 'Explore trainers, dietitians, and physical therapists matched to your goals, schedule, and language.')}
-          </p>
-        </div>
-        <Btn to="/signup" className="shrink-0">
-          {t('landing.browse_all', 'Browse all specialists')} <ArrowRight size={18} className={isRtl ? 'rotate-180' : ''} aria-hidden />
-        </Btn>
       </div>
     </section>
   )
 }
 
 function Pricing() {
-  const { t, isRtl } = useLanguage()
-  const [tab, setTab] = useState<'individuals' | 'organizations'>('individuals')
-
-  const localizedPlans = [
+  const { t } = useLanguage()
+  const plans = [
     {
-      name: 'Starter',
+      name: t('lp.plan_starter', 'Starter'),
       price: '399',
-      blurb: t('pricing.starter_blurb', 'One specialist, one focus.'),
-      feats: [
-        t('pricing.starter_f1', 'Plan from a trainer or dietitian'),
-        t('pricing.starter_f2', 'Weekly plan updates'),
-        t('pricing.starter_f3', 'In-app messages, replies within 48 h'),
-        t('pricing.starter_f4', '1 video check-in a month'),
-      ],
+      tile: 'bg-sand',
+      strip: 'bg-[#e4d6bf]',
+      h: 'md:h-[400px]',
+      feats: [t('pricing.starter_f1', 'Plan from a trainer or dietitian'), t('pricing.starter_f2', 'Weekly plan updates'), t('pricing.starter_f3', 'In-app messages, replies within 48 h')],
     },
     {
-      name: 'Plus',
+      name: t('lp.plan_plus', 'Plus'),
       price: '899',
-      blurb: t('pricing.plus_blurb', 'Training and food together.'),
-      feats: [
-        t('pricing.plus_f1', 'Trainer and dietitian on your plan'),
-        t('pricing.plus_f2', 'Meals from Egyptian staples'),
-        t('pricing.plus_f3', 'Messages, replies within 24 h'),
-        t('pricing.plus_f4', '2 video sessions a month'),
-        t('pricing.plus_f5', 'Swap meals any time'),
-      ],
+      tile: 'bg-eat',
+      strip: 'bg-[#eab22a]',
+      h: 'md:h-[500px]',
+      feats: [t('pricing.plus_f1', 'Trainer and dietitian on your plan'), t('pricing.plus_f2', 'Meals from Egyptian staples'), t('pricing.plus_f3', 'Messages, replies within 24 h'), t('pricing.plus_f4', '2 video sessions a month')],
     },
     {
-      name: 'Full Team',
+      name: t('lp.plan_full', 'Full Team'),
       price: '1,499',
-      blurb: t('pricing.full_team_blurb', 'Trainer, dietitian and physical therapist.'),
+      tile: 'bg-recover',
+      strip: 'bg-[#33a291]',
+      h: 'md:h-[620px]',
       feats: [
         t('pricing.full_team_f1', 'All three specialists share one plan'),
         t('pricing.full_team_f2', 'Pain check-ins reviewed within 24 h'),
@@ -545,177 +453,51 @@ function Pricing() {
         t('pricing.full_team_f4', '4 video sessions a month'),
         t('pricing.full_team_f5', 'Change specialists whenever you like'),
       ],
-      best: true,
     },
   ]
-
   return (
-    <section id="pricing" className="bg-white border-y border-line">
-      <div className={`${wrap} py-20 lg:py-28`}>
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
-          <div>
-            <h2 className="h-display text-[40px]">{t('landing.pricing_title', 'Transparent, flexible pricing')}</h2>
-            <p className="text-ink-2 mt-2">
-              {t('landing.pricing_sub', 'For individuals seeking personal health guidance or organizations sponsoring their teams.')}
-            </p>
-          </div>
-          <div className="inline-flex p-1 rounded-xl bg-paper border border-line self-start md:self-auto">
-            <button
-              type="button"
-              onClick={() => setTab('individuals')}
-              className={`px-5 py-2 rounded-lg font-semibold text-sm transition-all cursor-pointer ${
-                tab === 'individuals'
-                  ? 'bg-ink text-white shadow-sm'
-                  : 'text-ink-2 hover:text-ink'
-              }`}
-            >
-              {t('landing.for_ind', 'For individuals')}
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab('organizations')}
-              className={`px-5 py-2 rounded-lg font-semibold text-sm transition-all cursor-pointer ${
-                tab === 'organizations'
-                  ? 'bg-ink text-white shadow-sm'
-                  : 'text-ink-2 hover:text-ink'
-              }`}
-            >
-              {t('landing.for_org', 'For organizations')}
-            </button>
-          </div>
-        </div>
-
-        {tab === 'individuals' ? (
-          <div className="grid md:grid-cols-3 gap-5 items-stretch">
-            {localizedPlans.map((p) => (
-              <div
-                key={p.name}
-                className={`rounded-2xl bg-white p-8 flex flex-col relative ${
-                  p.best ? 'border-[3px] border-ink' : 'border border-line'
-                }`}
-              >
-                {p.best && (
-                  <span className={`absolute -top-4 ${isRtl ? 'right-6' : 'left-6'} bg-ink text-white rounded-full px-4 h-8 inline-flex items-center label`}>
-                    {t('landing.best_rehab', 'Best for rehab')}
-                  </span>
-                )}
-                <h3 className="h-display text-[24px]">{p.name}</h3>
-                <p className="text-ink-2 mt-1">{p.blurb}</p>
-                <p className="mt-6 flex items-baseline gap-2">
-                  <span className="num text-[48px] leading-none">{p.price}</span>
-                  <span className="font-semibold">{t('landing.egp_month', 'EGP / month')}</span>
+    <section id="pricing" className="bg-paper pb-[clamp(96px,12vw,180px)]">
+      <div className={`${wrap} relative`}>
+        <h2 className="h-display lp-h2 md:absolute md:top-0 md:max-w-[60%]" data-reveal>
+          {t('lp.pricing_title', 'Pay for the team you need')}
+        </h2>
+        <div className="mt-10 md:mt-0 grid gap-6 md:gap-2 md:grid-cols-3 md:items-end md:min-h-[620px]">
+          {plans.map((p, i) => (
+            <div key={p.price} className={`${p.tile} ${p.h} rounded-2xl overflow-hidden flex flex-col text-ink`} data-reveal style={{ '--d': i } as React.CSSProperties}>
+              <div className="p-7 flex-1">
+                <h3 className="h-display text-[26px]">{p.name}</h3>
+                <p className="mt-2 flex items-baseline gap-2">
+                  <span className="num lp-h3">{p.price}</span>
+                  <span className="font-semibold text-[15px]">{t('landing.egp_month', 'EGP / month')}</span>
                 </p>
-                <ul className="mt-6 space-y-3 mb-8">
+                <ul className="mt-6 space-y-2 text-[18px] leading-[1.4]">
                   {p.feats.map((f) => (
-                    <li key={f} className="flex gap-3 text-[15px]">
-                      <Check size={20} strokeWidth={3} className="shrink-0 mt-0.5 text-ok" aria-hidden />{' '}
-                      {f}
-                    </li>
+                    <li key={f}>{f}</li>
                   ))}
                 </ul>
-                <Btn
-                  variant={p.best ? 'primary' : 'secondary'}
-                  to="/signup"
-                  className="mt-auto w-full"
-                >
-                  {t('landing.choose', 'Choose')} {p.name}
-                </Btn>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid lg:grid-cols-[1.4fr_1fr] gap-8 items-stretch bg-paper rounded-3xl p-8 lg:p-12 border border-line">
-            <div className="flex flex-col justify-between">
-              <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-move bg-move-tint px-3 py-1 rounded-full inline-block mb-4">
-                  {t('landing.org_badge', 'B2B Wellness & Performance')}
-                </span>
-                <h3 className="h-display text-[32px] lg:text-[36px]">
-                  {t('landing.org_title', "Sponsor your team's health")}
-                </h3>
-                <p className="text-ink-2 mt-3 text-base leading-relaxed">
-                  {t('landing.org_sub', "Bring your own specialists or use ours. Plans scale with your team size, giving employees, athletes, or students dedicated Move, Eat, and Recover support.")}
-                </p>
-
-                <div className="grid sm:grid-cols-2 gap-4 mt-8">
-                  <div className="p-4 rounded-xl bg-white border border-line">
-                    <strong className="text-ink font-bold text-sm block">{t('pricing.b2b_item1_t', 'Flexible Specialists')}</strong>
-                    <span className="text-xs text-ink-2 mt-1 block">
-                      {t('pricing.b2b_item1_d', 'Connect your internal trainers and therapists or grant access to platform specialists.')}
-                    </span>
-                  </div>
-                  <div className="p-4 rounded-xl bg-white border border-line">
-                    <strong className="text-ink font-bold text-sm block">{t('pricing.b2b_item2_t', 'Instant Onboarding')}</strong>
-                    <span className="text-xs text-ink-2 mt-1 block">
-                      {t('pricing.b2b_item2_d', 'One unique invite code. Members join without entering credit cards.')}
-                    </span>
-                  </div>
-                  <div className="p-4 rounded-xl bg-white border border-line">
-                    <strong className="text-ink font-bold text-sm block">{t('pricing.b2b_item3_t', 'Aggregate Usage Dashboard')}</strong>
-                    <span className="text-xs text-ink-2 mt-1 block">
-                      {t('pricing.b2b_item3_d', 'Track seat utilization and activity aggregates with zero clinical data exposure.')}
-                    </span>
-                  </div>
-                  <div className="p-4 rounded-xl bg-white border border-line">
-                    <strong className="text-ink font-bold text-sm block">{t('pricing.b2b_item4_t', 'Custom Seat Limits')}</strong>
-                    <span className="text-xs text-ink-2 mt-1 block">
-                      {t('pricing.b2b_item4_d', 'Scale from 5 to 500+ sponsored member seats with predictable terms.')}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-8 pt-6 border-t border-line flex flex-col sm:flex-row items-center gap-4">
-                <Btn to="/register-org" className="w-full sm:w-auto px-8">
-                  {t('landing.org_reg_btn', 'Register your organization')} <ArrowRight size={18} className={isRtl ? 'rotate-180' : ''} />
-                </Btn>
-                <Link
-                  to="/join"
-                  className="font-semibold text-ink underline underline-offset-4 text-sm"
-                >
-                  {t('landing.org_join_link', 'Have an invite code from your team? Join here')}
-                </Link>
-              </div>
+              <Link to="/signup" className={`${p.strip} h-16 px-7 flex items-center font-bold text-[18px] underline-offset-[6px] decoration-2 hover:underline`}>
+                {t('landing.choose', 'Choose')} {p.name}
+              </Link>
             </div>
-
-            <div className="bg-white rounded-2xl p-8 border border-line flex flex-col justify-between shadow-sm">
-              <div>
-                <span className="label text-ink-2">{t('pricing.b2b_card_label', 'Annual or Quarterly Sponsoring')}</span>
-                <p className="mt-4 flex items-baseline gap-2">
-                  <span className="num text-[44px] leading-none">{t('pricing.b2b_custom', 'Custom')}</span>
-                  <span className="text-ink-2 font-medium">{t('pricing.b2b_per_seat', 'per seat / month')}</span>
-                </p>
-                <p className="text-xs text-ink-2 mt-2">
-                  {t('pricing.b2b_invoice_note', 'Invoiced in EGP with dedicated onboarding and specialist assignment support.')}
-                </p>
-
-                <div className="mt-6 pt-6 border-t border-line space-y-3">
-                  {[
-                    t('pricing.b2b_feat1', 'Your own specialists or platform specialists'),
-                    t('pricing.b2b_feat2', 'Invite codes for instant zero-payment onboarding'),
-                    t('pricing.b2b_feat3', 'Members skip payment (fully sponsored)'),
-                    t('pricing.b2b_feat4', 'Aggregate usage dashboard for org admins'),
-                    t('pricing.b2b_feat5', '1 to 500 scalable member seats'),
-                  ].map((feat) => (
-                    <div key={feat} className="flex gap-3 text-sm text-ink">
-                      <Check size={18} strokeWidth={3} className="shrink-0 mt-0.5 text-ok" />
-                      <span>{feat}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-8 pt-6 border-t border-line text-center">
-                <p className="text-xs text-ink-2">
-                  {t('pricing.b2b_already_admin', 'Already managing a team?')}{' '}
-                  <Link to="/login" className="font-bold text-ink underline underline-offset-4">
-                    {t('pricing.b2b_login_org', 'Log in as Org Admin')}
-                  </Link>
-                </p>
-              </div>
-            </div>
+          ))}
+        </div>
+        <div className="mt-16 grid gap-6 lg:grid-cols-12 items-end" data-reveal>
+          <div className="lg:col-span-7">
+            <h3 className="h-display text-[26px]">{t('lp.org_title', 'Sponsoring a team?')}</h3>
+            <p className="mt-3 text-[18px] leading-[1.55] max-w-[52ch]">
+              {t('lp.org_sub', "Members join with an invite code and pay nothing. Your admins see seat use and totals, never anyone's health data.")}
+            </p>
           </div>
-        )}
+          <div className="lg:col-span-5 flex flex-wrap items-center gap-x-6 gap-y-3 lg:justify-end">
+            <Link to="/register-org" className={`group ${pill} bg-ink text-paper`}>
+              {t('landing.org_reg_btn', 'Register your organization')} <Arrow />
+            </Link>
+            <Link to="/join" className="min-h-11 inline-flex items-center font-semibold underline underline-offset-[6px] decoration-2">
+              {t('lp.org_join', 'Join with an invite code')}
+            </Link>
+          </div>
+        </div>
       </div>
     </section>
   )
@@ -723,49 +505,60 @@ function Pricing() {
 
 function Faq() {
   const { t } = useLanguage()
-  const [open, setOpen] = useState<number | null>(0)
-  const localizedFaqs = [
+  const faqs = [
     [t('faq.q1', 'Is this medical advice?'), t('faq.a1', 'No. Our physical therapists give rehab guidance for training, not a diagnosis. If something feels wrong, see a doctor first. We will tell you when that applies.')],
     [t('faq.q2', 'Do I need a gym?'), t('faq.a2', 'No. Most plans work with a pair of dumbbells or a resistance band at home. Tell us what you have and your trainer builds around it.')],
     [t('faq.q3', 'How do sessions work?'), t('faq.a3', 'You book a 30 or 45 minute video call with a specialist. Between sessions you message them and follow your daily plan in the app.')],
+    [t('lp.faq_q6', 'Can I cancel a session?'), t('lp.faq_a6', 'Yes, up to 12 hours before it starts. Inside 12 hours the slot stays booked, because your specialist kept it for you.')],
     [t('faq.q4', 'Can I switch specialists?'), t('faq.a4', 'Yes, any time and at no cost. Your plan and history stay with you, and the new specialist reads them before your first call.')],
     [t('faq.q5', 'How is my health data used?'), t('faq.a5', 'Only your own specialists see your answers. We do not sell data or share it with gyms or brands. You can export or delete it from settings.')],
   ]
   return (
-    <section className={`${wrap} py-20 lg:py-28 grid lg:grid-cols-[1fr_1.6fr] gap-10`}>
-      <h2 className="h-display text-[40px]">{t('landing.faq_title', 'Questions people ask first')}</h2>
-      <div className="border-t border-line">
-        {localizedFaqs.map(([q, a], i) => (
-          <div key={q} className="border-b border-line">
-            <h3>
-              <button
-                aria-expanded={open === i}
-                onClick={() => setOpen(open === i ? null : i)}
-                className="w-full min-h-16 py-4 flex items-center justify-between gap-4 text-left font-bold text-[18px] cursor-pointer"
-              >
-                {q}
-                <ChevronDown className={`shrink-0 transition ${open === i ? 'rotate-180' : ''}`} aria-hidden />
-              </button>
-            </h3>
-            {open === i && <p className="pb-5 text-ink-2 max-w-xl">{a}</p>}
+    <section id="faq" className="bg-paper pb-[clamp(96px,12vw,180px)]">
+      <div className={wrap}>
+        <h2 className="h-display lp-h2" data-reveal>
+          {t('landing.faq_title', 'Questions people ask first')}
+        </h2>
+        <div className="mt-14 lg:mt-20 grid lg:grid-cols-12">
+          <div className="lg:col-start-5 lg:col-span-8 flex flex-col gap-3">
+            {faqs.map(([q, a], i) => (
+              <details key={i} open={i === 0} className="group rounded-2xl -mx-5 px-5 open:bg-sand transition-colors" data-reveal style={{ '--d': i } as React.CSSProperties}>
+                <summary className="min-h-16 py-4 flex items-center justify-between gap-6 lp-lead font-semibold cursor-pointer list-none">
+                  {q}
+                  <span className="lp-chev" aria-hidden />
+                </summary>
+                <p className="pb-6 text-[18px] leading-[1.55] max-w-[52ch]">{a}</p>
+              </details>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
     </section>
   )
 }
 
 function Closing() {
-  const { t, isRtl } = useLanguage()
+  const { t } = useLanguage()
   return (
-    <section className="bg-ink text-white">
-      <div className={`${wrap} py-20 lg:py-24 flex flex-col lg:flex-row lg:items-center justify-between gap-8`}>
-        <h2 className="h-display text-[40px] lg:text-[56px] max-w-2xl">{t('landing.closing_title', 'Ten minutes to your starting plan.')}</h2>
-        <div>
-          <Btn variant="inverse" to="/signup" className="h-14 px-8">
-            {t('landing.hero_cta', 'Start free assessment')} <ArrowRight size={20} className={isRtl ? 'rotate-180' : ''} aria-hidden />
-          </Btn>
-          <p className="text-[14px] text-white/70 mt-3">{t('landing.closing_sub', 'No card needed. Pick specialists after.')}</p>
+    <section className="bg-ink text-paper">
+      <div className={`${wrap} min-h-[80svh] md:min-h-[90svh] py-[clamp(80px,9vw,140px)] flex flex-col justify-between gap-16`}>
+        <h2 className="h-display lp-display" data-reveal>
+          {t('lp.cta_l1', 'Tell us where')}
+          <br />
+          {t('lp.cta_l2', 'it hurts.')}
+        </h2>
+        <div className="grid gap-8 lg:grid-cols-12 items-end" data-reveal style={{ '--d': 1 } as React.CSSProperties}>
+          <p className="lg:col-span-5 text-[clamp(18px,1.6vw,22px)] leading-[1.5]">
+            {t('lp.cta_sub', 'The free assessment takes about 8 minutes. No card needed, and you choose your specialists after.')}
+          </p>
+          <div className="lg:col-span-4 lg:col-start-9 lg:justify-self-end">
+            <Link
+              to="/signup"
+              className="group flex w-full lg:w-auto min-h-14 items-center justify-center gap-3 rounded-full bg-move px-8 text-[18px] font-bold text-ink transition-transform hover:-translate-y-0.5 active:scale-[.97]"
+            >
+              {t('landing.hero_cta', 'Start free assessment')} <Arrow />
+            </Link>
+          </div>
         </div>
       </div>
     </section>
@@ -774,52 +567,61 @@ function Closing() {
 
 function Footer() {
   const { t } = useLanguage()
-  const cols = [
-    [t('landing.footer_col_product', 'Product'), [t('landing.nav_how', 'How it works'), t('landing.nav_services', 'Services'), t('landing.nav_pricing', 'Pricing')]],
-    [t('landing.footer_col_specialists', 'Specialists'), [t('auth.join_specialist', 'Join as a specialist'), t('landing.our_standards', 'Our standards'), t('specialists.all_specialists', 'Find a specialist')]],
-    [t('landing.footer_col_company', 'Company'), [t('common.about', 'About'), t('common.contact', 'Contact'), t('common.privacy', 'Privacy')]],
-  ] as const
   return (
-    <footer className="bg-paper">
-      <div className={`${wrap} py-14 grid md:grid-cols-[1.4fr_repeat(3,1fr)] gap-10`}>
-        <div>
-          <Wordmark />
-          <p className="text-ink-2 mt-3 max-w-xs text-[15px]">{t('landing.footer_tagline', 'Training, food and rehab on one plan. Made in Cairo.')}</p>
-        </div>
-        {cols.map(([h, ls]) => (
-          <div key={h}>
-            <p className="font-bold">{h}</p>
-            <ul className="mt-3 space-y-1">
-              {ls.map((l) => (
-                <li key={l}>
-                  <a href="#" className="text-ink-2 hover:text-ink min-h-11 inline-flex items-center">
-                    {l}
-                  </a>
-                </li>
-              ))}
-            </ul>
+    <footer className="bg-eat text-ink">
+      <div className={`${wrap} md:min-h-[72svh] py-10 flex flex-col justify-between gap-20`}>
+        <div className="grid gap-6 lg:grid-cols-12">
+          <div className="lg:col-span-7 grid gap-4 sm:grid-cols-2 text-[15px] leading-[1.5]">
+            <div>
+              <Wordmark />
+              <p className="mt-3">{t('landing.footer_tagline', 'Training, food and rehab on one plan. Made in Cairo.')}</p>
+            </div>
+            <p>{t('landing.footer_disclaimer', 'Rebound offers coaching and education, not medical diagnosis or treatment. Talk to your doctor before starting a new program, especially after an injury or if you have a medical condition.')}</p>
           </div>
-        ))}
-      </div>
-      <div className={`${wrap} pb-10`}>
-        <p className="text-[14px] text-ink-2 border-t border-line pt-6 max-w-3xl">
-          {t('landing.footer_disclaimer', 'Rebound offers coaching and education, not medical diagnosis or treatment. Talk to your doctor before starting a new program, especially after an injury or if you have a medical condition.')}
-        </p>
+          <a href="#top" className="lg:col-span-2 lg:col-start-11 lg:justify-self-end min-h-11 font-semibold underline underline-offset-[6px] decoration-2">
+            {t('lp.footer_top', 'Back to top')}
+          </a>
+        </div>
+        <div>
+          <h2 className="text-[18px] font-bold">{t('lp.footer_write', 'Write to the team')}</h2>
+          <a
+            href="mailto:hello@rebound.eg"
+            dir="ltr"
+            className="mt-2 block h-display text-[8.4vw] leading-[0.95] tracking-[-0.05em] whitespace-nowrap hover:text-ink/75 transition-colors"
+          >
+            hello@rebound.eg
+          </a>
+          <div className="mt-10 grid gap-2 md:grid-cols-3 text-[15px]">
+            <p className="flex flex-wrap gap-x-5">
+              <Link to="/signup?role=specialist" className="underline underline-offset-4">
+                {t('auth.join_specialist', 'Join as a specialist')}
+              </Link>
+              <Link to="/login" className="underline underline-offset-4">
+                {t('landing.login', 'Log in')}
+              </Link>
+            </p>
+            <p className="md:text-center" dir="ltr">
+              Squat clip: FitnessScape, CC BY 3.0 · Ful medames: Miansari66, CC0 · Koshari: Furibond, CC BY-SA 2.0 · via Wikimedia Commons
+            </p>
+            <p className="md:text-end">{t('lp.footer_city', 'Cairo, 2026')}</p>
+          </div>
+        </div>
       </div>
     </footer>
   )
 }
 
 export default function Landing() {
+  useReveal()
   return (
-    <div>
+    <div className="lp" id="top">
       <Header />
       <main>
         <Hero />
+        <TryIt />
         <How />
-        <Services />
-        <Week />
-        <Specialists />
+        <Sheets />
+        <Team />
         <Pricing />
         <Faq />
         <Closing />
