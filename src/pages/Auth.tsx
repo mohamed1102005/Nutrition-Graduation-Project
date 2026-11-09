@@ -278,35 +278,35 @@ export function Signup() {
 
   const validateStep1 = () => {
     const e: Record<string, string> = {}
-    if (f.name.trim().length < 2) e.name = 'Enter your full legal name.'
-    if (!emailOk(f.email)) e.email = 'Enter a valid email address.'
-    if (!rules.every((r) => r[1])) e.password = 'Your password must meet all rules below.'
-    if (specialist && !f.profession) e.profession = 'Select your healthcare/fitness profession.'
+    if (f.name.trim().length < 2) e.name = t('auth.err_full_legal_name', 'Enter your full legal name.')
+    if (!emailOk(f.email)) e.email = t('auth.err_valid_email', 'Enter a valid email address.')
+    if (!rules.every((r) => r[1])) e.password = t('auth.err_pw_rules', 'Your password must meet all rules below.')
+    if (specialist && !f.profession) e.profession = t('auth.err_profession', 'Select your healthcare/fitness profession.')
     return e
   }
 
   const validateStep2 = () => {
     const e: Record<string, string> = {}
     if (!f.nationalId.trim() || f.nationalId.trim().length < 8) {
-      e.nationalId = 'Enter your 14-digit National ID or Passport Number.'
+      e.nationalId = t('auth.err_national_id', 'Enter your 14-digit National ID or Passport Number.')
     }
     if (!f.syndicateId.trim() || f.syndicateId.trim().length < 3) {
-      e.syndicateId = 'Enter your Syndicate practice license registration ID.'
+      e.syndicateId = t('auth.err_syndicate_id', 'Enter your Syndicate practice license registration ID.')
     }
     if (!f.credentials.trim() || f.credentials.trim().length < 3) {
-      e.credentials = 'Enter your university degree, credentials and certifications.'
+      e.credentials = t('auth.err_credentials', 'Enter your university degree, credentials and certifications.')
     }
     if (f.documents.length === 0) {
-      e.documents = 'Please attach at least one legal credential document.'
+      e.documents = t('auth.err_documents', 'Please attach at least one legal credential document.')
     }
     return e
   }
 
   const validateStep3 = () => {
     const e: Record<string, string> = {}
-    if (!f.city.trim()) e.city = 'Select or enter your practice city.'
-    if (Number(f.yearsExperience) < 0) e.yearsExperience = 'Years of experience cannot be negative.'
-    if (!f.rateEgp || Number(f.rateEgp) <= 0) e.rateEgp = 'Enter your standard session rate in EGP.'
+    if (!f.city.trim()) e.city = t('auth.err_city', 'Select or enter your practice city.')
+    if (Number(f.yearsExperience) < 0) e.yearsExperience = t('auth.err_years_negative', 'Years of experience cannot be negative.')
+    if (!f.rateEgp || Number(f.rateEgp) <= 0) e.rateEgp = t('auth.err_rate', 'Enter your standard session rate in EGP.')
     return e
   }
 
@@ -389,9 +389,9 @@ export function Signup() {
         nav('/onboarding')
       } catch (error: any) {
         if (error?.code === 'EMAIL_IN_USE') {
-          setErr({ email: 'This email is already registered. Try logging in.' })
+          setErr({ email: t('auth.err_email_taken', 'This email is already registered. Try logging in.') })
         } else {
-          setErr({ password: error?.message || 'Failed to create account.' })
+          setErr({ password: error?.message || t('auth.err_create_failed', 'Failed to create account.') })
         }
       } finally {
         setLoading(false)
@@ -444,9 +444,9 @@ export function Signup() {
     } catch (error: any) {
       if (error?.code === 'EMAIL_IN_USE') {
         setStep(1)
-        setErr({ email: 'This email is already registered. Try logging in.' })
+        setErr({ email: t('auth.err_email_taken', 'This email is already registered. Try logging in.') })
       } else {
-        setErr({ global: error?.message || 'Failed to complete specialist registration.' })
+        setErr({ global: error?.message || t('auth.err_specialist_reg_failed', 'Failed to complete specialist registration.') })
       }
     } finally {
       setLoading(false)
@@ -957,10 +957,10 @@ export function JoinOrg() {
 
   const validate = () => {
     const e: Record<string, string> = {}
-    if (!f.inviteCode.trim()) e.inviteCode = 'Enter the 8-character invite code from your organization.'
-    if (f.name.trim().length < 2) e.name = 'Enter your full name.'
-    if (!emailOk(f.email)) e.email = 'Enter a valid email address.'
-    if (f.password.length < 8) e.password = 'Password must be at least 8 characters.'
+    if (!f.inviteCode.trim()) e.inviteCode = t('auth.err_invite_code', 'Enter the 8-character invite code from your organization.')
+    if (f.name.trim().length < 2) e.name = t('auth.err_full_name', 'Enter your full name.')
+    if (!emailOk(f.email)) e.email = t('auth.err_valid_email', 'Enter a valid email address.')
+    if (f.password.length < 8) e.password = t('auth.err_pw_min8', 'Password must be at least 8 characters.')
     return e
   }
 
@@ -982,7 +982,7 @@ export function JoinOrg() {
       nav('/onboarding')
     } catch (error: any) {
       setErr({
-        global: error?.message || 'Failed to join organization. Please verify your invite code.',
+        global: error?.message || t('auth.err_join_failed', 'Failed to join organization. Please verify your invite code.'),
       })
     } finally {
       setLoading(false)
@@ -1112,13 +1112,13 @@ export function RegisterOrg() {
 
   const validate = () => {
     const e: Record<string, string> = {}
-    if (f.organizationName.trim().length < 2) e.organizationName = 'Enter your organization name.'
+    if (f.organizationName.trim().length < 2) e.organizationName = t('auth.err_org_name', 'Enter your organization name.')
     if (!f.seatLimit || Number(f.seatLimit) < 1 || Number(f.seatLimit) > 500) {
-      e.seatLimit = 'Seat limit must be between 1 and 500.'
+      e.seatLimit = t('auth.err_seat_limit', 'Seat limit must be between 1 and 500.')
     }
-    if (f.adminName.trim().length < 2) e.adminName = 'Enter the lead administrator name.'
-    if (!emailOk(f.email)) e.email = 'Enter a valid administrator email.'
-    if (f.password.length < 8) e.password = 'Password must be at least 8 characters.'
+    if (f.adminName.trim().length < 2) e.adminName = t('auth.err_admin_name', 'Enter the lead administrator name.')
+    if (!emailOk(f.email)) e.email = t('auth.err_admin_email', 'Enter a valid administrator email.')
+    if (f.password.length < 8) e.password = t('auth.err_pw_min8', 'Password must be at least 8 characters.')
     return e
   }
 
@@ -1145,7 +1145,7 @@ export function RegisterOrg() {
       })
     } catch (error: any) {
       setErr({
-        global: error?.message || 'Failed to register organization. Please try again.',
+        global: error?.message || t('auth.err_org_reg_failed', 'Failed to register organization. Please try again.'),
       })
     } finally {
       setLoading(false)

@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "format": "oxfmt",
+    "i18n:check": "node scripts/check-i18n.mjs",
     "db:reset": "node server/src/db/reset.js",
     "db:seed:history": "node server/src/db/seedHistory.js",
     "db:demo": "npm run db:reset && npm run db:seed:history",

@@ -192,7 +192,7 @@ function Inner({ id }: { id?: string }) {
   if (load === 'error' || !c)
     return (
       <Card>
-        <EmptyState title={lang === 'ar' ? 'سجل المريض غير موجود' : 'Client Record Not Found'} text={lang === 'ar' ? 'ربما تمت أرشفة هذا السجل أو لم يعد ضمن فريق رعايتك.' : 'This client may have been archived or is no longer in your care team.'} action={<Btn to="/app/clients">{t('client_detail.back', 'All Patient Charts')}</Btn>} />
+        <EmptyState title={t('client_detail.t_client_record_not_found', 'Client Record Not Found')} text={t('client_detail.t_this_client_may_have_been_archived', 'This client may have been archived or is no longer in your care team.')} action={<Btn to="/app/clients">{t('client_detail.back', 'All Patient Charts')}</Btn>} />
       </Card>
     )
 
@@ -201,7 +201,7 @@ function Inner({ id }: { id?: string }) {
 
   const save = async () => {
     if (c.area === 'knee' && myService === 'recover' && angle !== '' && (!/^\d+$/.test(angle) || Number(angle) > 120)) {
-      return setAngleErr(lang === 'ar' ? 'أدخل زاوية للركبة بين 0 و 120 درجة.' : 'Enter a knee angle between 0 and 120 degrees.')
+      return setAngleErr(t('client_detail.t_enter_a_knee_angle_between_0', 'Enter a knee angle between 0 and 120 degrees.'))
     }
     setAngleErr('')
     setSaving(true)
@@ -232,10 +232,10 @@ function Inner({ id }: { id?: string }) {
         summary: myPlan?.summary ?? null,
         items,
       })
-      setToast(lang === 'ar' ? `تم نشر التعديلات. تم تحديث خطة ${c.name.split(' ')[0]}.` : `Protocol published. ${c.name.split(' ')[0]}'s plan is updated.`)
+      setToast(t('client_detail.t_protocol_published_s_plan_is_updated', 'Protocol published. {p1}\'s plan is updated.').replace('{p1}', String(c.name.split(' ')[0])))
       setReloadKey((k) => k + 1)
     } catch (err: any) {
-      setSaveErr(err?.message || (lang === 'ar' ? 'تعذّر نشر التعديلات. حاول مرة أخرى.' : 'Could not publish the changes. Please try again.'))
+      setSaveErr(err?.message || (t('client_detail.t_could_not_publish_the_changes_please', 'Could not publish the changes. Please try again.')))
     } finally {
       setSaving(false)
     }
@@ -244,9 +244,9 @@ function Inner({ id }: { id?: string }) {
   const addEx = (e: FormEvent) => {
     e.preventDefault()
     const v: Record<string, string> = {}
-    if (nf.name.trim().length < 3) v.name = lang === 'ar' ? 'يرجى كتابة اسم التمرين أو البروتوكول.' : 'Specify the exercise protocol name.'
-    if (!(Number(nf.sets) >= 1 && Number(nf.sets) <= 10)) v.sets = lang === 'ar' ? 'المجموعات: 1 إلى 10.' : 'Sets: 1 to 10.'
-    if (!(Number(nf.reps) >= 1 && Number(nf.reps) <= 60)) v.reps = lang === 'ar' ? 'التكرارات: 1 إلى 60.' : 'Reps: 1 to 60.'
+    if (nf.name.trim().length < 3) v.name = t('client_detail.t_specify_the_exercise_protocol_name', 'Specify the exercise protocol name.')
+    if (!(Number(nf.sets) >= 1 && Number(nf.sets) <= 10)) v.sets = t('client_detail.t_sets_1_to_10', 'Sets: 1 to 10.')
+    if (!(Number(nf.reps) >= 1 && Number(nf.reps) <= 60)) v.reps = t('client_detail.t_reps_1_to_60', 'Reps: 1 to 60.')
     setNerr(v)
     if (Object.keys(v).length) return
     dirty(() => setEx([...ex, { id: -Date.now(), name: nf.name.trim(), sets: Number(nf.sets), reps: String(Number(nf.reps)), cleared: false, notes: nf.notes.trim(), day: Number(nf.day) }]))
@@ -256,7 +256,7 @@ function Inner({ id }: { id?: string }) {
 
   const addNote = async (e: FormEvent) => {
     e.preventDefault()
-    if (draft.trim().length < 3) return setNoteErr(lang === 'ar' ? 'يرجى إدخال تفاصيل الملاحظة السريرية.' : 'Enter clinical observation details.')
+    if (draft.trim().length < 3) return setNoteErr(t('client_detail.t_enter_clinical_observation_details', 'Enter clinical observation details.'))
     setNoteErr('')
     try {
       const res = await api.addSpecialistNote(c.id, { body: draft.trim(), visibleToClient: shared })
@@ -264,7 +264,7 @@ function Inner({ id }: { id?: string }) {
       setNotes([{ id: n.id, text: n.body, when: shortDate(n.createdAt), shared: n.visibleToClient, author: n.authorName, role: TYPE_ROLE[me?.type] }, ...notes])
       setDraft('')
     } catch (err: any) {
-      setNoteErr(err?.message || (lang === 'ar' ? 'تعذّر حفظ الملاحظة.' : 'Could not save the note. Please try again.'))
+      setNoteErr(err?.message || (t('client_detail.t_could_not_save_the_note_please', 'Could not save the note. Please try again.')))
     }
   }
 
@@ -298,7 +298,7 @@ function Inner({ id }: { id?: string }) {
                   {c.name}
                 </h2>
                 <span className="text-xs capitalize font-bold px-2.5 py-0.5 rounded-full bg-paper text-ink border border-line">
-                  {lang === 'ar' ? `رقم المريض #${c.id}` : `Patient ID #${c.id}`}
+                  {t('client_detail.t_patient_id', 'Patient ID #{p1}').replace('{p1}', String(c.id))}
                 </span>
                 <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-ok-tint text-[#1d6b3d]">
                   {t('client_detail.active_rehab', 'Active Rehab')}
@@ -306,15 +306,15 @@ function Inner({ id }: { id?: string }) {
               </div>
 
               <p className="text-sm text-ink-2 font-medium">
-                {c.injury ? `${c.injury} · ` : ''}{lang === 'ar' ? 'الأسبوع' : 'Week'} <strong className="text-ink num">{c.week}</strong> {lang === 'ar' ? 'من' : 'of'} {c.of}{c.goal ? ` (${c.goal})` : ''}
+                {c.injury ? `${c.injury} · ` : ''}{t('client_detail.t_week', 'Week')} <strong className="text-ink num">{c.week}</strong> {t('client_detail.t_of', 'of')} {c.of}{c.goal ? ` (${c.goal})` : ''}
               </p>
 
               <div className="flex flex-wrap items-center gap-4 text-xs text-ink-2 pt-1">
-                <span>{lang === 'ar' ? 'العمر:' : 'Age:'} <strong className="text-ink">{c.age ? `${c.age} ${lang === 'ar' ? 'سنة' : 'yrs'}` : '—'}</strong></span>
+                <span>{t('client_detail.t_age', 'Age:')} <strong className="text-ink">{c.age ? `${c.age} ${t('client_detail.t_yrs', 'yrs')}` : '—'}</strong></span>
                 <span>·</span>
-                <span>{lang === 'ar' ? 'آخر نشاط:' : 'Last Activity:'} <strong className="text-ink">{c.lastCheckin}</strong></span>
+                <span>{t('client_detail.t_last_activity', 'Last Activity:')} <strong className="text-ink">{c.lastCheckin}</strong></span>
                 <span>·</span>
-                <span>{lang === 'ar' ? 'التواصل:' : 'Contact:'} <strong className="text-ink">{c.phone || c.email}</strong></span>
+                <span>{t('client_detail.t_contact', 'Contact:')} <strong className="text-ink">{c.phone || c.email}</strong></span>
               </div>
             </div>
           </div>
@@ -346,10 +346,8 @@ function Inner({ id }: { id?: string }) {
 
       {/* Critical Safety Callout if Pain Exceeds Threshold */}
       {isPainCritical && (
-        <SafetyCallout title={lang === 'ar' ? `تنبيه سريري عاجل: مستوى الألم الحالي (${trend.now}/10) يتجاوز السقف الآمن (${limit}/10)` : `CLINICAL ALERT: Current pain (${trend.now}/10) exceeds client safe threshold (${limit}/10)`}>
-          {lang === 'ar'
-            ? `أبلغ ${c.name.split(' ')[0]} عن ألم أعلى من الحد الآمن. راجع البروتوكول أدناه وفكّر في إيقاف التمارين المحمّلة قبل التواصل معه.`
-            : `${c.name.split(' ')[0]} reported pain above the safe limit. Review the protocol below and consider pausing loaded movements before you contact them.`}
+        <SafetyCallout title={t('client_detail.t_clinical_alert_current_pain_10_exceeds', 'CLINICAL ALERT: Current pain ({p1}/10) exceeds client safe threshold ({p2}/10)').replace('{p1}', String(trend.now)).replace('{p2}', String(limit))}>
+          {t('client_detail.t_reported_pain_above_the_safe_limit', '{p1} reported pain above the safe limit. Review the protocol below and consider pausing loaded movements before you contact them.').replace('{p1}', String(c.name.split(' ')[0]))}
         </SafetyCallout>
       )}
 
@@ -377,15 +375,15 @@ function Inner({ id }: { id?: string }) {
 
             <dl className="divide-y divide-line/60 text-sm">
               {[
-                [lang === 'ar' ? 'الاسم القانوني الكامل' : 'Full Legal Name', c.name],
-                [lang === 'ar' ? 'العمر الزمني' : 'Chronological Age', c.age ? `${c.age} ${lang === 'ar' ? 'سنة' : 'years'}` : '—'],
-                [lang === 'ar' ? 'التشخيص الطبي الأساسي' : 'Primary Medical Diagnosis', c.injury || '—'],
-                [lang === 'ar' ? 'المنطقة التشريحية المتأثرة' : 'Affected Anatomical Area', c.area ? c.area.toUpperCase() : '—'],
-                [lang === 'ar' ? 'مدة البرنامج المقررة' : 'Prescribed Protocol Length', `${c.of} ${lang === 'ar' ? 'أسابيع إجمالية' : 'weeks total'}`],
-                [lang === 'ar' ? 'السقف الآمن للألم' : 'Safe Pain Ceiling', `${limit} / 10 ${lang === 'ar' ? 'أقصى تسامح' : 'maximum tolerance'}`],
-                [lang === 'ar' ? 'محدد زاوية الحركة' : 'Mechanical Angle Limiter', c.area === 'knee' && angle ? `${angle}° ${lang === 'ar' ? 'حد الثني' : 'flexion cap'}` : 'N/A'],
-                [lang === 'ar' ? 'البريد الإلكتروني' : 'Email Address', c.email],
-                [lang === 'ar' ? 'رقم الهاتف المباشر' : 'Direct Phone', c.phone || '—'],
+                [t('client_detail.t_full_legal_name', 'Full Legal Name'), c.name],
+                [t('client_detail.t_chronological_age', 'Chronological Age'), c.age ? `${c.age} ${t('client_detail.t_years', 'years')}` : '—'],
+                [t('client_detail.t_primary_medical_diagnosis', 'Primary Medical Diagnosis'), c.injury || '—'],
+                [t('client_detail.t_affected_anatomical_area', 'Affected Anatomical Area'), c.area ? c.area.toUpperCase() : '—'],
+                [t('client_detail.t_prescribed_protocol_length', 'Prescribed Protocol Length'), `${c.of} ${t('client_detail.t_weeks_total', 'weeks total')}`],
+                [t('client_detail.t_safe_pain_ceiling', 'Safe Pain Ceiling'), `${limit} / 10 ${t('client_detail.t_maximum_tolerance', 'maximum tolerance')}`],
+                [t('client_detail.t_mechanical_angle_limiter', 'Mechanical Angle Limiter'), c.area === 'knee' && angle ? `${angle}° ${t('client_detail.t_flexion_cap', 'flexion cap')}` : 'N/A'],
+                [t('client_detail.t_email_address', 'Email Address'), c.email],
+                [t('client_detail.t_direct_phone', 'Direct Phone'), c.phone || '—'],
               ].map(([k, v]) => (
                 <div key={k} className="py-2.5 flex items-center justify-between gap-4">
                   <dt className="text-ink-2 font-medium">{k}</dt>
@@ -410,7 +408,7 @@ function Inner({ id }: { id?: string }) {
                         {initialsOf(m.name)}
                       </div>
                       <div>
-                        <p className="font-bold text-sm text-ink">{m.name}{m.id === me?.id ? (lang === 'ar' ? ' (أنت)' : ' (You)') : ''}</p>
+                        <p className="font-bold text-sm text-ink">{m.name}{m.id === me?.id ? (t('client_detail.t_you', ' (You)')) : ''}</p>
                         <p className="text-xs text-ink-2">{TYPE_ROLE[m.type] ?? m.type}</p>
                       </div>
                     </div>
@@ -422,12 +420,10 @@ function Inner({ id }: { id?: string }) {
             <Card className="p-6 bg-sand/30 border border-line">
               <div className="flex items-center gap-2 mb-2">
                 <Info size={16} className="text-ink" aria-hidden />
-                <h3 className="font-bold text-sm text-ink">{lang === 'ar' ? 'كيف تظهر تعديلاتك للعميل' : 'How your changes reach the client'}</h3>
+                <h3 className="font-bold text-sm text-ink">{t('client_detail.t_how_your_changes_reach_the_client', 'How your changes reach the client')}</h3>
               </div>
               <p className="text-xs leading-relaxed text-ink/80">
-                {lang === 'ar'
-                  ? `عند نشر بروتوكول جديد تتحدث خطة ${c.name.split(' ')[0]} فوراً ويصله إشعار. الملاحظات المعلّمة كظاهرة للعميل يراها في صفحته اليومية.`
-                  : `Publishing a protocol updates ${c.name.split(' ')[0]}'s plan straight away and sends them a notification. Notes marked visible to the client appear on their Today page.`}
+                {t('client_detail.t_publishing_a_protocol_updates_s_plan', 'Publishing a protocol updates {p1}\'s plan straight away and sends them a notification. Notes marked visible to the client appear on their Today page.').replace('{p1}', String(c.name.split(' ')[0]))}
               </p>
             </Card>
           </div>
@@ -438,8 +434,8 @@ function Inner({ id }: { id?: string }) {
       {tab === 'Protocol' && !canEditExercises && (
         <Card className="p-8">
           <EmptyState
-            title={lang === 'ar' ? 'تعديل الوجبات غير متاح هنا بعد' : 'Meal plan editing is not available here yet'}
-            text={lang === 'ar' ? 'محرر البروتوكول مخصص حالياً للتمارين. يمكنك إضافة ملاحظات للعميل من تبويب الملاحظات.' : 'The protocol editor currently supports exercises only. You can still leave the client notes from the Notes tab.'}
+            title={t('client_detail.t_meal_plan_editing_is_not_available', 'Meal plan editing is not available here yet')}
+            text={t('client_detail.t_the_protocol_editor_currently_supports_exercises', 'The protocol editor currently supports exercises only. You can still leave the client notes from the Notes tab.')}
           />
         </Card>
       )}
@@ -457,7 +453,7 @@ function Inner({ id }: { id?: string }) {
             </div>
 
             {ex.length === 0 ? (
-              <EmptyState title={lang === 'ar' ? 'لا توجد تمارين علاجية محددة' : 'No active exercises prescribed'} text={lang === 'ar' ? 'أضف حركات تأهيلية للبدء في تفعيل خطة المريض.' : 'Add standard rehabilitation movements to initiate client program.'} />
+              <EmptyState title={t('client_detail.t_no_active_exercises_prescribed', 'No active exercises prescribed')} text={t('client_detail.t_add_standard_rehabilitation_movements_to_initiate', 'Add standard rehabilitation movements to initiate client program.')} />
             ) : (
               <ul className="space-y-3">
                 {/* A plan is stored day by day, so group the movements under their day. */}
@@ -551,7 +547,7 @@ function Inner({ id }: { id?: string }) {
               />
               {Number(limit) > 4 && (
                 <p className="mt-2.5 rounded-xl bg-warn-tint p-3 text-xs leading-relaxed text-[#7a5200]">
-                  {lang === 'ar' ? 'تجاوز حد 4/10 يتخطى المعيار المرجعي الموصى به في العيادة. يرجى توثيق المبرر السريري في الملاحظات.' : 'Ceiling above 4/10 exceeds clinic default baseline. Document reasoning in Care Notes.'}
+                  {t('client_detail.t_ceiling_above_4_10_exceeds_clinic', 'Ceiling above 4/10 exceeds clinic default baseline. Document reasoning in Care Notes.')}
                 </p>
               )}
             </div>
@@ -583,7 +579,7 @@ function Inner({ id }: { id?: string }) {
               {saveErr && <p role="alert" className="text-xs font-semibold text-bad mt-3">{saveErr}</p>}
               {!saved && (
                 <p className="text-xs text-ink-2 text-center mt-2">
-                  {lang === 'ar' ? 'توجد تعديلات مسودة غير منشورة.' : 'Unsaved draft changes pending publication.'}
+                  {t('client_detail.t_unsaved_draft_changes_pending_publication', 'Unsaved draft changes pending publication.')}
                 </p>
               )}
             </div>
@@ -598,15 +594,15 @@ function Inner({ id }: { id?: string }) {
             <div className="flex items-center justify-between pb-4 border-b border-line mb-4">
               <div>
                 <h2 className="font-bold text-[18px] text-ink">{t('client_detail.pain_trajectory', 'Pain Trajectory Over Time (Last 8 Weeks)')}</h2>
-                <p className="text-xs text-ink-2">{lang === 'ar' ? `مقياس الأعراض المسجل أسبوعياً من المريض مقارنة بالسقف الآمن ${limit}/10` : `Weekly patient-reported symptom scale vs. safe ceiling of ${limit}/10`}</p>
+                <p className="text-xs text-ink-2">{t('client_detail.t_weekly_patient_reported_symptom_scale_vs', 'Weekly patient-reported symptom scale vs. safe ceiling of {p1}/10').replace('{p1}', String(limit))}</p>
               </div>
               <span className="text-xs font-semibold bg-paper px-3 py-1 rounded-full border border-line">
-                {lang === 'ar' ? 'صافي التغير:' : 'Net Change:'} <strong className={netChange > 0 ? 'text-bad' : 'text-ok'}>{netChange > 0 ? '+' : ''}{netChange} pts</strong>
+                {t('client_detail.t_net_change', 'Net Change:')} <strong className={netChange > 0 ? 'text-bad' : 'text-ok'}>{netChange > 0 ? '+' : ''}{netChange} pts</strong>
               </span>
             </div>
 
             {c.charts.pain.length === 0 ? (
-              <p className="text-ink-2 text-sm py-8 text-center">{lang === 'ar' ? 'لم يسجّل العميل أي مستوى ألم بعد.' : 'No pain check-ins logged yet.'}</p>
+              <p className="text-ink-2 text-sm py-8 text-center">{t('client_detail.t_no_pain_check_ins_logged_yet', 'No pain check-ins logged yet.')}</p>
             ) : <LineChart
               labels={c.charts.painLabels}
               data={c.charts.pain}
@@ -624,10 +620,10 @@ function Inner({ id }: { id?: string }) {
             <div className="flex items-center justify-between pb-4 border-b border-line mb-4">
               <div>
                 <h2 className="font-bold text-[18px] text-ink">{t('client_detail.adherence_title', 'Session Adherence & Workouts Logged')}</h2>
-                <p className="text-xs text-ink-2">{lang === 'ar' ? `الجلسات التدريبية المكتملة أسبوعياً مقابل الهدف المقرر ${c.target} جلسات/أسبوع` : `Weekly completed training sessions vs. prescribed target of ${c.target}/week`}</p>
+                <p className="text-xs text-ink-2">{t('client_detail.t_weekly_completed_training_sessions_vs_prescribed', 'Weekly completed training sessions vs. prescribed target of {p1}/week').replace('{p1}', String(c.target))}</p>
               </div>
               <span className="text-xs font-semibold bg-ok-tint text-[#1d6b3d] px-3 py-1 rounded-full">
-                {lang === 'ar' ? `الالتزام: ${c.charts.compliance}%` : `Compliance: ${c.charts.compliance}%`}
+                {t('client_detail.t_compliance', 'Compliance: {p1}%').replace('{p1}', String(c.charts.compliance))}
               </span>
             </div>
 
@@ -642,7 +638,7 @@ function Inner({ id }: { id?: string }) {
           <div className="space-y-3">
             {notes.length === 0 ? (
               <Card className="p-8">
-                <EmptyState title={lang === 'ar' ? 'لا توجد ملاحظات سريرية مدونة' : 'No clinical notes recorded'} text={lang === 'ar' ? 'الملاحظات السريرية المدونة هنا تحفظ في السجل الدائم للمريض.' : 'Clinical observations logged here persist in the permanent client record.'} />
+                <EmptyState title={t('client_detail.t_no_clinical_notes_recorded', 'No clinical notes recorded')} text={t('client_detail.t_clinical_observations_logged_here_persist_in', 'Clinical observations logged here persist in the permanent client record.')} />
               </Card>
             ) : (
               notes.map((n) => (
@@ -654,7 +650,7 @@ function Inner({ id }: { id?: string }) {
                     <span className="flex items-center gap-2">
                       <span className="inline-flex items-center gap-1">
                         {n.shared ? <Eye size={12} /> : <Lock size={12} />}
-                        {n.shared ? (lang === 'ar' ? 'ظاهرة للعميل' : 'Visible to client') : (lang === 'ar' ? 'ملاحظة داخلية' : 'Internal note')}
+                        {n.shared ? (t('client_detail.t_visible_to_client', 'Visible to client')) : (t('client_detail.t_internal_note', 'Internal note'))}
                       </span>
                       <span>·</span>
                       <span>{n.when}</span>
@@ -669,12 +665,12 @@ function Inner({ id }: { id?: string }) {
           <Card className="p-6 bg-white border border-line space-y-4 lg:sticky lg:top-24">
             <h2 className="font-bold text-[17px] text-ink pb-2 border-b border-line">{t('client_detail.log_observation', 'Log Clinical Observation')}</h2>
             <form onSubmit={addNote} noValidate className="space-y-4">
-              <Field label={lang === 'ar' ? 'نص الملاحظة السريرية' : 'Clinical Note Entry'} error={noteErr}>
+              <Field label={t('client_detail.t_clinical_note_entry', 'Clinical Note Entry')} error={noteErr}>
                 {(p) => (
                   <textarea
                     {...p}
                     rows={5}
-                    placeholder={lang === 'ar' ? 'سجل نتائج فحص المفاصل، تحسن مدى الحركة ROM، أو تعديلات الأحمال التدريبية...' : 'Document joint palpation findings, ROM improvements, or load adjustments...'}
+                    placeholder={t('client_detail.t_document_joint_palpation_findings_rom_improvements', 'Document joint palpation findings, ROM improvements, or load adjustments...')}
                     className={`${inputCls} h-auto py-3 text-sm leading-relaxed`}
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
@@ -689,7 +685,7 @@ function Inner({ id }: { id?: string }) {
                   checked={shared}
                   onChange={(e) => setShared(e.target.checked)}
                 />
-                {lang === 'ar' ? 'إظهار الملاحظة للعميل' : 'Make this note visible to the client'}
+                {t('client_detail.t_make_this_note_visible_to_the', 'Make this note visible to the client')}
               </label>
 
               <Btn type="submit" className="w-full">
@@ -701,15 +697,13 @@ function Inner({ id }: { id?: string }) {
       )}
 
       {/* Remove Confirmation Dialog */}
-      <Dialog open={Boolean(rm)} onClose={() => setRm(null)} title={lang === 'ar' ? 'تأكيد حذف الحركة من البرنامج' : 'Confirm Protocol Deletion'}>
+      <Dialog open={Boolean(rm)} onClose={() => setRm(null)} title={t('client_detail.t_confirm_protocol_deletion', 'Confirm Protocol Deletion')}>
         <p className="text-sm text-ink-2 leading-relaxed">
-          {lang === 'ar'
-            ? `هل أنت متأكد من رغبتك في إزالة ${rm?.name} من برنامج التأهيل النشط لـ ${c.name.split(' ')[0]}؟`
-            : `Are you sure you want to remove ${rm?.name} from ${c.name.split(' ')[0]}'s active rehabilitation protocol?`}
+          {t('client_detail.t_are_you_sure_you_want_to', 'Are you sure you want to remove {p1} from {p2}\'s active rehabilitation protocol?').replace('{p1}', String(rm?.name)).replace('{p2}', String(c.name.split(' ')[0]))}
         </p>
         <div className="flex flex-col-reverse sm:flex-row gap-3 mt-6 sm:justify-end">
           <Btn variant="secondary" onClick={() => setRm(null)}>
-            {lang === 'ar' ? 'الإبقاء على التمرين' : 'Retain Movement'}
+            {t('client_detail.t_retain_movement', 'Retain Movement')}
           </Btn>
           <Btn
             className="!bg-[#a02a2a] text-white"
@@ -718,28 +712,28 @@ function Inner({ id }: { id?: string }) {
               setRm(null)
             }}
           >
-            {lang === 'ar' ? 'تأكيد الحذف' : 'Confirm Removal'}
+            {t('client_detail.t_confirm_removal', 'Confirm Removal')}
           </Btn>
         </div>
       </Dialog>
 
       {/* Add Movement Dialog */}
-      <Dialog open={add} onClose={() => setAdd(false)} title={lang === 'ar' ? 'وصف تمرين أو بروتوكول جديد' : 'Prescribe New Exercise Protocol'}>
+      <Dialog open={add} onClose={() => setAdd(false)} title={t('client_detail.t_prescribe_new_exercise_protocol', 'Prescribe New Exercise Protocol')}>
         <form onSubmit={addEx} noValidate className="space-y-4">
-          <Field label={lang === 'ar' ? 'اسم التمرين وتفاصيله' : 'Movement Name & Variation'} error={nerr.name}>
+          <Field label={t('client_detail.t_movement_name_variation', 'Movement Name & Variation')} error={nerr.name}>
             {(p) => <input {...p} placeholder="e.g. Spanish Squats with Heavy Rig Band" className={inputCls} value={nf.name} onChange={(e) => setNf({ ...nf, name: e.target.value })} />}
           </Field>
 
           <div className="grid grid-cols-2 gap-4">
-            <Field label={lang === 'ar' ? 'عدد المجموعات' : 'Target Sets'} error={nerr.sets}>
+            <Field label={t('client_detail.t_target_sets', 'Target Sets')} error={nerr.sets}>
               {(p) => <input {...p} inputMode="numeric" className={`${inputCls} num`} value={nf.sets} onChange={(e) => setNf({ ...nf, sets: e.target.value })} />}
             </Field>
-            <Field label={lang === 'ar' ? 'عدد التكرارات' : 'Target Repetitions'} error={nerr.reps}>
+            <Field label={t('client_detail.t_target_repetitions', 'Target Repetitions')} error={nerr.reps}>
               {(p) => <input {...p} inputMode="numeric" className={`${inputCls} num`} value={nf.reps} onChange={(e) => setNf({ ...nf, reps: e.target.value })} />}
             </Field>
           </div>
 
-          <Field label={lang === 'ar' ? 'اليوم' : 'Day of the week'}>
+          <Field label={t('client_detail.t_day_of_the_week', 'Day of the week')}>
             {(p) => (
               <select {...p} className={inputCls} value={nf.day} onChange={(e) => setNf({ ...nf, day: e.target.value })}>
                 {DAY_NAMES.map((d, i) => <option key={d} value={i + 1}>{d}</option>)}
@@ -747,21 +741,19 @@ function Inner({ id }: { id?: string }) {
             )}
           </Field>
 
-          <Field label={lang === 'ar' ? 'تعليمات سريرية وتوجيهات الأداء' : 'Clinical Instructions & Form Cues'}>
+          <Field label={t('client_detail.t_clinical_instructions_form_cues', 'Clinical Instructions & Form Cues')}>
             {(p) => <input {...p} placeholder="e.g. 45-second isometric hold, shin vertical" className={inputCls} value={nf.notes} onChange={(e) => setNf({ ...nf, notes: e.target.value })} />}
           </Field>
 
           <p className="text-xs text-ink-2 bg-sand/30 p-3 rounded-xl">
-            {lang === 'ar'
-              ? 'يتم تعيين التمارين المضافة حديثاً بحالة "بانتظار تصريح العلاج الطبيعي" حتى اعتمادها رسمياً من الأخصائي المشرف.'
-              : 'Newly added movements are initialized as "Waiting for PT" until explicitly cleared by the presiding therapist.'}
+            {t('client_detail.t_newly_added_movements_are_initialized_as', 'Newly added movements are initialized as "Waiting for PT" until explicitly cleared by the presiding therapist.')}
           </p>
 
           <div className="flex gap-3 justify-end pt-2">
             <Btn type="button" variant="secondary" onClick={() => setAdd(false)}>
-              {lang === 'ar' ? 'إلغاء' : 'Cancel'}
+              {t('client_detail.t_cancel', 'Cancel')}
             </Btn>
-            <Btn type="submit">{lang === 'ar' ? 'اعتماد التمرين في الخطة' : 'Prescribe Exercise'}</Btn>
+            <Btn type="submit">{t('client_detail.t_prescribe_exercise', 'Prescribe Exercise')}</Btn>
           </div>
         </form>
       </Dialog>

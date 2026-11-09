@@ -4,6 +4,7 @@ import { createBrowserRouter, Navigate, useRouteError, isRouteErrorResponse } fr
 import { NotFoundState, Btn, Card } from './ui'
 import { RoleOnly } from './components/auth/RoleOnly'
 import { RequireAuth } from './components/auth/RequireAuth'
+import { useLanguage } from './context/LanguageContext'
 export { RequireAuth }
 
 const PageFallback = () => (
@@ -71,11 +72,12 @@ const only = (role: 'Client' | 'Specialist' | 'Admin' | 'Finance' | 'OrgAdmin', 
 
 export function RouteErrorBoundary() {
   const error = useRouteError()
+  const { t } = useLanguage()
   const msg = isRouteErrorResponse(error)
     ? `${error.status} ${error.statusText}`
     : error instanceof Error
     ? error.message
-    : 'An unexpected application error occurred'
+    : t('error.unexpected', 'An unexpected application error occurred')
 
   return (
     <div className="min-h-screen bg-paper grid place-items-center p-6 text-center">
@@ -83,16 +85,16 @@ export function RouteErrorBoundary() {
         <div className="size-12 rounded-2xl bg-danger-tint text-danger grid place-items-center mx-auto mb-4 font-bold text-xl">
           !
         </div>
-        <h2 className="text-xl font-bold text-ink">Something went wrong</h2>
+        <h2 className="text-xl font-bold text-ink">{t('error.title', 'Something went wrong')}</h2>
         <p className="text-ink-2 text-sm mt-2 mb-6">
           {msg}
         </p>
         <div className="flex gap-3 justify-center">
           <Btn variant="secondary" onClick={() => window.location.reload()}>
-            Try again
+            {t('error.try_again', 'Try again')}
           </Btn>
           <Btn to="/app">
-            Back to dashboard
+            {t('error.back_dashboard', 'Back to dashboard')}
           </Btn>
         </div>
       </Card>
@@ -101,6 +103,9 @@ export function RouteErrorBoundary() {
 }
 
 export const router = createBrowserRouter([
+  {
+    ErrorBoundary: RouteErrorBoundary,
+    children: [
   { path: '/', Component: Landing },
   { path: '/login', Component: Login },
   { path: '/signup', Component: Signup },
@@ -163,4 +168,6 @@ export const router = createBrowserRouter([
     ),
   },
   { path: '*', Component: NotFound },
+    ],
+  },
 ], { basename: routerBasename })

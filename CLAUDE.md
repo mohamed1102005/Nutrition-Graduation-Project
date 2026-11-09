@@ -28,6 +28,7 @@ Node 22 (see `.mise.toml`); npm only. Root and `server/` each have their own `pa
 npm run dev              # Vite (port 8443) + Express API (port 4000, node --watch) concurrently
 npm run build            # vite build -> dist/
 npm run format           # oxfmt
+npm run i18n:check       # en/ar key parity + every t('key') is defined
 npm run db:reset         # delete server/data/rebound.db, apply schema, run base seed
 npm run db:demo          # db:reset + 90-day backdated history and extra orgs (analytics demo)
 npm run analytics:check  # print computed analytics metrics from the CLI
