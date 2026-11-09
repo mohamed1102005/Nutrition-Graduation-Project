@@ -137,6 +137,7 @@ export default function AiPlan() {
   const [requestId, setRequestId] = useState<number | null>(null)
   const [sent, setSent] = useState(false)
   const [sending, setSending] = useState(false)
+  const [sendErr, setSendErr] = useState('')
   const [err, setErr] = useState('')
   const timer = useRef<number>(0)
 
@@ -186,14 +187,15 @@ export default function AiPlan() {
 
   const sendToSpecialist = async () => {
     setSending(true)
+    setSendErr('')
     try {
       if (requestId) {
         await api.sendAiPlan(requestId)
       }
       setSent(true)
     } catch (e: any) {
-      console.error('Failed to send AI plan to specialist:', e)
-      setSent(true)
+      // Show the real reason (for example: book a specialist first). Never pretend it was sent.
+      setSendErr(e?.message || t('ai.send_failed', 'Could not send your plan. Please try again.'))
     } finally {
       setSending(false)
     }
@@ -501,7 +503,12 @@ export default function AiPlan() {
               {sent && (
                 <div role="status" className="rounded-xl bg-ok-tint border border-ok/30 p-4 flex items-center gap-3 text-xs font-bold text-[#1d6b3d]">
                   <CircleCheck size={18} className="shrink-0" />
-                  {t('ai.sent_success_full', 'Successfully transmitted to Coach Karim Adel, Hana Mostafa RD, and Dr. Mona Fathy PT. They typically complete clinical calibration within 4 hours.')}
+                  {t('ai.sent_success_generic', 'Sent to your care team. They will review it and publish the final version.')}
+                </div>
+              )}
+              {sendErr && (
+                <div role="alert" className="rounded-xl bg-bad-tint border border-bad/30 p-4 text-xs font-bold text-[#a02a2a]">
+                  {sendErr}
                 </div>
               )}
             </div>
