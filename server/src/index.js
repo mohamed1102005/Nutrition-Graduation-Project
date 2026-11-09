@@ -6,7 +6,9 @@ import { startBookingLifecycleJob } from './services/bookingLifecycle.js'
 
 startBookingLifecycleJob()
 
-const PORT = process.env.PORT || 4000
+// API_PORT (not PORT): tools and hosts often set PORT for the front-end dev server,
+// and the API must not accidentally pick it up.
+const PORT = process.env.API_PORT || 4000
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`)

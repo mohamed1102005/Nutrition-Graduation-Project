@@ -427,6 +427,7 @@ const updateApprovalSchema = z.object({
   status: z.enum(['approved', 'rejected'], {
     errorMap: () => ({ message: "status must be 'approved' or 'rejected'" }),
   }),
+  reason: z.string().trim().max(500).optional(),
 })
 
 /**
@@ -435,7 +436,7 @@ const updateApprovalSchema = z.object({
  */
 router.patch('/specialists/:id/approval', validate(updateApprovalSchema), (req, res) => {
   const specialistId = Number(req.params.id)
-  const { status } = req.body
+  const { status, reason } = req.body
 
   const existing = db
     .prepare(`SELECT user_id, approval_status FROM specialists WHERE user_id = ?`)
@@ -452,7 +453,7 @@ router.patch('/specialists/:id/approval', validate(updateApprovalSchema), (req, 
     specialistId,
     'approval_decision',
     status === 'approved' ? 'Your account was approved' : 'Your application was not approved',
-    status === 'approved' ? 'You can now open your schedule and receive bookings.' : 'Contact support for details.',
+    status === 'approved' ? 'You can now open your schedule and receive bookings.' : (reason || 'Contact support for details.'),
     '/app/today'
   )
 

@@ -39,7 +39,8 @@ function getInitials(name = '') {
     .join('')
 }
 
-function calculateProgramWeek(planStartDate, programWeeks = 8) {
+function calculateProgramWeek(planStartDate, programWeeksRaw) {
+  const programWeeks = programWeeksRaw ?? 8 // null in the database means "use the default"
   if (!planStartDate) return { week: 1, of: programWeeks }
   const today = new Date().toISOString().slice(0, 10)
   const diffMs = new Date(today) - new Date(planStartDate)

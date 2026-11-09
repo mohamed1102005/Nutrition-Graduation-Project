@@ -55,7 +55,7 @@ The repository includes pre-configured environment files:
   ```
 - Backend `server/.env`:
   ```env
-  PORT=4000
+  API_PORT=4000
   JWT_SECRET=rebound-super-secret-dev-key
   CLIENT_ORIGIN=http://localhost:8443
   # Optional: Add Google Gemini API key for live AI generation

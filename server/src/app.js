@@ -16,7 +16,18 @@ const app = express()
 
 // Allow requests from the Vite dev server (and future production origin).
 // The CLIENT_ORIGIN env var is set in .env; CORS will block any other origin.
-app.use(cors({ origin: process.env.CLIENT_ORIGIN }))
+// In development any localhost port is fine (Vite may pick 8443, 5173, 5174 ...).
+// In production only CLIENT_ORIGIN is allowed.
+const isLocalOrigin = (o) => /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(o)
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      const allowed =
+        !origin || origin === process.env.CLIENT_ORIGIN || (process.env.NODE_ENV !== 'production' && isLocalOrigin(origin))
+      cb(null, allowed)
+    },
+  })
+)
 
 // Parse incoming JSON bodies so route handlers can read req.body.
 app.use(express.json())
