@@ -264,6 +264,19 @@ CREATE TABLE payouts (
   created_at       TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
 );
 
+-- In-app notifications (one row per recipient)
+CREATE TABLE notifications (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  type       TEXT NOT NULL,                  -- e.g. 'booking_created', 'plan_updated'
+  title      TEXT NOT NULL,
+  body       TEXT,
+  link       TEXT,                           -- optional in-app route to open
+  read_at    TEXT,                           -- NULL = unread
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+);
+CREATE INDEX idx_notifications_user ON notifications (user_id, read_at, created_at);
+
 -- Specialist Ratings & Reviews
 CREATE TABLE specialist_reviews (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,

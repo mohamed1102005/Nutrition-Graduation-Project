@@ -46,6 +46,11 @@ import supportRoutes from './routes/support.js'
 import orgRoutes from './routes/org.js'
 import myRoutes from './routes/my.js'
 
+import notificationsRoutes from './routes/notifications.js'
+import accountRoutes from './routes/account.js'
+
+app.use('/api/notifications', notificationsRoutes)
+app.use('/api/account', accountRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/profile', profileRoutes)
 app.use('/api/specialist', specialistPortalRoutes)

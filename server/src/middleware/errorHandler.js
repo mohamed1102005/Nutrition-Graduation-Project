@@ -1,6 +1,6 @@
 // errorHandler.js — Global Express error-handling middleware.
 //
-// Any route can call next(err) (or throw inside an async wrapper) and this
+// Any route can call next(err) (or throw inside a handler) and this
 // function will format a consistent JSON error response so the client always
 // gets the same shape: { "error": { "code": "...", "message": "..." } }.
 //
@@ -9,14 +9,15 @@
 
 // eslint-disable-next-line no-unused-vars
 export function errorHandler(err, _req, res, _next) {
-  // Log the full error server-side so we can debug it, but don't expose
-  // internal details to the client.
-  console.error(err)
-
   const status = err.status ?? 500
-  const code = err.code ?? 'INTERNAL_ERROR'
-  const message = err.message ?? 'An unexpected error occurred.'
+
+  // Only unexpected failures are worth a stack trace. Deliberate 4xx errors
+  // (e.g. SLOT_TAKEN) are normal business outcomes.
+  if (status >= 500) console.error(err)
+
+  // Never leak internal details (SQL text, file paths) on a server error.
+  const code = status >= 500 ? 'INTERNAL_ERROR' : (err.code ?? 'ERROR')
+  const message = status >= 500 ? 'An unexpected error occurred.' : (err.message ?? 'Request failed.')
 
   res.status(status).json({ error: { code, message } })
 }
-

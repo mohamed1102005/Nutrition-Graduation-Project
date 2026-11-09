@@ -14,6 +14,7 @@ import db from '../db/connection.js'
 import { requireAuth } from '../middleware/auth.js'
 import { requireRole } from '../middleware/requireRole.js'
 import { validate } from '../middleware/validate.js'
+import { notify } from '../services/notify.js'
 
 const router = Router()
 
@@ -537,6 +538,10 @@ router.put('/clients/:clientId/plans/:service', validate(putPlanSchema), (req, r
     .prepare(`SELECT * FROM plan_items WHERE plan_id = ? ORDER BY day_of_week, position`)
     .all(savedPlanId)
 
+  if (updatedPlan.status === 'active') {
+    notify(clientId, 'plan_updated', 'Your plan was updated', `${req.user.name} updated your ${service} plan.`, '/app/plan')
+  }
+
   res.json({
     data: {
       plan: {
@@ -590,6 +595,10 @@ router.post('/clients/:clientId/notes', validate(noteSchema), (req, res) => {
     )
     .run(clientId, specialistId, body, visibleToClient ? 1 : 0)
 
+  if (visibleToClient) {
+    notify(clientId, 'note_added', 'New note from your specialist', `${req.user.name} left you a note.`, '/app/today')
+  }
+
   const note = db
     .prepare(
       `SELECT n.*, u.name AS author_name, u.role AS author_role
@@ -640,7 +649,7 @@ router.get('/schedule', (req, res) => {
       u.email AS client_email,
       cp.goal AS client_goal
     FROM availability_slots s
-    LEFT JOIN bookings b ON b.slot_id = s.id AND b.status IN ('confirmed', 'pending')
+    LEFT JOIN bookings b ON b.slot_id = s.id AND b.status IN ('confirmed', 'pending', 'completed')
     LEFT JOIN users u ON u.id = b.client_id
     LEFT JOIN client_profiles cp ON cp.user_id = u.id
     WHERE s.specialist_id = ?
@@ -687,6 +696,154 @@ router.get('/schedule', (req, res) => {
       slots,
     },
   })
+})
+
+// ── Availability management ─────────────────────────────────────────────────
+
+const SLOT_MINUTES = 30
+const MAX_DAYS_AHEAD = 90
+
+const createSlotSchema = z.object({
+  startsAt: z.string().refine((v) => !Number.isNaN(new Date(v).getTime()), 'startsAt must be a valid date-time.'),
+})
+
+function requireApprovedSpecialist(req, res, next) {
+  const row = db.prepare('SELECT approval_status FROM specialists WHERE user_id = ?').get(req.user.id)
+  if (!row || row.approval_status !== 'approved') {
+    return res.status(403).json({
+      error: { code: 'NOT_APPROVED', message: 'Your account must be approved before you can manage availability.' },
+    })
+  }
+  next()
+}
+
+const toIsoZ = (d) => d.toISOString().replace(/\.\d{3}Z$/, 'Z')
+
+/**
+ * POST /api/specialist/schedule/slots
+ * Opens one 30-minute slot. Safe to repeat: an existing slot is returned as-is.
+ */
+router.post('/schedule/slots', requireApprovedSpecialist, validate(createSlotSchema), (req, res) => {
+  const start = new Date(req.body.startsAt)
+  const now = Date.now()
+
+  if (start.getTime() <= now) {
+    return res.status(400).json({ error: { code: 'PAST_SLOT', message: 'You cannot open a slot in the past.' } })
+  }
+  if (start.getTime() > now + MAX_DAYS_AHEAD * 86400000) {
+    return res.status(400).json({
+      error: { code: 'TOO_FAR_AHEAD', message: `Slots can only be opened up to ${MAX_DAYS_AHEAD} days ahead.` },
+    })
+  }
+
+  const startsAt = toIsoZ(start)
+  const endsAt = toIsoZ(new Date(start.getTime() + SLOT_MINUTES * 60000))
+
+  db.prepare(
+    'INSERT OR IGNORE INTO availability_slots (specialist_id, starts_at, ends_at, is_booked) VALUES (?, ?, ?, 0)'
+  ).run(req.user.id, startsAt, endsAt)
+
+  const slot = db
+    .prepare('SELECT * FROM availability_slots WHERE specialist_id = ? AND starts_at = ?')
+    .get(req.user.id, startsAt)
+
+  res.status(201).json({
+    data: { slot: { id: slot.id, startsAt: slot.starts_at, endsAt: slot.ends_at, isBooked: Boolean(slot.is_booked) } },
+  })
+})
+
+/**
+ * DELETE /api/specialist/schedule/slots/:id
+ * Blocks (removes) an unbooked slot. Booked slots must be cancelled first.
+ */
+router.delete('/schedule/slots/:id', (req, res) => {
+  const slot = db
+    .prepare('SELECT * FROM availability_slots WHERE id = ? AND specialist_id = ?')
+    .get(Number(req.params.id), req.user.id)
+
+  if (!slot) {
+    return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Slot not found.' } })
+  }
+
+  // Delete only while still free, so a booking can never lose its slot.
+  const result = db.prepare('DELETE FROM availability_slots WHERE id = ? AND is_booked = 0').run(slot.id)
+  if (result.changes === 0) {
+    return res.status(409).json({
+      error: { code: 'SLOT_BOOKED', message: 'This slot has a booking. Cancel the booking first.' },
+    })
+  }
+
+  res.json({ data: { success: true, id: slot.id } })
+})
+
+// ── Booking lifecycle (specialist side) ─────────────────────────────────────
+
+function loadOwnBooking(bookingId, specialistId) {
+  return db
+    .prepare(
+      `SELECT b.*, s.starts_at, s.ends_at
+       FROM bookings b
+       JOIN availability_slots s ON s.id = b.slot_id
+       WHERE b.id = ? AND b.specialist_id = ?`
+    )
+    .get(bookingId, specialistId)
+}
+
+/**
+ * PATCH /api/specialist/bookings/:id/complete
+ * Marks a confirmed session as done. Only allowed once the session has started.
+ */
+router.patch('/bookings/:id/complete', (req, res) => {
+  const booking = loadOwnBooking(Number(req.params.id), req.user.id)
+  if (!booking) {
+    return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Booking not found.' } })
+  }
+  if (booking.status !== 'confirmed') {
+    return res.status(409).json({
+      error: { code: 'INVALID_STATUS', message: `Cannot complete a booking with status "${booking.status}".` },
+    })
+  }
+  if (new Date(booking.starts_at).getTime() > Date.now()) {
+    return res.status(409).json({
+      error: { code: 'TOO_EARLY', message: 'You can only complete a session after it has started.' },
+    })
+  }
+
+  db.prepare("UPDATE bookings SET status = 'completed' WHERE id = ?").run(booking.id)
+  notify(booking.client_id, 'booking_completed', 'Session completed', `${req.user.name} marked your session as completed.`, '/app/bookings')
+
+  res.json({ data: { success: true, booking: { id: booking.id, status: 'completed' } } })
+})
+
+/**
+ * PATCH /api/specialist/bookings/:id/cancel
+ * Specialist cancels a confirmed future session. No 12-hour rule for specialists,
+ * but the client is always told and the slot is freed.
+ */
+router.patch('/bookings/:id/cancel', (req, res) => {
+  const booking = loadOwnBooking(Number(req.params.id), req.user.id)
+  if (!booking) {
+    return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Booking not found.' } })
+  }
+  if (booking.status !== 'confirmed') {
+    return res.status(409).json({
+      error: { code: 'INVALID_STATUS', message: `Cannot cancel a booking with status "${booking.status}".` },
+    })
+  }
+  if (new Date(booking.starts_at).getTime() <= Date.now()) {
+    return res.status(409).json({
+      error: { code: 'ALREADY_STARTED', message: 'This session has already started. Mark it complete instead.' },
+    })
+  }
+
+  db.transaction(() => {
+    db.prepare("UPDATE bookings SET status = 'cancelled', cancelled_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = ?").run(booking.id)
+    db.prepare('UPDATE availability_slots SET is_booked = 0 WHERE id = ?').run(booking.slot_id)
+  })()
+
+  notify(booking.client_id, 'booking_cancelled', 'Session cancelled by your specialist', `${req.user.name} cancelled your session. Please pick a new time.`, '/app/bookings')
+
+  res.json({ data: { success: true, booking: { id: booking.id, status: 'cancelled' } } })
 })
 
 export default router

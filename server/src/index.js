@@ -2,6 +2,9 @@
 // Run via: node --watch server/src/index.js   (or npm run dev from root)
 
 import app from './app.js'
+import { startBookingLifecycleJob } from './services/bookingLifecycle.js'
+
+startBookingLifecycleJob()
 
 const PORT = process.env.PORT || 4000
 

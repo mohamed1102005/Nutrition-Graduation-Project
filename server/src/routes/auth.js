@@ -501,6 +501,56 @@ router.post('/join', validate(joinSchema), (req, res) => {
   })
 })
 
+// ── Password reset ──────────────────────────────────────────────────────────
+// There is no email service in this project, so the reset token is a signed,
+// short-lived JWT. It embeds part of the CURRENT password hash, which makes it
+// single-use: once the password changes, the token stops validating.
+// The token is only returned in the API response when EXPOSE_RESET_TOKEN=true
+// (demo mode). Otherwise it is only written to the server log.
+
+const forgotSchema = z.object({ email: z.string().trim().email('Valid email address required.') })
+const resetSchema = z.object({
+  token: z.string().min(1),
+  newPassword: z.string().min(8, 'Password must be at least 8 characters long.'),
+})
+
+router.post('/forgot-password', validate(forgotSchema), (req, res) => {
+  const user = db.prepare('SELECT id, email, password_hash, status FROM users WHERE email = ? COLLATE NOCASE').get(req.body.email)
+  const data = { message: 'If that email exists, a reset link has been sent.' }
+
+  if (user && user.status !== 'suspended') {
+    const resetToken = jwt.sign(
+      { sub: user.id, purpose: 'reset', h: user.password_hash.slice(-12) },
+      process.env.JWT_SECRET,
+      { expiresIn: '30m' }
+    )
+    console.log(`[password reset] token for ${user.email}: ${resetToken}`)
+    if (process.env.EXPOSE_RESET_TOKEN === 'true') data.resetToken = resetToken
+  }
+
+  // Same response whether or not the account exists, so emails cannot be probed.
+  res.json({ data })
+})
+
+router.post('/reset-password', validate(resetSchema), (req, res) => {
+  const invalid = () =>
+    res.status(400).json({ error: { code: 'INVALID_RESET_TOKEN', message: 'This reset link is invalid or has expired.' } })
+
+  let payload
+  try {
+    payload = jwt.verify(req.body.token, process.env.JWT_SECRET)
+  } catch {
+    return invalid()
+  }
+  if (payload.purpose !== 'reset') return invalid()
+
+  const user = db.prepare('SELECT id, password_hash FROM users WHERE id = ?').get(payload.sub)
+  if (!user || user.password_hash.slice(-12) !== payload.h) return invalid()
+
+  db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(bcrypt.hashSync(req.body.newPassword, 10), user.id)
+  res.json({ data: { success: true } })
+})
+
 /**
  * GET /api/auth/me
  * Returns the currently authenticated user with role-specific profile details.

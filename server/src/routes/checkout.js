@@ -11,6 +11,7 @@ import db from '../db/connection.js'
 import { requireAuth } from '../middleware/auth.js'
 import { requireRole } from '../middleware/requireRole.js'
 import { validate } from '../middleware/validate.js'
+import { getActiveSubscription } from '../services/subscriptions.js'
 
 const router = Router()
 
@@ -45,6 +46,16 @@ router.post('/', requireAuth, requireRole('client'), validate(checkoutSchema), (
       error: {
         code: 'ALREADY_SPONSORED',
         message: 'Your membership is sponsored by your organization. No checkout required.',
+      },
+    })
+  }
+
+  // One active subscription at a time. Cancel first to switch plans.
+  if (getActiveSubscription(clientId)) {
+    return res.status(409).json({
+      error: {
+        code: 'ALREADY_SUBSCRIBED',
+        message: 'You already have an active subscription. Cancel it first to choose a different plan.',
       },
     })
   }
@@ -127,6 +138,31 @@ router.get('/current', requireAuth, requireRole('client'), (req, res) => {
       },
     },
   })
+})
+
+/**
+ * POST /api/checkout/cancel
+ * Cancels the client's own paid subscription. Sponsored memberships can only
+ * be ended by the organization. Future bookings stay valid; new ones are blocked.
+ */
+router.post('/cancel', requireAuth, requireRole('client'), (req, res) => {
+  const subscription = getActiveSubscription(req.user.id)
+  if (!subscription) {
+    return res.status(404).json({
+      error: { code: 'NO_ACTIVE_SUBSCRIPTION', message: 'You have no active subscription.' },
+    })
+  }
+  if (subscription.source === 'organization') {
+    return res.status(409).json({
+      error: {
+        code: 'SPONSORED_SUBSCRIPTION',
+        message: 'This membership is sponsored by your organization and cannot be cancelled here.',
+      },
+    })
+  }
+
+  db.prepare("UPDATE subscriptions SET status = 'cancelled' WHERE id = ?").run(subscription.id)
+  res.json({ data: { success: true, subscriptionId: subscription.id, status: 'cancelled' } })
 })
 
 export default router

@@ -14,6 +14,8 @@ import { requireAuth } from '../middleware/auth.js'
 import { requireRole } from '../middleware/requireRole.js'
 import { validate } from '../middleware/validate.js'
 import { toCamelCase } from '../utils/case.js'
+import { notify } from '../services/notify.js'
+import { hasActiveSubscription } from '../services/subscriptions.js'
 
 const router = Router()
 
@@ -132,6 +134,15 @@ router.post('/', requireAuth, requireRole('client'), validate(createBookingSchem
 
       // 2. Fetch and validate approved specialist
       const clientUser = db.prepare('SELECT organization_id FROM users WHERE id = ?').get(clientId)
+
+      // Booking needs an active subscription (self-paid, or sponsored by the organization).
+      if (!hasActiveSubscription(clientId)) {
+        const err = new Error('You need an active subscription before booking a session.')
+        err.status = 402
+        err.code = 'SUBSCRIPTION_REQUIRED'
+        throw err
+      }
+
       const specialist = db
         .prepare("SELECT user_id, organization_id, rate_egp, approval_status FROM specialists WHERE user_id = ? AND approval_status = 'approved'")
         .get(resolvedSpecialistId)
@@ -218,6 +229,7 @@ router.post('/', requireAuth, requireRole('client'), validate(createBookingSchem
     })
 
     const bookingId = bookTransaction()
+    notify(resolvedSpecialistId, 'booking_created', 'New booking', `${req.user.name} booked a session with you.`, '/app/schedule')
 
     // Fetch full booking record
     const row = db
@@ -364,6 +376,7 @@ router.patch('/:id/cancel', requireAuth, requireRole('client'), (req, res) => {
   })
 
   cancelTransaction()
+  notify(booking.specialist_id, 'booking_cancelled', 'Booking cancelled', `${req.user.name} cancelled their session.`, '/app/schedule')
 
   res.json({
     data: {
@@ -459,6 +472,7 @@ router.patch('/:id/reschedule', requireAuth, requireRole('client'), validate(res
     })
 
     rescheduleTransaction()
+    notify(booking.specialist_id, 'booking_rescheduled', 'Booking rescheduled', `${req.user.name} moved their session to a new time.`, '/app/schedule')
 
     res.json({
       data: {

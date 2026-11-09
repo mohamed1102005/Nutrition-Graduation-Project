@@ -10,6 +10,7 @@ import db from '../db/connection.js'
 import { requireAuth } from '../middleware/auth.js'
 import { requireRole } from '../middleware/requireRole.js'
 import { validate } from '../middleware/validate.js'
+import { notify } from '../services/notify.js'
 
 const router = Router()
 
@@ -352,25 +353,42 @@ router.get('/payouts', (_req, res) => {
 
 const settlePayoutSchema = z.object({
   specialistId: z.coerce.number().int().positive('Specialist ID is required.'),
-  amountEgp: z.coerce.number().int().nonnegative('Amount is required.'),
-  platformCutEgp: z.coerce.number().int().nonnegative().optional(),
-  netPayoutEgp: z.coerce.number().int().positive('Net payout amount is required.'),
-  periodStart: z.string().optional(),
-  periodEnd: z.string().optional(),
+  // Amounts are NOT accepted from the client any more: the server works them out
+  // from completed bookings, so a payout can never be invented or paid twice.
   reference: z.string().optional(),
 })
+
+const PLATFORM_COMMISSION = 0.2
+
+/** What a specialist has earned, been paid, and is still owed (all in EGP). */
+function computeOwed(specialistId) {
+  const completed = db
+    .prepare(`SELECT COALESCE(SUM(price_egp), 0) AS total, MIN(substr(b.created_at, 1, 10)) AS first_day
+              FROM bookings b WHERE specialist_id = ? AND status = 'completed'`)
+    .get(specialistId)
+  const gross = completed.total
+  const net = gross - Math.round(gross * PLATFORM_COMMISSION)
+  const paid = db
+    .prepare(`SELECT COALESCE(SUM(net_payout_egp), 0) AS total, MAX(period_end) AS last_end
+              FROM payouts WHERE specialist_id = ? AND status = 'paid'`)
+    .get(specialistId)
+  return { gross, net, paid: paid.total, pending: Math.max(0, net - paid.total), firstDay: completed.first_day, lastPaidEnd: paid.last_end }
+}
 
 /**
  * POST /api/finance/payouts/settle
  * Settle a payout to a specialist and mark as 'paid'.
  */
 router.post('/payouts/settle', validate(settlePayoutSchema), (req, res) => {
-  const { specialistId, amountEgp, platformCutEgp = 0, netPayoutEgp, periodStart, periodEnd } = req.body
+  const { specialistId } = req.body
 
-  const spec = db.prepare('SELECT user_id FROM specialists WHERE user_id = ?').get(specialistId)
+  // Org specialists are paid by their organization, never by the platform.
+  const spec = db
+    .prepare('SELECT user_id FROM specialists WHERE user_id = ? AND organization_id IS NULL AND approval_status = ?')
+    .get(specialistId, 'approved')
   if (!spec) {
     return res.status(404).json({
-      error: { code: 'NOT_FOUND', message: 'Specialist not found.' },
+      error: { code: 'NOT_FOUND', message: 'Payable specialist not found.' },
     })
   }
 
@@ -378,23 +396,39 @@ router.post('/payouts/settle', validate(settlePayoutSchema), (req, res) => {
   const todayStr = now.slice(0, 10)
   const ref = req.body.reference || `PAY-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
 
-  const info = db.prepare(`
-    INSERT INTO payouts (
-      specialist_id, amount_egp, platform_cut_egp, net_payout_egp,
-      period_start, period_end, status, reference, paid_at, created_at
+  // Compute and insert in one transaction so two clicks cannot pay the same balance twice.
+  const settle = db.transaction(() => {
+    const owed = computeOwed(specialistId)
+    if (owed.pending <= 0) return null
+
+    // Express the unpaid balance as gross / cut / net so the ledger stays consistent.
+    const grossShare = Math.round(owed.pending / (1 - PLATFORM_COMMISSION))
+    return db.prepare(`
+      INSERT INTO payouts (
+        specialist_id, amount_egp, platform_cut_egp, net_payout_egp,
+        period_start, period_end, status, reference, paid_at, created_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, 'paid', ?, ?, ?)
+    `).run(
+      specialistId,
+      grossShare,
+      grossShare - owed.pending,
+      owed.pending,
+      owed.lastPaidEnd || owed.firstDay || todayStr,
+      todayStr,
+      ref,
+      now,
+      now
     )
-    VALUES (?, ?, ?, ?, ?, ?, 'paid', ?, ?, ?)
-  `).run(
-    specialistId,
-    amountEgp,
-    platformCutEgp,
-    netPayoutEgp,
-    periodStart || todayStr,
-    periodEnd || todayStr,
-    ref,
-    now,
-    now
-  )
+  })
+
+  const info = settle()
+  if (!info) {
+    return res.status(409).json({
+      error: { code: 'NOTHING_TO_SETTLE', message: 'This specialist has no unpaid balance.' },
+    })
+  }
+  notify(specialistId, 'payout_paid', 'Payout sent', `A payout of ${db.prepare('SELECT net_payout_egp AS n FROM payouts WHERE id = ?').get(info.lastInsertRowid).n} EGP was settled.`, null)
 
   const payout = db.prepare(`
     SELECT p.*, u.name AS specialist_name

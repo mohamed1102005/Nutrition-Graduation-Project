@@ -11,6 +11,7 @@ import db from '../db/connection.js'
 import { requireAuth } from '../middleware/auth.js'
 import { requireRole } from '../middleware/requireRole.js'
 import { validate } from '../middleware/validate.js'
+import { notify } from '../services/notify.js'
 
 const router = Router()
 
@@ -447,6 +448,13 @@ router.patch('/specialists/:id/approval', validate(updateApprovalSchema), (req, 
   }
 
   db.prepare(`UPDATE specialists SET approval_status = ? WHERE user_id = ?`).run(status, specialistId)
+  notify(
+    specialistId,
+    'approval_decision',
+    status === 'approved' ? 'Your account was approved' : 'Your application was not approved',
+    status === 'approved' ? 'You can now open your schedule and receive bookings.' : 'Contact support for details.',
+    '/app/today'
+  )
 
   const updated = db
     .prepare(

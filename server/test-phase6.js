@@ -104,6 +104,24 @@ async function run() {
     assert.strictEqual(badPlan.status, 400, 'Invalid plan name must be rejected')
     ok('Validation: Invalid plan rejected (400)')
 
+    // 1.2b Sara already has an active subscription: a second checkout is rejected
+    const dupCheckout = await fetch(`${baseUrl}/checkout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${saraToken}` },
+      body: JSON.stringify({ planName: 'Starter', method: 'card' }),
+    })
+    assert.strictEqual(dupCheckout.status, 409, 'Second active subscription must be rejected')
+    assert.strictEqual((await dupCheckout.json()).error.code, 'ALREADY_SUBSCRIBED')
+    ok('Duplicate active subscription rejected (409 ALREADY_SUBSCRIBED)')
+
+    // 1.2c Cancel the existing subscription so the checkout below can run
+    const cancelSub = await fetch(`${baseUrl}/checkout/cancel`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${saraToken}` },
+    })
+    assert.strictEqual(cancelSub.status, 200, 'Client can cancel own paid subscription')
+    ok('Client cancelled own subscription (200)')
+
     // 1.3 Successful checkout
     const checkoutRes = await fetch(`${baseUrl}/checkout`, {
       method: 'POST',
