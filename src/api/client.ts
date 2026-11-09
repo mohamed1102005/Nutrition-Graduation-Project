@@ -506,10 +506,10 @@ export const api = {
     return apiFetch<{ specialists: any[] }>(`/admin/specialists${query}`)
   },
 
-  async updateSpecialistApproval(specialistId: number | string, status: 'approved' | 'rejected') {
+  async updateSpecialistApproval(specialistId: number | string, status: 'approved' | 'rejected', reason?: string) {
     return apiFetch<{ specialist: any }>(`/admin/specialists/${specialistId}/approval`, {
       method: 'PATCH',
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ status, reason }),
     })
   },
 

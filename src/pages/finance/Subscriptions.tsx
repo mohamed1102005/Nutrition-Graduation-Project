@@ -4,26 +4,10 @@ import { Card, PageHead, Skeleton, Gate, type DemoState } from '../../ui'
 import { api } from '../../api'
 import { useLanguage } from '../../context/LanguageContext'
 
-const PREVIEW_SUBSCRIPTIONS_DATA = {
-  mrr: 4296,
-  totalActive: 4,
-  tiers: {
-    Starter: { count: 1, price: 399, revenue: 399 },
-    Plus: { count: 1, price: 899, revenue: 899 },
-    'Full Team': { count: 2, price: 1499, revenue: 2998 },
-  },
-  subscribers: [
-    { id: 1, client_name: 'Sara Hassan', client_email: 'sara@demo.com', plan_name: 'Full Team', price_egp: 1499, method: 'card', reference: 'SUB-2026-001', created_at: '2026-09-01T10:00:00Z', status: 'active' },
-    { id: 2, client_name: 'Laila Mostafa', client_email: 'laila@demo.com', plan_name: 'Plus', price_egp: 899, method: 'vodafone_cash', reference: 'SUB-2026-002', created_at: '2026-09-15T12:30:00Z', status: 'active' },
-    { id: 3, client_name: 'Omar Khaled', client_email: 'omar@demo.com', plan_name: 'Starter', price_egp: 399, method: 'instapay', reference: 'SUB-2026-003', created_at: '2026-09-20T14:15:00Z', status: 'active' },
-    { id: 4, client_name: 'Youssef Nabil', client_email: 'youssef@demo.com', plan_name: 'Full Team', price_egp: 1499, method: 'card', reference: 'SUB-2026-004', created_at: '2026-10-01T09:00:00Z', status: 'active' },
-  ],
-}
-
 export default function FinanceSubscriptions() {
   const { t, lang } = useLanguage()
   const [state, setState] = useState<DemoState>('loading')
-  const [data, setData] = useState<any>(PREVIEW_SUBSCRIPTIONS_DATA)
+  const [data, setData] = useState<any>(null)
 
   const loadData = () => {
     setState('loading')
@@ -33,9 +17,8 @@ export default function FinanceSubscriptions() {
         setState('loaded')
       })
       .catch((err) => {
-        console.warn('Backend unavailable, using preview subscriptions:', err)
-        setData(PREVIEW_SUBSCRIPTIONS_DATA)
-        setState('loaded')
+        console.error('Failed to load subscriptions:', err)
+        setState('error')
       })
   }
 
@@ -43,12 +26,12 @@ export default function FinanceSubscriptions() {
     loadData()
   }, [])
 
-  const mrr = data?.mrr || 4296
-  const totalActive = data?.totalActive || 4
+  const mrr = data?.mrr ?? 0
+  const totalActive = data?.totalActive ?? 0
   const tiers = data?.tiers || {
-    Starter: { count: 1, price: 399, revenue: 399 },
-    Plus: { count: 1, price: 899, revenue: 899 },
-    'Full Team': { count: 2, price: 1499, revenue: 2998 },
+    Starter: { count: 0, price: 399, revenue: 0 },
+    Plus: { count: 0, price: 899, revenue: 0 },
+    'Full Team': { count: 0, price: 1499, revenue: 0 },
   }
   const subscribers = data?.subscribers || []
 

@@ -28,20 +28,26 @@ import {
   Tag,
   type DemoState,
 } from '../../ui'
-import {
-  specialists as staticSpecialists,
-  nextSlots,
-  slotLabel,
-  slotsFor,
-  days,
-  t12,
-  packagesFor,
-  type Svc,
-} from '../../data'
+import { type Svc } from '../../data'
 import { api } from '../../api'
 import { StarRating } from '../../components/ui/StarRating'
 import { SupportModal } from '../../components/support/SupportModal'
 import { useLanguage } from '../../context/LanguageContext'
+
+// Group open slots by calendar day in Cairo time (what the booking page uses too).
+function groupSlotsByDay(slots: any[]) {
+  const fmt = (iso: string, o: Intl.DateTimeFormatOptions, loc = 'en-GB') =>
+    new Intl.DateTimeFormat(loc, { timeZone: 'Africa/Cairo', ...o }).format(new Date(iso))
+  const map = new Map<string, { key: string; weekday: string; day: number; month: string; times: string[] }>()
+  slots.forEach((sl) => {
+    const iso = sl.startsAt || sl.starts_at
+    const [dd, mm, yyyy] = fmt(iso, { day: '2-digit', month: '2-digit', year: 'numeric' }).split('/')
+    const key = `${yyyy}-${mm}-${dd}`
+    if (!map.has(key)) map.set(key, { key, weekday: fmt(iso, { weekday: 'short' }), day: Number(dd), month: fmt(iso, { month: 'short' }), times: [] })
+    map.get(key)!.times.push(fmt(iso, { hour: 'numeric', minute: '2-digit', hour12: true }, 'en-US'))
+  })
+  return [...map.values()].slice(0, 14)
+}
 
 type Filter = 'all' | Svc
 const dot = { move: 'bg-move', eat: 'bg-eat', recover: 'bg-recover' }
@@ -454,20 +460,16 @@ export function SpecialistProfile() {
             : 'Personal trainer',
         cred: spData.credentials,
         langs: Array.isArray(spData.languages) ? spData.languages.join(', ') : spData.languages,
-        sessions: spData.sessionsCompleted || spData.sessions_completed || 120,
-        rate: spData.rateEgp || spData.rate_egp || 450,
+        sessions: spData.sessionsCompleted ?? spData.sessions_completed ?? 0,
+        rate: spData.rateEgp ?? spData.rate_egp ?? 0,
         rating: spData.rating ?? reviewsData.summary.averageRating,
         reviewsCount: spData.reviewsCount ?? reviewsData.summary.totalReviews,
         clientsCount: spData.clientsCount ?? reviewsData.summary.clientsCount,
-        about: spData.bio || 'Experienced specialist working in Cairo and Alexandria.',
+        about: spData.bio || '',
         focus: parseFocusTags(spData.focusTags ?? spData.focus_tags ?? spData.focus),
-        how: 'I review your weekly progress reports and coordinate plan adjustments with your care team.',
-        packages:
-          spData.packages && spData.packages.length > 0
-            ? spData.packages
-            : packagesFor(spData.rateEgp || 450),
+        packages: (spData.packages || []) as any[],
       }
-    : staticSpecialists.find((x) => x.id === id)
+    : null
 
   if (!s && !loading)
     return (
@@ -494,12 +496,11 @@ export function SpecialistProfile() {
           id: sl.id,
           label: formatNextSlot(sl.startsAt || sl.starts_at),
         }))
-      : nextSlots(s.id, 4).map((x) => ({ id: 0, label: slotLabel(x) }))
+      : []
 
-  const others = staticSpecialists
-    .filter((x) => x.id !== String(s.id) && ['karim', 'hana', 'mona'].includes(String(x.id)))
-    .filter((x) => x.svc !== s.svc)
-  const book = () => nav(`/app/specialists/${s.id}/book?slot=${slot}`)
+  const availDays = groupSlotsByDay(slotsList)
+  const bookQuery = (i: number) => (formattedSlots[i]?.id ? `?slotId=${formattedSlots[i].id}` : '')
+  const book = () => nav(`/app/specialists/${s.id}/book${bookQuery(slot)}`)
 
   const panel = (
     <Card className="p-6">
@@ -633,25 +634,6 @@ export function SpecialistProfile() {
                         className="rounded-full bg-paper border border-line px-3 h-8 inline-flex items-center text-[14px] font-semibold"
                       >
                         {f}
-                      </span>
-                    ))}
-                  </div>
-                </Card>
-                <Card className="p-6">
-                  <h3
-                    className="h-display text-[22px] flex items-center gap-2"
-                    style={{ letterSpacing: '-0.02em' }}
-                  >
-                    <Users size={22} aria-hidden /> {t('profile.how_i_work')}
-                  </h3>
-                  <p className="leading-7 mt-3 max-w-2xl">{s.how}</p>
-                  <div className="flex flex-wrap gap-3 mt-4">
-                    {others.map((o) => (
-                      <span
-                        key={o.id}
-                        className="inline-flex items-center gap-2 rounded-xl bg-paper border border-line p-2 pr-4 text-[14px] font-semibold"
-                      >
-                        <Avatar initials={o.initials} svc={o.svc} size={32} /> {o.name}
                       </span>
                     ))}
                   </div>
@@ -880,44 +862,39 @@ export function SpecialistProfile() {
                   {t('profile.open_slots_week')}
                 </p>
                 <div className="grid gap-3">
-                  {days.map((d, di) => {
-                    const sl = slotsFor(s.id, di)
-                    return (
-                      <div
-                        key={d.n}
-                        className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 py-3 border-b border-line last:border-0"
-                      >
-                        <p className="w-24 font-bold shrink-0">
-                          {d.d} <span className="num">{d.n}</span>
-                        </p>
-                        {sl.length ? (
-                          <div className="flex flex-wrap gap-2">
-                            {sl.map((t) => (
-                              <span
-                                key={t}
-                                className={`rounded-lg px-3 h-9 inline-flex items-center text-[14px] font-semibold ${
-                                  (SVC[s.svc] || SVC.move).tint
-                                }`}
-                              >
-                                {t12(t)}
-                              </span>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-ink-2 text-[15px]">
-                            {t('profile.no_free_times')}
-                          </p>
-                        )}
+                  {availDays.length === 0 && (
+                    <p className="text-ink-2 text-[15px]">{t('profile.no_free_times')}</p>
+                  )}
+                  {availDays.map((d) => (
+                    <div
+                      key={d.key}
+                      className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 py-3 border-b border-line last:border-0"
+                    >
+                      <p className="w-28 font-bold shrink-0">
+                        {d.weekday} <span className="num">{d.day}</span> {d.month}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {d.times.map((tm, i) => (
+                          <span
+                            key={i}
+                            className={`rounded-lg px-3 h-9 inline-flex items-center text-[14px] font-semibold ${(SVC[s.svc] || SVC.move).tint}`}
+                          >
+                            {tm}
+                          </span>
+                        ))}
                       </div>
-                    )
-                  })}
+                    </div>
+                  ))}
                 </div>
               </Card>
             )}
 
             {tab === 'pack' && (
               <div className="grid md:grid-cols-3 gap-4">
-                {packagesFor(s.rate).map((p) => (
+                {[
+                  { id: 'single', name: 'Single session', n: 1, price: s.rate, note: 'One 30 minute session.' },
+                  ...s.packages.filter((p: any) => p.sessionsCount > 1).map((p: any) => ({ id: String(p.id), name: p.name, n: p.sessionsCount, price: p.priceEgp, note: p.description || '' })),
+                ].map((p) => (
                   <Card key={p.id} className="p-6 flex flex-col">
                     <p className="font-bold">{p.name}</p>
                     <p className="mt-3">
@@ -948,7 +925,7 @@ export function SpecialistProfile() {
             {formattedSlots[0]?.label || t('specialists.no_open_slots')}
           </p>
         </div>
-        <Btn onClick={() => nav(`/app/specialists/${s.id}/book?slot=0`)}>
+        <Btn onClick={() => nav(`/app/specialists/${s.id}/book${bookQuery(0)}`)}>
           {t('specialists.book_session')}
         </Btn>
       </div>

@@ -1,8 +1,7 @@
 import { ArrowDown, ArrowUp, Minus } from 'lucide-react'
-import { painTrend } from '../../data'
 
 export function PainTrend({ c }: { c: any }) {
-  const t = c.painTrend || painTrend(c)
+  const t = c.painTrend ?? { now: 0, delta: 0, dir: 'flat' }
   const I = t.dir === 'up' ? ArrowUp : t.dir === 'down' ? ArrowDown : Minus
   const cls = t.dir === 'up' ? 'text-bad' : t.dir === 'down' ? 'text-ok' : 'text-ink-2'
   const word = t.dir === 'up' ? `up ${t.delta}` : t.dir === 'down' ? `down ${-t.delta}` : 'no change'

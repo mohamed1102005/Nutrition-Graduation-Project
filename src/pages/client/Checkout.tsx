@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation } from 'react-router'
 import {
   CreditCard,
@@ -15,7 +15,6 @@ import {
   Video,
 } from 'lucide-react'
 import { Avatar, Btn, Card, Field, inputCls } from '../../ui'
-import { specialists } from '../../data'
 import { api, getStoredUser } from '../../api'
 import { useLanguage } from '../../context/LanguageContext'
 
@@ -24,6 +23,13 @@ const paymentMethodsConfig = [
   { id: 'InstaPay', labelKey: 'checkout.instapay', subKey: 'checkout.instapay_sub', defaultLabel: 'InstaPay Egypt', defaultSub: 'Instant bank transfer via IPA', icon: Landmark },
   { id: 'Vodafone Cash', labelKey: 'checkout.vodafone', subKey: 'checkout.vodafone_sub', defaultLabel: 'Smart Mobile Wallet', defaultSub: 'Vodafone, Orange, Etisalat, WE', icon: Smartphone },
   { id: 'Fawry', labelKey: 'checkout.fawry', subKey: 'checkout.fawry_sub', defaultLabel: 'Fawry Pay Kiosk', defaultSub: 'Pay with reference code at any outlet', icon: Store },
+] as const
+
+// Display copy of the server's price list. The server decides the real price.
+const PLANS = [
+  { id: 'Starter', price: 399, note: 'Book sessions and follow one plan.' },
+  { id: 'Plus', price: 899, note: 'Everything in Starter, with more check-ins.' },
+  { id: 'Full Team', price: 1499, note: 'Move, Eat and Recover specialists together.' },
 ] as const
 
 export default function Checkout() {
@@ -39,16 +45,19 @@ export default function Checkout() {
     resched?: boolean
     bookingId?: string | number
     slotId?: number
+    spName?: string
+    packageId?: number
   } | null) ?? {
-    spId: 'mona',
-    pkg: 'Single Session',
-    n: 1,
-    type: 'Video Telemedicine Consultation',
-    when: 'Thu 16 Oct, 6:30 PM',
-    total: 450,
+    // Opened without a booking (for example from Account): membership only.
+    spId: '',
+    pkg: '',
+    n: 0,
+    type: '',
+    when: '',
+    total: 0,
   }
-
-  const s = specialists.find((x) => x.id === o.spId) || specialists[0]
+  const bookingMode = Boolean(o.slotId)
+  const s = { name: o.spName || '', svc: 'recover' as const, role: '' }
   const user = getStoredUser()
   const isSponsored = Boolean(user?.organization?.sponsored || user?.organizationId)
   const orgName = user?.organization?.name || 'Your Organization'
@@ -59,15 +68,25 @@ export default function Checkout() {
   const [submitting, setSubmitting] = useState(false)
   const [paid, setPaid] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [reference, setReference] = useState('RB-48213')
-  const fee = 0
-  const total = isSponsored ? 0 : o.total + fee
+  const [reference, setReference] = useState('')
+  const [sub, setSub] = useState<any | null | undefined>(undefined) // undefined = still loading
+  const [plan, setPlan] = useState<(typeof PLANS)[number]['id']>('Starter')
+
+  useEffect(() => {
+    if (isSponsored) return setSub(null)
+    api.getCurrentSubscription().then((r) => setSub(r.subscription)).catch(() => setSub(null))
+  }, [isSponsored])
+
+  // Booking needs an active membership. Sponsored members and reschedules skip payment entirely.
+  const needsPlan = !isSponsored && !o.resched && sub === null
+  const planPrice = PLANS.find((x) => x.id === plan)!.price
+  const total = isSponsored || o.resched ? 0 : (needsPlan ? planPrice : 0) + (bookingMode ? o.total : 0)
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
     const v: Record<string, string> = {}
 
-    if (!isSponsored) {
+    if (!isSponsored && !o.resched) {
       if (m === 'Card') {
         if (f.name.trim().length < 2) v.name = 'Cardholder name is required.'
         if (f.num.replace(/\s/g, '').length !== 16) v.num = 'Enter a valid 16-digit card number.'
@@ -86,36 +105,43 @@ export default function Checkout() {
 
     setSubmitting(true)
     try {
-      if (o.slotId) {
+      const methodMap: Record<string, 'card' | 'fawry' | 'vodafone_cash' | 'instapay'> = {
+        Card: 'card',
+        Fawry: 'fawry',
+        'Vodafone Cash': 'vodafone_cash',
+        InstaPay: 'instapay',
+      }
+      let ref = ''
+
+      // 1. Membership first (the server refuses bookings without one).
+      if (needsPlan) {
+        const res = await api.checkout(plan, methodMap[m] || 'card')
+        ref = res?.subscription?.reference || ''
+        setSub(res?.subscription ?? {})
+      }
+
+      // 2. Then the session itself.
+      if (bookingMode && o.slotId) {
         if (o.resched && o.bookingId) {
           const res = await api.rescheduleBooking(o.bookingId, o.slotId)
-          setReference(`RB-${res?.booking?.id || o.bookingId}`)
+          ref = `RB-${res?.booking?.id ?? o.bookingId}`
         } else {
           const res = await api.createBooking({
             specialistId: o.spId as any,
             slotId: o.slotId,
+            packageId: o.packageId,
             sessionType: o.type,
             notes: '',
           })
-          setReference(`RB-${res?.booking?.id || '48213'}`)
+          ref = `RB-${res?.booking?.id}`
         }
-      } else {
-        if (isSponsored) {
-          setReference(`ORG-${user?.organization?.inviteCode || 'SPONSORED'}-${Date.now().toString().slice(-4)}`)
-        } else {
-          const methodMap: Record<string, 'card' | 'fawry' | 'vodafone_cash' | 'instapay'> = {
-            Card: 'card',
-            Fawry: 'fawry',
-            'Vodafone Cash': 'vodafone_cash',
-            InstaPay: 'instapay',
-          }
-          const res = await api.checkout('Starter', methodMap[m] || 'card')
-          setReference(res?.subscription?.reference || res?.subscription?.paymentReference || 'RB-48213')
-        }
+      } else if (isSponsored) {
+        ref = `ORG-${user?.organization?.inviteCode || 'SPONSORED'}`
       }
+      setReference(ref)
       setPaid(true)
     } catch (error: any) {
-      if (error?.code === 'ALREADY_SPONSORED') {
+      if (error?.code === 'ALREADY_SPONSORED' && !bookingMode) {
         setReference(`ORG-${user?.organization?.inviteCode || 'SPONSORED'}`)
         setPaid(true)
       } else {
@@ -149,12 +175,12 @@ export default function Checkout() {
                 : (lang === 'ar' ? 'تمت معالجة الدفع بنجاح' : 'Payment Successfully Processed')}
             </span>
             <h2 className="h-display text-[22px] sm:text-[24px] text-ink mt-1">
-              {t('checkout.confirmed_title', 'Your Session is Confirmed')}
+              {bookingMode ? t('checkout.confirmed_title', 'Your Session is Confirmed') : (lang === 'ar' ? 'تم تفعيل عضويتك' : 'Your membership is active')}
             </h2>
             <p className="text-sm text-ink-2 mt-1 max-w-md mx-auto">
-              {lang === 'ar'
-                ? 'تم إرسال دعوة التقويم ورابط غرفة الكشف الطبي الافتراضية إلى بريدك الإلكتروني.'
-                : 'A calendar invite and telemedicine room access link have been dispatched to your email.'}
+              {bookingMode
+                ? (lang === 'ar' ? 'ستجد الجلسة ورابط الانضمام في صفحة حجوزاتي.' : 'You can find the session and its join link in My bookings.')
+                : (lang === 'ar' ? 'يمكنك الآن حجز جلسات مع المختصين.' : 'You can now book sessions with specialists.')}
             </p>
           </div>
 
@@ -179,14 +205,18 @@ export default function Checkout() {
 
           {/* Details Summary */}
           <div className="p-4 rounded-xl border border-line/60 bg-white text-left rtl:text-right space-y-2 text-xs">
-            <div className="flex justify-between py-1 border-b border-line/60">
-              <span className="text-ink-2 font-medium">{lang === 'ar' ? 'المختص المشرف:' : 'Assigned Specialist:'}</span>
-              <span className="font-bold text-ink">{s.name}</span>
-            </div>
-            <div className="flex justify-between py-1 border-b border-line/60">
-              <span className="text-ink-2 font-medium">{t('checkout.scheduled_date', 'Scheduled Time:')}</span>
-              <span className="font-bold text-ink num">{o.when}</span>
-            </div>
+            {bookingMode && (
+              <>
+                <div className="flex justify-between py-1 border-b border-line/60">
+                  <span className="text-ink-2 font-medium">{lang === 'ar' ? 'المختص المشرف:' : 'Assigned Specialist:'}</span>
+                  <span className="font-bold text-ink">{s.name}</span>
+                </div>
+                <div className="flex justify-between py-1 border-b border-line/60">
+                  <span className="text-ink-2 font-medium">{t('checkout.scheduled_date', 'Scheduled Time:')}</span>
+                  <span className="font-bold text-ink num">{o.when}</span>
+                </div>
+              </>
+            )}
             <div className="flex justify-between py-1">
               <span className="text-ink-2 font-medium">{t('checkout.total_payable', 'Total Amount Paid:')}</span>
               <span className="font-bold text-ink num">
@@ -235,7 +265,11 @@ export default function Checkout() {
         {/* Left Column: Payment Method Selection */}
         <div className="space-y-6">
           {/* Corporate Sponsorship Pass if applicable */}
-          {isSponsored ? (
+          {o.resched && !isSponsored ? (
+            <Card className="p-6 bg-sand/30 border border-line">
+              <p className="text-sm text-ink">{lang === 'ar' ? 'لا يلزم أي دفع لتغيير موعد جلستك.' : 'No payment is needed to change the time of your session.'}</p>
+            </Card>
+          ) : isSponsored ? (
             <Card className="p-6 bg-sand/30 border border-line space-y-3">
               <div className="flex items-center gap-2 text-xs font-bold text-ink">
                 <Building2 size={16} aria-hidden /> {lang === 'ar' ? 'ميزة مؤسسية مغطاة' : 'Corporate Benefit Covered'}
@@ -251,6 +285,29 @@ export default function Checkout() {
             </Card>
           ) : (
             <div className="space-y-4">
+              {needsPlan && (
+                <div>
+                  <p className="text-xs font-bold text-ink-2 mb-2">{lang === 'ar' ? 'اختر عضويتك (مطلوبة للحجز)' : 'Choose your membership (required to book)'}</p>
+                  <div role="radiogroup" aria-label="Membership" className="grid gap-3">
+                    {PLANS.map((pl) => (
+                      <button
+                        key={pl.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={plan === pl.id}
+                        onClick={() => setPlan(pl.id)}
+                        className={`text-left rtl:text-right p-4 rounded-xl border flex items-center justify-between gap-3 cursor-pointer ${plan === pl.id ? 'border-ink border-2 bg-white' : 'border-line bg-white hover:border-ink/40'}`}
+                      >
+                        <span>
+                          <span className="font-bold text-sm block">{pl.id}</span>
+                          <span className="text-xs text-ink-2">{pl.note}</span>
+                        </span>
+                        <span className="num font-bold">EGP {pl.price.toLocaleString('en-US')}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div>
                 <label className="text-xs font-bold text-ink-2 block mb-2">
                   {t('checkout.select_method', 'Select Payment Method')}
@@ -387,13 +444,15 @@ export default function Checkout() {
 
           <Btn
             onClick={submit}
-            disabled={submitting}
+            disabled={submitting || sub === undefined}
             className="w-full !h-12 text-sm font-bold"
           >
             {submitting
               ? (lang === 'ar' ? 'جارٍ حجز الجلسة...' : 'Securing Reservation...')
               : isSponsored
               ? (lang === 'ar' ? 'تأكيد الحجز المغطى من جهة العمل' : 'Confirm Employer-Sponsored Reservation')
+              : o.resched
+              ? (lang === 'ar' ? 'تأكيد الموعد الجديد' : 'Confirm new time')
               : `${t('checkout.complete_res', 'Complete Reservation')} · ${lang === 'ar' ? `${total.toLocaleString('ar-EG')} ج.م` : `EGP ${total.toLocaleString('en-US')}`}`}
           </Btn>
         </div>
@@ -405,16 +464,17 @@ export default function Checkout() {
           </h2>
 
           {/* Specialist Header */}
-          <div className="flex items-center gap-3">
-            <Avatar initials={s.name.replace(/^(Dr\.|Coach)\s+/i, '').slice(0, 2).toUpperCase()} svc={s.svc || 'recover'} size={48} />
-            <div>
-              <p className="font-bold text-sm text-ink">{s.name}</p>
-              <p className="text-xs text-ink-2">{s.role || 'Physical Therapist'}</p>
+          {bookingMode && (
+            <div className="flex items-center gap-3">
+              <Avatar initials={s.name.replace(/^(Dr\.|Coach)\s+/i, '').slice(0, 2).toUpperCase()} svc={s.svc} size={48} />
+              <div>
+                <p className="font-bold text-sm text-ink">{s.name}</p>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Details */}
-          <div className="space-y-2.5 text-xs text-ink-2 border-y border-line py-4">
+          {bookingMode && <div className="space-y-2.5 text-xs text-ink-2 border-y border-line py-4">
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1.5"><Calendar size={13} /> {t('checkout.scheduled_date', 'Scheduled Date:')}</span>
               <strong className="text-ink font-semibold num">{o.when}</strong>
@@ -425,21 +485,25 @@ export default function Checkout() {
             </div>
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1.5"><Clock size={13} /> {t('checkout.duration', 'Duration:')}</span>
-              <strong className="text-ink font-semibold">{lang === 'ar' ? '50 دقيقة' : '50 minutes'}</strong>
+              <strong className="text-ink font-semibold">{lang === 'ar' ? '30 دقيقة' : '30 minutes'}</strong>
             </div>
-          </div>
+          </div>}
 
           {/* Pricing Breakdown */}
           <div className="space-y-2 text-xs">
-            <div className="flex justify-between text-ink-2">
-              <span>{lang === 'ar' ? 'سعر الجلسة الأساسي' : 'Session Base Rate'}</span>
-              <span className="num font-semibold text-ink">{lang === 'ar' ? `${o.total.toLocaleString('ar-EG')} ج.م` : `EGP ${o.total.toLocaleString('en-US')}`}</span>
-            </div>
-            <div className="flex justify-between text-ink-2">
-              <span>{lang === 'ar' ? 'رسوم المعالجة الإدارية' : 'Clinic Processing Fee'}</span>
-              <span className="num font-semibold text-ok">{lang === 'ar' ? 'مجاناً' : 'EGP 0'}</span>
-            </div>
-            {isSponsored && (
+            {needsPlan && (
+              <div className="flex justify-between text-ink-2">
+                <span>{lang === 'ar' ? `عضوية ${plan}` : `${plan} membership`}</span>
+                <span className="num font-semibold text-ink">{`EGP ${planPrice.toLocaleString('en-US')}`}</span>
+              </div>
+            )}
+            {bookingMode && (
+              <div className="flex justify-between text-ink-2">
+                <span>{lang === 'ar' ? 'سعر الجلسة الأساسي' : 'Session Base Rate'}</span>
+                <span className="num font-semibold text-ink">{lang === 'ar' ? `${o.total.toLocaleString('ar-EG')} ج.م` : `EGP ${o.total.toLocaleString('en-US')}`}</span>
+              </div>
+            )}
+            {isSponsored && bookingMode && (
               <div className="flex justify-between text-ok font-semibold">
                 <span>{lang === 'ar' ? 'خصم ميزة العمل المؤسسية' : 'Employer Benefit Discount'}</span>
                 <span className="num">-{lang === 'ar' ? `${o.total.toLocaleString('ar-EG')} ج.م` : `EGP ${o.total.toLocaleString('en-US')}`}</span>
@@ -457,10 +521,10 @@ export default function Checkout() {
 
           <div className="pt-2">
             <p className="text-[11px] leading-relaxed text-ink-2 bg-sand/30 p-3 rounded-xl border border-line/60">
-              <strong className="text-ink">{lang === 'ar' ? 'ضمان ريباوند للإلغاء المرن:' : 'Rebound Cancellation Guarantee:'}</strong>{' '}
+              <strong className="text-ink">{lang === 'ar' ? 'سياسة الإلغاء:' : 'Cancellation policy:'}</strong>{' '}
               {lang === 'ar'
-                ? 'إعادة جدولة مجانية أو استرداد كامل للمبلغ حتى 6 ساعات قبل موعد الجلسة.'
-                : 'Free rescheduling or 100% refund up to 6 hours before session time.'}
+                ? 'إلغاء وإعادة جدولة مجانية حتى 12 ساعة قبل موعد الجلسة.'
+                : 'Free cancellation and rescheduling up to 12 hours before the session.'}
             </p>
           </div>
         </Card>

@@ -6,51 +6,10 @@ import { api } from '../../api'
 import { LineChart } from '@/components/charts/LineChart'
 import { useLanguage } from '../../context/LanguageContext'
 
-const PREVIEW_OVERVIEW_DATA = {
-  metrics: {
-    grossRevenue: 5546,
-    mrr: 4296,
-    subscriptionRevenue: 4296,
-    sessionRevenue: 1250,
-    specialistDisbursed: 1280,
-    specialistPending: 760,
-    netPlatformProfit: 3506,
-    activeSubscribers: 4,
-    completedSessions: 3,
-    arpu: 1387,
-  },
-  weeklyTrend: [
-    { weekLabel: 'W1', date: '2026-08-25', revenue: 1200, subscriptions: 800, sessions: 400 },
-    { weekLabel: 'W2', date: '2026-09-01', revenue: 1450, subscriptions: 950, sessions: 500 },
-    { weekLabel: 'W3', date: '2026-09-08', revenue: 1900, subscriptions: 1200, sessions: 700 },
-    { weekLabel: 'W4', date: '2026-09-15', revenue: 2300, subscriptions: 1500, sessions: 800 },
-    { weekLabel: 'W5', date: '2026-09-22', revenue: 2800, subscriptions: 2000, sessions: 800 },
-    { weekLabel: 'W6', date: '2026-09-29', revenue: 3400, subscriptions: 2600, sessions: 800 },
-    { weekLabel: 'W7', date: '2026-10-06', revenue: 4200, subscriptions: 3300, sessions: 900 },
-    { weekLabel: 'W8', date: '2026-10-13', revenue: 5546, subscriptions: 4296, sessions: 1250 },
-  ],
-  revenueStreams: {
-    subscriptions: { amount: 4296, percentage: 77 },
-    sessions: { amount: 1250, percentage: 23 },
-  },
-  paymentMethods: {
-    card: { count: 2, total: 1898 },
-    instapay: { count: 1, total: 1499 },
-    vodafone_cash: { count: 1, total: 899 },
-    fawry: { count: 0, total: 0 },
-  },
-  recentTransactions: [
-    { id: '1', type: 'subscription', reference: 'SUB-2026-001', customer_name: 'Sara Hassan', customer_email: 'sara@demo.com', description: 'Monthly Full Team Plan', method: 'card', amount_egp: 1499 },
-    { id: '2', type: 'session', reference: 'SES-2026-042', customer_name: 'Omar Khaled', customer_email: 'omar@demo.com', description: 'Rehab Consultation with Dr. Mona', method: 'instapay', amount_egp: 450 },
-    { id: '3', type: 'subscription', reference: 'SUB-2026-002', customer_name: 'Laila Mostafa', customer_email: 'laila@demo.com', description: 'Starter Plan - Movement', method: 'vodafone_cash', amount_egp: 899 },
-    { id: '4', type: 'session', reference: 'SES-2026-043', customer_name: 'Youssef Nabil', customer_email: 'youssef@demo.com', description: 'Strength Assessment with Coach Karim', method: 'card', amount_egp: 350 },
-  ],
-}
-
 export default function FinanceOverview() {
   const { t, lang } = useLanguage()
   const [state, setState] = useState<DemoState>('loading')
-  const [data, setData] = useState<any>(PREVIEW_OVERVIEW_DATA)
+  const [data, setData] = useState<any>(null)
 
   const loadData = () => {
     setState('loading')
@@ -60,9 +19,8 @@ export default function FinanceOverview() {
         setState('loaded')
       })
       .catch((err) => {
-        console.warn('Backend unavailable, using preview finance overview:', err)
-        setData(PREVIEW_OVERVIEW_DATA)
-        setState('loaded')
+        console.error('Failed to load finance overview:', err)
+        setState('error')
       })
   }
 
@@ -71,16 +29,16 @@ export default function FinanceOverview() {
   }, [])
 
   const m = data?.metrics || {
-    grossRevenue: 5546,
-    mrr: 4296,
-    subscriptionRevenue: 4296,
-    sessionRevenue: 1250,
-    specialistDisbursed: 1280,
-    specialistPending: 760,
-    netPlatformProfit: 3506,
-    activeSubscribers: 4,
-    completedSessions: 3,
-    arpu: 1387,
+    grossRevenue: 0,
+    mrr: 0,
+    subscriptionRevenue: 0,
+    sessionRevenue: 0,
+    specialistDisbursed: 0,
+    specialistPending: 0,
+    netPlatformProfit: 0,
+    activeSubscribers: 0,
+    completedSessions: 0,
+    arpu: 0,
   }
 
   const weeklyTrend = data?.weeklyTrend || []
@@ -92,14 +50,14 @@ export default function FinanceOverview() {
   const ticksR = [minR, minR + stepR, minR + stepR * 2, minR + stepR * 3, maxR]
 
   const streams = data?.revenueStreams || {
-    subscriptions: { amount: 4296, percentage: 77 },
-    sessions: { amount: 1250, percentage: 23 },
+    subscriptions: { amount: 0, percentage: 0 },
+    sessions: { amount: 0, percentage: 0 },
   }
 
   const methods = data?.paymentMethods || {
-    card: { count: 2, total: 1898 },
-    instapay: { count: 1, total: 1499 },
-    vodafone_cash: { count: 1, total: 899 },
+    card: { count: 0, total: 0 },
+    instapay: { count: 0, total: 0 },
+    vodafone_cash: { count: 0, total: 0 },
     fawry: { count: 0, total: 0 },
   }
 

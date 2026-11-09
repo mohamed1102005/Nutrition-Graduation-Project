@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { Search, ChevronRight } from 'lucide-react'
-import { Avatar, Btn, Card, EmptyState, Gate, inputCls, PageHead, Segment, StateSwitcher, TableSkeleton, type DemoState } from '../../ui'
-import { clients as mockClients, overLimit } from '../../data'
+import { Avatar, Btn, Card, EmptyState, Gate, inputCls, PageHead, Segment, TableSkeleton, type DemoState } from '../../ui'
 import { Flag, PainTrend } from '@/components'
 import { api } from '../../api'
 import { useLanguage } from '../../context/LanguageContext'
@@ -14,25 +13,27 @@ export default function Clients() {
   const { t } = useLanguage()
   const [q, setQ] = useState('')
   const [f, setF] = useState('All')
-  const [state, setState] = useState<DemoState>('loaded')
-  const [allClients, setAllClients] = useState<any[]>(mockClients)
+  const [state, setState] = useState<DemoState>('loading')
+  const [allClients, setAllClients] = useState<any[]>([])
+  const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
     let active = true
-    api.getSpecialistClients(q)
+    setState('loading')
+    api.getSpecialistClients()
       .then((data) => {
         if (!active) return
-        if (data?.clients && data.clients.length > 0) {
-          setAllClients(data.clients)
-        }
+        setAllClients(data?.clients ?? [])
+        setState(data?.clients?.length ? 'loaded' : 'empty')
       })
       .catch((err) => {
         console.error('Failed to load specialist clients:', err)
+        if (active) setState('error')
       })
     return () => { active = false }
-  }, [q])
+  }, [reloadKey])
 
-  const checkOver = (c: any) => (c.flagged !== undefined ? c.flagged : overLimit(c))
+  const checkOver = (c: any) => Boolean(c.flagged)
 
   const list = allClients
     .filter((c) => (f === 'Needs attention' ? checkOver(c) : f === 'On track' ? !checkOver(c) : true))
@@ -69,7 +70,7 @@ export default function Clients() {
 
       <Gate
         state={state}
-        retry={() => setState('loaded')}
+        retry={() => setReloadKey((k) => k + 1)}
         skeleton={<TableSkeleton rows={6} />}
         empty={<Card><EmptyState title="No clients yet" text="When someone books a session with you, they show up here with their plan and pain reports." /></Card>}
       >
@@ -96,7 +97,7 @@ export default function Clients() {
                 </thead>
                 <tbody>
                   {list.map((c) => (
-                    <tr key={c.id} className={`border-b border-line last:border-0 hover:bg-paper ${overLimit(c) ? 'bg-bad-tint/40' : ''}`}>
+                    <tr key={c.id} className={`border-b border-line last:border-0 hover:bg-paper ${checkOver(c) ? 'bg-bad-tint/40' : ''}`}>
                       <td className="px-5 py-3">
                         <Link to={`/app/clients/${c.id}`} className="flex items-center gap-3 min-h-11 font-bold underline-offset-4 hover:underline">
                           <Avatar initials={c.initials} svc="recover" size={40} /> {c.name}
@@ -116,7 +117,7 @@ export default function Clients() {
             <ul className="md:hidden space-y-3">
               {list.map((c) => (
                 <li key={c.id}>
-                  <Link to={`/app/clients/${c.id}`} className={`block rounded-2xl border border-line p-4 ${overLimit(c) ? 'bg-bad-tint/40' : 'bg-white'}`}>
+                  <Link to={`/app/clients/${c.id}`} className={`block rounded-2xl border border-line p-4 ${checkOver(c) ? 'bg-bad-tint/40' : 'bg-white'}`}>
                     <div className="flex items-center gap-3">
                       <Avatar initials={c.initials} svc="recover" size={44} />
                       <div className="flex-1 min-w-0">

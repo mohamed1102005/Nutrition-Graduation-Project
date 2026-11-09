@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Clock,
   ShieldCheck,
@@ -28,6 +28,15 @@ export default function WaitingForApproval({ user, onApproved }: WaitingForAppro
   const [statusMsg, setStatusMsg] = useState<string | null>(null)
 
   const isRejected = user?.approvalStatus === 'rejected'
+
+  // Check quietly every 15 seconds so the page opens by itself once an admin approves.
+  useEffect(() => {
+    if (isRejected) return
+    const timer = setInterval(() => {
+      api.getMe().then((u) => { if (u?.approvalStatus === 'approved') onApproved?.() }).catch(() => {})
+    }, 15000)
+    return () => clearInterval(timer)
+  }, [isRejected, onApproved])
 
   const checkStatus = async () => {
     setChecking(true)

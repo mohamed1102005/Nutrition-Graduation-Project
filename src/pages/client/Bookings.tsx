@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { CalendarPlus, Video, MessageSquare } from 'lucide-react'
 import { Avatar, Btn, Card, Dialog, EmptyState, Gate, PageHead, Skeleton, StateSwitcher, StatusBadge, Tabs, type DemoState } from '../../ui'
-import { specialists as staticSpecialists } from '../../data'
 import { api } from '../../api'
 import { useLanguage } from '../../context/LanguageContext'
 
@@ -17,21 +16,15 @@ type B = {
   type: string
   status: Status
   ref: string
+  upcoming: boolean
 }
 
-function formatSlotWhen(startsAtStr: string) {
+function formatSlotWhen(startsAtStr?: string) {
   if (!startsAtStr) return 'Scheduled'
   const d = new Date(startsAtStr)
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  const dow = dayNames[d.getDay()]
-  const date = d.getDate()
-  const mon = months[d.getMonth()]
-  const h = d.getHours()
-  const m = String(d.getMinutes()).padStart(2, '0')
-  const ap = h >= 12 ? 'PM' : 'AM'
-  const h12 = h % 12 || 12
-  return `${dow} ${date} ${mon}, ${h12}:${m} ${ap}`
+  const f = (o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Cairo', ...o }).format(d)
+  const time = new Intl.DateTimeFormat('en-US', { timeZone: 'Africa/Cairo', hour: 'numeric', minute: '2-digit', hour12: true }).format(d)
+  return `${f({ weekday: 'short' })} ${f({ day: 'numeric' })} ${f({ month: 'short' })}, ${time}`
 }
 
 export default function MyBookings() {
@@ -48,7 +41,8 @@ export default function MyBookings() {
     api.getBookings()
       .then((res) => {
         const mapped: B[] = (res.bookings || []).map((b: any) => {
-          const spName = b.specialistName || b.specialist_name || 'Dr. Mona Fathy'
+          // The API nests the specialist and the slot (see formatBooking on the server).
+          const spName: string = b.specialist?.name || ''
           const initials =
             spName
               .replace(/^(Dr\.|Coach)\s+/i, '')
@@ -56,19 +50,23 @@ export default function MyBookings() {
               .slice(0, 2)
               .map((x: string) => x[0]?.toUpperCase())
               .join('') || 'SP'
-          const spType = b.specialistType || b.specialist_type || 'physical_therapist'
+          const spType = b.specialist?.type
           const spSvc = (spType === 'physical_therapist' ? 'recover' : spType === 'nutritionist' ? 'eat' : 'move') as any
+          const ended = b.slot?.endsAt ? new Date(b.slot.endsAt).getTime() < Date.now() : false
+          const status: Status =
+            b.status === 'cancelled' ? 'Cancelled' : b.status === 'completed' || (b.status === 'confirmed' && ended) ? 'Completed' : 'Confirmed'
 
           return {
             id: b.id,
-            sp: String(b.specialistId || b.specialist_id),
+            sp: String(b.specialist?.id),
             spName,
             spInitials: initials,
             spSvc,
-            when: formatSlotWhen(b.startsAt || b.starts_at),
-            type: (b.sessionType || b.session_type) === 'chat' ? 'Chat check-in' : 'Video call',
-            status: (b.status.charAt(0).toUpperCase() + b.status.slice(1)) as Status,
-            ref: b.notes || b.packageName || b.package_name || 'Knee review',
+            when: formatSlotWhen(b.slot?.startsAt),
+            type: b.sessionType === 'chat' ? 'Chat check-in' : 'Video call',
+            status,
+            ref: b.notes || b.package?.name || '',
+            upcoming: status === 'Confirmed',
           }
         })
         setRows(mapped)
@@ -134,13 +132,14 @@ export default function MyBookings() {
                       <div className="min-w-0">
                         <p className="font-bold">{b.spName}</p>
                         <p className="text-[15px]">{b.when}</p>
-                        <p className="text-[14px] text-ink-2 flex items-center gap-1.5"><TypeIcon size={14} aria-hidden /> {b.type} · {b.ref}</p>
+                        <p className="text-[14px] text-ink-2 flex items-center gap-1.5"><TypeIcon size={14} aria-hidden /> {b.type}{b.ref ? ` · ${b.ref}` : ''}</p>
                       </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-3 md:justify-end">
                       <StatusBadge status={b.status} />
                       {b.status === 'Confirmed' && (
                         <>
+                          <Btn className="min-h-11 h-11 px-4" to={`/session?booking=${b.id}`}>Join</Btn>
                           <Btn variant="secondary" className="min-h-11 h-11 px-4" onClick={() => nav(`/app/specialists/${b.sp}/book?reschedule=1&bookingId=${b.id}`)}>Reschedule</Btn>
                           <Btn variant="ghost" className="min-h-11 h-11 px-4 underline" onClick={() => setTarget(b)}>Cancel</Btn>
                         </>

@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { Fragment, useEffect, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router'
 import {
   ArrowLeft,
@@ -23,37 +23,65 @@ import {
   Eye,
   Info,
 } from 'lucide-react'
-import { Avatar, Btn, Card, Dialog, EmptyState, Field, inputCls, SafetyCallout, Segment, Tabs } from '../../ui'
-import { clients, painTrend } from '../../data'
+import { Avatar, Btn, Card, Dialog, EmptyState, Field, inputCls, SafetyCallout, Segment, Skeleton, Tabs } from '../../ui'
 import { LineChart, BarChart, Flag, PainTrend } from '@/components'
-import { labels } from '../client/Progress'
-import { api } from '../../api'
+import { api, getStoredUser } from '../../api'
 import { useLanguage } from '../../context/LanguageContext'
 
-type Ex = { id: number; name: string; sets: number; reps: number; cleared: boolean; notes?: string }
-
-const templates: Record<string, Ex[]> = {
-  knee: [
-    { id: 1, name: 'Box Squat to 60° Knee Angle', sets: 4, reps: 8, cleared: true, notes: 'Stop at 60° box flexion. No bouncing.' },
-    { id: 2, name: 'Leg Press (0° to 60° Mechanical Stop)', sets: 4, reps: 10, cleared: true, notes: 'Mechanical pin safety stop at 60° strictly.' },
-    { id: 3, name: 'Terminal Straight Leg Raise', sets: 3, reps: 12, cleared: true, notes: 'Lock quad prior to elevation.' },
-    { id: 4, name: 'Bodyweight Walking Lunges', sets: 3, reps: 10, cleared: false, notes: 'Held back until patellar shear stabilizes.' },
-  ],
-  back: [
-    { id: 1, name: 'Bird Dog with Core Brace', sets: 3, reps: 10, cleared: true, notes: 'Neutral lumbar alignment throughout.' },
-    { id: 2, name: 'Dead Bug Anti-Extension', sets: 3, reps: 12, cleared: true, notes: 'Low back glued to mat.' },
-    { id: 3, name: 'Hip Hinge with Dowel', sets: 3, reps: 10, cleared: true, notes: 'Maintain 3 points of contact.' },
-    { id: 4, name: 'Romanian Deadlift (Barbell)', sets: 3, reps: 8, cleared: false, notes: 'Waiting for lumbar shear tolerance test.' },
-  ],
-  shoulder: [
-    { id: 1, name: 'Codman Pendulum Swings', sets: 2, reps: 20, cleared: true, notes: 'Gentle passive decompression.' },
-    { id: 2, name: 'Band External Rotation at 0°', sets: 3, reps: 15, cleared: true, notes: 'Towel roll pinned under elbow.' },
-    { id: 3, name: 'Scapular Wall Slides', sets: 3, reps: 12, cleared: true, notes: 'Upward rotation focus, no shrug.' },
-    { id: 4, name: 'Standing Overhead Press', sets: 3, reps: 8, cleared: false, notes: 'Impingement risk until scapular clearance.' },
-  ],
-}
-
+// One prescribed exercise. `raw` keeps the original database row so fields the
+// editor does not show (tempo, rest, time of day ...) survive a save.
+type Ex = { id: number; name: string; sets: number; reps: string; cleared: boolean; notes?: string; day: number; raw?: any }
 type Note = { id: number; text: string; when: string; shared: boolean; author?: string; role?: string }
+type Svc = 'move' | 'eat' | 'recover'
+
+const TYPE_SVC: Record<string, Svc> = { trainer: 'move', nutritionist: 'eat', physical_therapist: 'recover' }
+const TYPE_ROLE: Record<string, string> = { trainer: 'Trainer', nutritionist: 'Dietitian', physical_therapist: 'Physical Therapist' }
+const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
+const initialsOf = (name = '') =>
+  name.replace(/^(Dr\.|Coach)\s+/i, '').split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join('') || '?'
+const goalLabel = (g?: string) => (g ? g.replace(/_/g, ' ').replace(/^./, (m) => m.toUpperCase()) : '')
+const shortDate = (iso?: string) => (iso ? new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '')
+const itemToEx = (it: any): Ex => ({
+  id: it.id,
+  name: it.title,
+  sets: it.sets ?? 3,
+  reps: it.reps ?? '10',
+  cleared: Boolean(it.pt_cleared),
+  notes: it.instructions || it.safety_note || '',
+  day: it.day_of_week,
+  raw: it,
+})
+
+// Build the 8-week chart series from the client's daily progress logs.
+function buildCharts(logs: any[], target: number) {
+  const monday = new Date()
+  monday.setHours(0, 0, 0, 0)
+  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7))
+  const iso = (d: Date) => d.toISOString().slice(0, 10)
+  const labels: string[] = []
+  const workouts: number[] = []
+  const pain: number[] = []
+  const painLabels: string[] = []
+  for (let i = 7; i >= 0; i--) {
+    const from = new Date(monday)
+    from.setDate(from.getDate() - i * 7)
+    const to = new Date(from)
+    to.setDate(to.getDate() + 7)
+    const inWeek = logs.filter((l) => l.date >= iso(from) && l.date < iso(to))
+    const label = from.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+    labels.push(label)
+    workouts.push(inWeek.filter((l) => l.workout_done).length)
+    const lastPain = [...inWeek].reverse().find((l) => l.pain_level !== null && l.pain_level !== undefined)
+    if (lastPain) {
+      pain.push(lastPain.pain_level)
+      painLabels.push(label)
+    }
+  }
+  const planned = target * 8
+  const done = workouts.reduce((a, w) => a + Math.min(w, target), 0)
+  return { labels, workouts, pain, painLabels, compliance: planned ? Math.round((done / planned) * 100) : 0 }
+}
 
 export default function ClientDetail() {
   const { id } = useParams()
@@ -62,106 +90,154 @@ export default function ClientDetail() {
 
 function Inner({ id }: { id?: string }) {
   const { t, lang } = useLanguage()
-  const fallbackClient = clients.find((x) => x.id === id || x.name.toLowerCase().includes(String(id).toLowerCase())) || clients[0]
-  const [c, setC] = useState<any>(fallbackClient)
+  const me = getStoredUser()
+  const myService: Svc = TYPE_SVC[me?.type] ?? 'recover'
+  const canEditExercises = myService !== 'eat'
+
+  const [load, setLoad] = useState<'loading' | 'ready' | 'error'>('loading')
+  const [c, setC] = useState<any>(null)
+  const [careTeam, setCareTeam] = useState<any[]>([])
+  const [myPlan, setMyPlan] = useState<any>(null)
+  const [sessionId, setSessionId] = useState<number | null>(null)
   const [tab, setTab] = useState('Overview')
-  const [ex, setEx] = useState<Ex[]>(() => templates[fallbackClient?.area ?? 'knee'].map((e) => ({ ...e })))
-  const [limit, setLimit] = useState(String(fallbackClient?.limit ?? 4))
-  const [angle, setAngle] = useState(fallbackClient?.area === 'knee' ? '60' : '')
+  const [ex, setEx] = useState<Ex[]>([])
+  const [limit, setLimit] = useState('4')
+  const [angle, setAngle] = useState('')
   const [angleErr, setAngleErr] = useState('')
   const [saved, setSaved] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState('')
+  const [saveErr, setSaveErr] = useState('')
   const [rm, setRm] = useState<Ex | null>(null)
   const [add, setAdd] = useState(false)
-  const [nf, setNf] = useState({ name: '', sets: '3', reps: '10', notes: '' })
+  const [nf, setNf] = useState({ name: '', sets: '3', reps: '10', notes: '', day: '1' })
   const [nerr, setNerr] = useState<Record<string, string>>({})
-  const [notes, setNotes] = useState<Note[]>([
-    { id: 1, text: 'Clean squat mechanics observed at 60° box depth. Patellar tendon showed zero reactive warmth post-session. Maintain depth cap for another 10 days.', when: 'Tue 7 Oct', shared: true, author: 'Dr. Mona Fathy', role: 'Physical Therapist' },
-    { id: 2, text: 'Client experienced mild early-morning knee stiffness on colder days. Prescribed 5 minutes of warm-up heel slides before any training load.', when: 'Tue 30 Sep', shared: false, author: 'Dr. Mona Fathy', role: 'Physical Therapist' },
-    { id: 3, text: 'Coordinated with Coach Karim: swapped conventional deadlifts for Romanian deadlifts to minimize anterior tibial translation.', when: 'Fri 26 Sep', shared: true, author: 'Coach Karim Adel', role: 'Strength Coach' },
-  ])
+  const [notes, setNotes] = useState<Note[]>([])
   const [draft, setDraft] = useState('')
   const [shared, setShared] = useState(true)
   const [noteErr, setNoteErr] = useState('')
+  const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
     let active = true
-    if (id) {
-      api.getSpecialistClient(id)
-        .then((res) => {
-          if (!active || !res?.client) return
-          const cl = res.client
-          const area = res.injuries?.[0]?.body_area?.toLowerCase() || 'knee'
-          setC({
-            id: String(cl.id),
-            name: cl.name,
-            initials: cl.name.replace(/^(Dr\.|Coach)\s+/i, '').split(/\s+/).slice(0, 2).map((w: string) => w[0]?.toUpperCase()).join('') || 'SH',
-            goal: cl.goal || 'Patellar Tendon Rehabilitation & Functional Strength',
-            week: cl.week || 3,
-            of: cl.of || 8,
-            age: cl.age || 29,
-            email: cl.email,
-            phone: cl.phone || '01012345678',
-            injury: res.injuries?.[0]?.note || 'Right knee patellar tendinopathy (Grade 1)',
-            area,
-            limit: cl.safeLimit || 4,
-            pain: res.progress?.pain?.map((p: any) => p.value) || fallbackClient.pain,
-            workouts: res.progress?.workouts?.map((w: any) => w.count) || fallbackClient.workouts,
-            lastCheckin: 'Today, 11:20 AM',
-          })
-          if (res.notes && res.notes.length > 0) {
-            setNotes(res.notes.map((n: any) => ({
-              id: n.id,
-              text: n.body,
-              when: n.created_at ? new Date(n.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : 'Recently',
-              shared: Boolean(n.visible_to_client),
-              author: 'Specialist Note',
-            })))
-          }
-        })
-        .catch((err) => {
-          console.error('Failed to load specialist client detail:', err)
-        })
-    }
-    return () => { active = false }
-  }, [id])
+    if (!id) return
+    setLoad('loading')
+    Promise.all([
+      api.getSpecialistClient(id),
+      api.getSpecialistSchedule({ from: new Date(Date.now() - 3600000).toISOString() }).catch(() => ({ slots: [] as any[] })),
+    ])
+      .then(([res, sched]) => {
+        if (!active) return
+        const cl = res.client
+        const inj = res.injuries?.[0]
+        const logs: any[] = res.progress?.logs ?? []
+        const lastLog = logs.length ? logs[logs.length - 1].date : ''
+        const target = cl.daysPerWeek || 4
+        const charts = buildCharts(logs, target)
+        const plan =
+          res.plans.find((p: any) => p.service === myService && p.status === 'active') ??
+          res.plans.find((p: any) => p.service === myService && p.status === 'draft') ??
+          null
+        const exercises: Ex[] = plan ? plan.items.map(itemToEx) : []
+        const angleMatch = exercises.map((e) => /(\d+)\s*°/.exec(e.raw?.safety_note ?? '')).find(Boolean)
+        const safeLimit = res.progress?.safeLimit ?? 4
 
-  if (!c)
+        setC({
+          id: cl.id,
+          name: cl.name,
+          initials: cl.initials || initialsOf(cl.name),
+          goal: goalLabel(cl.goal),
+          week: cl.week,
+          of: cl.of,
+          age: cl.age,
+          email: cl.email,
+          phone: cl.phone,
+          injury: inj ? `${goalLabel(inj.body_area)}${inj.note ? ` · ${inj.note}` : ''}` : '',
+          area: (inj?.body_area || '').toLowerCase(),
+          painTrend: res.progress?.painTrend ?? { now: 0, delta: 0, dir: 'flat' },
+          flagged: Boolean(res.progress?.flagged),
+          lastCheckin: lastLog ? shortDate(lastLog) : '—',
+          target,
+          charts,
+        })
+        setCareTeam(res.careTeam ?? [])
+        setMyPlan(plan)
+        setEx(exercises)
+        setLimit(String(safeLimit))
+        setAngle(angleMatch ? angleMatch[1] : '')
+        setSaved(true)
+        setNotes(
+          (res.notes ?? []).map((n: any) => ({
+            id: n.id,
+            text: n.body,
+            when: shortDate(n.created_at),
+            shared: Boolean(n.visible_to_client),
+            author: n.author_name,
+            role: TYPE_ROLE[(res.careTeam ?? []).find((m: any) => m.id === n.author_id)?.type] ?? undefined,
+          }))
+        )
+        const next = (sched.slots ?? []).find((s: any) => s.booking?.status === 'confirmed' && s.booking.client?.id === cl.id)
+        setSessionId(next?.booking?.id ?? null)
+        setLoad('ready')
+      })
+      .catch((err) => {
+        console.error('Failed to load specialist client detail:', err)
+        if (active) setLoad('error')
+      })
+    return () => { active = false }
+  }, [id, reloadKey, myService])
+
+  if (load === 'loading') return <Skeleton className="h-[480px]" />
+
+  if (load === 'error' || !c)
     return (
       <Card>
-        <EmptyState title={lang === 'ar' ? 'سجل المريض غير موجود' : 'Client Record Not Found'} text={lang === 'ar' ? 'ربما تمت أرشفة هذا السجل أو نقله.' : 'This patient may have been archived or transferred.'} action={<Btn to="/app/clients">{t('client_detail.back', 'All Patient Charts')}</Btn>} />
+        <EmptyState title={lang === 'ar' ? 'سجل المريض غير موجود' : 'Client Record Not Found'} text={lang === 'ar' ? 'ربما تمت أرشفة هذا السجل أو لم يعد ضمن فريق رعايتك.' : 'This client may have been archived or is no longer in your care team.'} action={<Btn to="/app/clients">{t('client_detail.back', 'All Patient Charts')}</Btn>} />
       </Card>
     )
 
-  const trend = painTrend(c)
-  const dirty = (fn: () => void) => { fn(); setSaved(false); setToast('') }
+  const trend = c.painTrend
+  const dirty = (fn: () => void) => { fn(); setSaved(false); setToast(''); setSaveErr('') }
 
   const save = async () => {
-    if (c.area === 'knee' && (!/^\d+$/.test(angle) || Number(angle) < 0 || Number(angle) > 120)) return setAngleErr(lang === 'ar' ? 'أدخل زاوية للركبة بين 0 و 120 درجة.' : 'Enter a knee angle between 0 and 120 degrees.')
+    if (c.area === 'knee' && myService === 'recover' && angle !== '' && (!/^\d+$/.test(angle) || Number(angle) > 120)) {
+      return setAngleErr(lang === 'ar' ? 'أدخل زاوية للركبة بين 0 و 120 درجة.' : 'Enter a knee angle between 0 and 120 degrees.')
+    }
     setAngleErr('')
+    setSaving(true)
+    setSaveErr('')
     try {
-      if (id) {
-        const items = ex.map((e, idx) => ({
-          dayOfWeek: 3,
+      const items = ex.map((e, idx) => {
+        const hasAngle = /°/.test(e.raw?.safety_note ?? '')
+        return {
+          dayOfWeek: e.day,
           position: idx,
+          timeOfDay: e.raw?.time_of_day ?? null,
           title: e.name,
+          instructions: e.notes || null,
           sets: e.sets,
-          reps: String(e.reps),
+          reps: e.reps,
+          tempo: e.raw?.tempo ?? null,
+          restSec: e.raw?.rest_sec ?? null,
+          durationMin: e.raw?.duration_min ?? null,
+          painLimit: Number(limit),
           ptCleared: e.cleared,
-          painLimit: Number(limit) || 4,
-          safetyNote: c.area === 'knee' ? `Knee angle limit: ${angle}°` : undefined,
-        }))
-        await api.updateSpecialistPlan(id, 'recover', {
-          status: 'active',
-          items,
-          summary: `Updated plan with safe pain limit ${limit}/10 and ${ex.length} calibrated exercises.`,
-        }).catch(() => {})
-      }
-      setSaved(true)
-      setToast(lang === 'ar' ? `تم اعتماد ونشر التعديلات. تم تحديث لوحة تحكم ${c.name.split(' ')[0]}.` : `Protocol changes published. ${c.name.split(' ')[0]}'s active client dashboard is updated.`)
-    } catch {
-      setSaved(true)
-      setToast(lang === 'ar' ? `تم اعتماد ونشر التعديلات. تم تحديث لوحة تحكم ${c.name.split(' ')[0]}.` : `Protocol changes published. ${c.name.split(' ')[0]}'s active client dashboard is updated.`)
+          safetyNote: hasAngle && angle !== '' ? `Knee angle limit: ${angle}°` : e.raw?.safety_note ?? null,
+        }
+      })
+      // Publishing creates a fresh active plan and archives the old one, so the client's check-off history is kept.
+      await api.updateSpecialistPlan(c.id, myService, {
+        status: 'active',
+        title: myPlan?.title,
+        summary: myPlan?.summary ?? null,
+        items,
+      })
+      setToast(lang === 'ar' ? `تم نشر التعديلات. تم تحديث خطة ${c.name.split(' ')[0]}.` : `Protocol published. ${c.name.split(' ')[0]}'s plan is updated.`)
+      setReloadKey((k) => k + 1)
+    } catch (err: any) {
+      setSaveErr(err?.message || (lang === 'ar' ? 'تعذّر نشر التعديلات. حاول مرة أخرى.' : 'Could not publish the changes. Please try again.'))
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -173,8 +249,8 @@ function Inner({ id }: { id?: string }) {
     if (!(Number(nf.reps) >= 1 && Number(nf.reps) <= 60)) v.reps = lang === 'ar' ? 'التكرارات: 1 إلى 60.' : 'Reps: 1 to 60.'
     setNerr(v)
     if (Object.keys(v).length) return
-    dirty(() => setEx([...ex, { id: Date.now(), name: nf.name.trim(), sets: Number(nf.sets), reps: Number(nf.reps), cleared: false, notes: nf.notes.trim() }]))
-    setNf({ name: '', sets: '3', reps: '10', notes: '' })
+    dirty(() => setEx([...ex, { id: -Date.now(), name: nf.name.trim(), sets: Number(nf.sets), reps: String(Number(nf.reps)), cleared: false, notes: nf.notes.trim(), day: Number(nf.day) }]))
+    setNf({ name: '', sets: '3', reps: '10', notes: '', day: '1' })
     setAdd(false)
   }
 
@@ -183,19 +259,18 @@ function Inner({ id }: { id?: string }) {
     if (draft.trim().length < 3) return setNoteErr(lang === 'ar' ? 'يرجى إدخال تفاصيل الملاحظة السريرية.' : 'Enter clinical observation details.')
     setNoteErr('')
     try {
-      if (id) {
-        await api.addSpecialistNote(id, { body: draft.trim(), visibleToClient: shared })
-      }
-      setNotes([{ id: Date.now(), text: draft.trim(), when: lang === 'ar' ? 'اليوم' : 'Today', shared, author: 'Dr. Mona Fathy', role: 'Physical Therapist' }, ...notes])
+      const res = await api.addSpecialistNote(c.id, { body: draft.trim(), visibleToClient: shared })
+      const n = res.note
+      setNotes([{ id: n.id, text: n.body, when: shortDate(n.createdAt), shared: n.visibleToClient, author: n.authorName, role: TYPE_ROLE[me?.type] }, ...notes])
       setDraft('')
-    } catch {
-      setNotes([{ id: Date.now(), text: draft.trim(), when: lang === 'ar' ? 'اليوم' : 'Today', shared, author: 'Dr. Mona Fathy', role: 'Physical Therapist' }, ...notes])
-      setDraft('')
+    } catch (err: any) {
+      setNoteErr(err?.message || (lang === 'ar' ? 'تعذّر حفظ الملاحظة.' : 'Could not save the note. Please try again.'))
     }
   }
 
-  const L = labels.slice(-8)
-  const isPainCritical = trend.now > Number(limit)
+  const L = c.charts.labels
+  const isPainCritical = c.flagged
+  const netChange = c.charts.pain.length > 1 ? c.charts.pain[c.charts.pain.length - 1] - c.charts.pain[0] : 0
 
   return (
     <div className="space-y-6">
@@ -231,15 +306,15 @@ function Inner({ id }: { id?: string }) {
               </div>
 
               <p className="text-sm text-ink-2 font-medium">
-                {c.injury} · {lang === 'ar' ? 'الأسبوع' : 'Week'} <strong className="text-ink num">{c.week}</strong> {lang === 'ar' ? 'من' : 'of'} {c.of} ({c.goal})
+                {c.injury ? `${c.injury} · ` : ''}{lang === 'ar' ? 'الأسبوع' : 'Week'} <strong className="text-ink num">{c.week}</strong> {lang === 'ar' ? 'من' : 'of'} {c.of}{c.goal ? ` (${c.goal})` : ''}
               </p>
 
               <div className="flex flex-wrap items-center gap-4 text-xs text-ink-2 pt-1">
-                <span>{lang === 'ar' ? 'العمر:' : 'Age:'} <strong className="text-ink">{c.age} {lang === 'ar' ? 'سنة' : 'yrs'}</strong></span>
+                <span>{lang === 'ar' ? 'العمر:' : 'Age:'} <strong className="text-ink">{c.age ? `${c.age} ${lang === 'ar' ? 'سنة' : 'yrs'}` : '—'}</strong></span>
                 <span>·</span>
                 <span>{lang === 'ar' ? 'آخر نشاط:' : 'Last Activity:'} <strong className="text-ink">{c.lastCheckin}</strong></span>
                 <span>·</span>
-                <span>{lang === 'ar' ? 'التواصل:' : 'Contact:'} <strong className="text-ink">{c.phone}</strong></span>
+                <span>{lang === 'ar' ? 'التواصل:' : 'Contact:'} <strong className="text-ink">{c.phone || c.email}</strong></span>
               </div>
             </div>
           </div>
@@ -260,9 +335,11 @@ function Inner({ id }: { id?: string }) {
               </span>
             </div>
 
-            <Btn to="/session" className="gap-2">
-              <Video size={16} aria-hidden /> {t('client_detail.video_consult', 'Launch Video Consult')}
-            </Btn>
+            {sessionId && (
+              <Btn to={`/session?booking=${sessionId}`} className="gap-2">
+                <Video size={16} aria-hidden /> {t('client_detail.video_consult', 'Launch Video Consult')}
+              </Btn>
+            )}
           </div>
         </div>
       </Card>
@@ -271,8 +348,8 @@ function Inner({ id }: { id?: string }) {
       {isPainCritical && (
         <SafetyCallout title={lang === 'ar' ? `تنبيه سريري عاجل: مستوى الألم الحالي (${trend.now}/10) يتجاوز السقف الآمن (${limit}/10)` : `CLINICAL ALERT: Current pain (${trend.now}/10) exceeds client safe threshold (${limit}/10)`}>
           {lang === 'ar'
-            ? `سجل المريض ارتفاعاً في نوبات ألم الرضفة عقب الجلسة الأخيرة. يرجى إيقاف كافة تمارين الضغط وتحميل العضلة الرباعية فوراً ومراجعة البروتوكول أدناه والتواصل مع ${c.name.split(' ')[0]}.`
-            : `Patient reported elevated patellar pain following recent loading. All contraindicated Quad loading protocols should be paused immediately. Review the updated protocol below and message ${c.name.split(' ')[0]}.`}
+            ? `أبلغ ${c.name.split(' ')[0]} عن ألم أعلى من الحد الآمن. راجع البروتوكول أدناه وفكّر في إيقاف التمارين المحمّلة قبل التواصل معه.`
+            : `${c.name.split(' ')[0]} reported pain above the safe limit. Review the protocol below and consider pausing loaded movements before you contact them.`}
         </SafetyCallout>
       )}
 
@@ -301,14 +378,14 @@ function Inner({ id }: { id?: string }) {
             <dl className="divide-y divide-line/60 text-sm">
               {[
                 [lang === 'ar' ? 'الاسم القانوني الكامل' : 'Full Legal Name', c.name],
-                [lang === 'ar' ? 'العمر الزمني' : 'Chronological Age', `${c.age} ${lang === 'ar' ? 'سنة' : 'years'}`],
-                [lang === 'ar' ? 'التشخيص الطبي الأساسي' : 'Primary Medical Diagnosis', c.injury],
-                [lang === 'ar' ? 'المنطقة التشريحية المتأثرة' : 'Affected Anatomical Area', c.area.toUpperCase()],
+                [lang === 'ar' ? 'العمر الزمني' : 'Chronological Age', c.age ? `${c.age} ${lang === 'ar' ? 'سنة' : 'years'}` : '—'],
+                [lang === 'ar' ? 'التشخيص الطبي الأساسي' : 'Primary Medical Diagnosis', c.injury || '—'],
+                [lang === 'ar' ? 'المنطقة التشريحية المتأثرة' : 'Affected Anatomical Area', c.area ? c.area.toUpperCase() : '—'],
                 [lang === 'ar' ? 'مدة البرنامج المقررة' : 'Prescribed Protocol Length', `${c.of} ${lang === 'ar' ? 'أسابيع إجمالية' : 'weeks total'}`],
                 [lang === 'ar' ? 'السقف الآمن للألم' : 'Safe Pain Ceiling', `${limit} / 10 ${lang === 'ar' ? 'أقصى تسامح' : 'maximum tolerance'}`],
-                [lang === 'ar' ? 'محدد زاوية الحركة' : 'Mechanical Angle Limiter', c.area === 'knee' ? `${angle || '60'}° ${lang === 'ar' ? 'حد الثني' : 'flexion cap'}` : 'N/A'],
+                [lang === 'ar' ? 'محدد زاوية الحركة' : 'Mechanical Angle Limiter', c.area === 'knee' && angle ? `${angle}° ${lang === 'ar' ? 'حد الثني' : 'flexion cap'}` : 'N/A'],
                 [lang === 'ar' ? 'البريد الإلكتروني' : 'Email Address', c.email],
-                [lang === 'ar' ? 'رقم الهاتف المباشر' : 'Direct Phone', c.phone],
+                [lang === 'ar' ? 'رقم الهاتف المباشر' : 'Direct Phone', c.phone || '—'],
               ].map(([k, v]) => (
                 <div key={k} className="py-2.5 flex items-center justify-between gap-4">
                   <dt className="text-ink-2 font-medium">{k}</dt>
@@ -326,24 +403,17 @@ function Inner({ id }: { id?: string }) {
               </div>
 
               <ul className="space-y-3">
-                {[
-                  { initial: 'MF', name: 'Dr. Mona Fathy, PT', role: lang === 'ar' ? 'أخصائي العلاج الطبيعي الرئيسي (أنت)' : 'Lead Physical Therapist (You)', svc: 'recover' },
-                  { initial: 'KA', name: 'Coach Karim Adel', role: lang === 'ar' ? 'مدرب القوة والتأهيل البدني' : 'Strength & Conditioning Coach', svc: 'move' },
-                  { initial: 'HM', name: 'Hana Mostafa, RD', role: lang === 'ar' ? 'أخصائية التغذية الرياضية السريرية' : 'Clinical Sports Dietitian', svc: 'eat' },
-                ].map((spec) => (
-                  <li key={spec.name} className="flex items-center justify-between p-3 rounded-xl border border-line/60 bg-paper/30">
+                {careTeam.map((m: any) => (
+                  <li key={m.id} className="flex items-center justify-between p-3 rounded-xl border border-line/60 bg-paper/30">
                     <div className="flex items-center gap-3">
                       <div className="size-10 rounded-xl bg-ink text-white font-bold text-sm grid place-items-center">
-                        {spec.initial}
+                        {initialsOf(m.name)}
                       </div>
                       <div>
-                        <p className="font-bold text-sm text-ink">{spec.name}</p>
-                        <p className="text-xs text-ink-2">{spec.role}</p>
+                        <p className="font-bold text-sm text-ink">{m.name}{m.id === me?.id ? (lang === 'ar' ? ' (أنت)' : ' (You)') : ''}</p>
+                        <p className="text-xs text-ink-2">{TYPE_ROLE[m.type] ?? m.type}</p>
                       </div>
                     </div>
-                    <span className="text-xs font-semibold text-ok bg-ok-tint px-2.5 py-0.5 rounded-full">
-                      {lang === 'ar' ? 'متزامن' : 'Synced'}
-                    </span>
                   </li>
                 ))}
               </ul>
@@ -352,12 +422,12 @@ function Inner({ id }: { id?: string }) {
             <Card className="p-6 bg-sand/30 border border-line">
               <div className="flex items-center gap-2 mb-2">
                 <Info size={16} className="text-ink" aria-hidden />
-                <h3 className="font-bold text-sm text-ink">{lang === 'ar' ? 'حالة التنسيق الطبي متعدد التخصصات' : 'Multi-Disciplinary Coordination Status'}</h3>
+                <h3 className="font-bold text-sm text-ink">{lang === 'ar' ? 'كيف تظهر تعديلاتك للعميل' : 'How your changes reach the client'}</h3>
               </div>
               <p className="text-xs leading-relaxed text-ink/80">
                 {lang === 'ar'
-                  ? `أي تعديلات تطرأ على تصريح تمارين ${c.name.split(' ')[0]} ترسل إشعاراً فورياً للكابتن كريم وأخصائية التغذية هنا، لضمان توافق الأحمال البدنية مع التوقيت الغذائي للاستشفاء.`
-                  : `Any modifications made to ${c.name.split(' ')[0]}'s exercise clearance automatically alert Coach Karim and Hana Mostafa, ensuring unified workout loading and nutrition recovery timing.`}
+                  ? `عند نشر بروتوكول جديد تتحدث خطة ${c.name.split(' ')[0]} فوراً ويصله إشعار. الملاحظات المعلّمة كظاهرة للعميل يراها في صفحته اليومية.`
+                  : `Publishing a protocol updates ${c.name.split(' ')[0]}'s plan straight away and sends them a notification. Notes marked visible to the client appear on their Today page.`}
               </p>
             </Card>
           </div>
@@ -365,7 +435,15 @@ function Inner({ id }: { id?: string }) {
       )}
 
       {/* TAB 2: EXERCISE PROTOCOL EDITOR */}
-      {tab === 'Protocol' && (
+      {tab === 'Protocol' && !canEditExercises && (
+        <Card className="p-8">
+          <EmptyState
+            title={lang === 'ar' ? 'تعديل الوجبات غير متاح هنا بعد' : 'Meal plan editing is not available here yet'}
+            text={lang === 'ar' ? 'محرر البروتوكول مخصص حالياً للتمارين. يمكنك إضافة ملاحظات للعميل من تبويب الملاحظات.' : 'The protocol editor currently supports exercises only. You can still leave the client notes from the Notes tab.'}
+          />
+        </Card>
+      )}
+      {tab === 'Protocol' && canEditExercises && (
         <div className="grid lg:grid-cols-[1fr_360px] gap-6 items-start">
           <Card className="p-6 bg-white border border-line space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-line">
@@ -382,9 +460,13 @@ function Inner({ id }: { id?: string }) {
               <EmptyState title={lang === 'ar' ? 'لا توجد تمارين علاجية محددة' : 'No active exercises prescribed'} text={lang === 'ar' ? 'أضف حركات تأهيلية للبدء في تفعيل خطة المريض.' : 'Add standard rehabilitation movements to initiate client program.'} />
             ) : (
               <ul className="space-y-3">
-                {ex.map((e) => (
+                {/* A plan is stored day by day, so group the movements under their day. */}
+                {[...ex].sort((a, b) => a.day - b.day).map((e, i, arr) => (
+                  <Fragment key={e.id}>
+                  {(i === 0 || arr[i - 1].day !== e.day) && (
+                    <li className="pt-3 text-xs font-bold uppercase tracking-wide text-ink-2" aria-hidden>{DAY_NAMES[e.day - 1] ?? `Day ${e.day}`}</li>
+                  )}
                   <li
-                    key={e.id}
                     className="p-4 rounded-xl border border-line bg-paper/20 hover:bg-white transition flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                   >
                     <div className="flex-1 min-w-0">
@@ -418,12 +500,10 @@ function Inner({ id }: { id?: string }) {
                         <label className="text-xs text-ink-2 font-medium">
                           {t('client_detail.reps', 'Reps')}
                           <input
-                            type="number"
-                            min={1}
-                            max={60}
-                            className={`${inputCls} !w-16 !h-9 text-xs mt-0.5 num`}
+                            className={`${inputCls} !w-20 !h-9 text-xs mt-0.5 num`}
                             value={e.reps}
-                            onChange={(ev) => dirty(() => setEx(ex.map((x) => (x.id === e.id ? { ...x, reps: Number(ev.target.value) } : x))))}
+                            maxLength={12}
+                            onChange={(ev) => dirty(() => setEx(ex.map((x) => (x.id === e.id ? { ...x, reps: ev.target.value } : x))))}
                           />
                         </label>
                       </div>
@@ -446,6 +526,7 @@ function Inner({ id }: { id?: string }) {
                       </button>
                     </div>
                   </li>
+                  </Fragment>
                 ))}
               </ul>
             )}
@@ -490,7 +571,7 @@ function Inner({ id }: { id?: string }) {
             )}
 
             <div className="pt-2">
-              <Btn className="w-full" onClick={save} disabled={saved}>
+              <Btn className="w-full" onClick={save} disabled={saved || saving}>
                 {t('client_detail.publish_changes', 'Publish Protocol Changes')}
               </Btn>
 
@@ -499,6 +580,7 @@ function Inner({ id }: { id?: string }) {
                   <CircleCheck size={16} className="shrink-0 mt-0.5" aria-hidden /> {toast}
                 </p>
               )}
+              {saveErr && <p role="alert" className="text-xs font-semibold text-bad mt-3">{saveErr}</p>}
               {!saved && (
                 <p className="text-xs text-ink-2 text-center mt-2">
                   {lang === 'ar' ? 'توجد تعديلات مسودة غير منشورة.' : 'Unsaved draft changes pending publication.'}
@@ -519,13 +601,15 @@ function Inner({ id }: { id?: string }) {
                 <p className="text-xs text-ink-2">{lang === 'ar' ? `مقياس الأعراض المسجل أسبوعياً من المريض مقارنة بالسقف الآمن ${limit}/10` : `Weekly patient-reported symptom scale vs. safe ceiling of ${limit}/10`}</p>
               </div>
               <span className="text-xs font-semibold bg-paper px-3 py-1 rounded-full border border-line">
-                {lang === 'ar' ? 'صافي التغير:' : 'Net Change:'} <strong className="text-ok">-3.0 pts</strong>
+                {lang === 'ar' ? 'صافي التغير:' : 'Net Change:'} <strong className={netChange > 0 ? 'text-bad' : 'text-ok'}>{netChange > 0 ? '+' : ''}{netChange} pts</strong>
               </span>
             </div>
 
-            <LineChart
-              labels={L}
-              data={c.pain}
+            {c.charts.pain.length === 0 ? (
+              <p className="text-ink-2 text-sm py-8 text-center">{lang === 'ar' ? 'لم يسجّل العميل أي مستوى ألم بعد.' : 'No pain check-ins logged yet.'}</p>
+            ) : <LineChart
+              labels={c.charts.painLabels}
+              data={c.charts.pain}
               min={0}
               max={10}
               ticks={[0, 2, 4, 6, 8, 10]}
@@ -533,21 +617,21 @@ function Inner({ id }: { id?: string }) {
               color="#14161A"
               safeBelow={Number(limit)}
               desc={`${c.name} pain trajectory charted over 8 weeks.`}
-            />
+            />}
           </Card>
 
           <Card className="p-6 bg-white border border-line">
             <div className="flex items-center justify-between pb-4 border-b border-line mb-4">
               <div>
                 <h2 className="font-bold text-[18px] text-ink">{t('client_detail.adherence_title', 'Session Adherence & Workouts Logged')}</h2>
-                <p className="text-xs text-ink-2">{lang === 'ar' ? 'الجلسات التدريبية المكتملة أسبوعياً مقابل الهدف المقرر 4 جلسات/أسبوع' : 'Weekly completed training sessions vs. prescribed target of 4/week'}</p>
+                <p className="text-xs text-ink-2">{lang === 'ar' ? `الجلسات التدريبية المكتملة أسبوعياً مقابل الهدف المقرر ${c.target} جلسات/أسبوع` : `Weekly completed training sessions vs. prescribed target of ${c.target}/week`}</p>
               </div>
               <span className="text-xs font-semibold bg-ok-tint text-[#1d6b3d] px-3 py-1 rounded-full">
-                {lang === 'ar' ? 'الالتزام: 88%' : 'Compliance: 88%'}
+                {lang === 'ar' ? `الالتزام: ${c.charts.compliance}%` : `Compliance: ${c.charts.compliance}%`}
               </span>
             </div>
 
-            <BarChart labels={L} data={c.workouts} target={4} />
+            <BarChart labels={L} data={c.charts.workouts} target={c.target} />
           </Card>
         </div>
       )}
@@ -570,7 +654,7 @@ function Inner({ id }: { id?: string }) {
                     <span className="flex items-center gap-2">
                       <span className="inline-flex items-center gap-1">
                         {n.shared ? <Eye size={12} /> : <Lock size={12} />}
-                        {n.shared ? (lang === 'ar' ? 'مشترك مع فريق الرعاية' : 'Shared with Care Team') : (lang === 'ar' ? 'ملاحظة سريرية داخلية' : 'Internal Clinician Note')}
+                        {n.shared ? (lang === 'ar' ? 'ظاهرة للعميل' : 'Visible to client') : (lang === 'ar' ? 'ملاحظة داخلية' : 'Internal note')}
                       </span>
                       <span>·</span>
                       <span>{n.when}</span>
@@ -605,7 +689,7 @@ function Inner({ id }: { id?: string }) {
                   checked={shared}
                   onChange={(e) => setShared(e.target.checked)}
                 />
-                {lang === 'ar' ? 'مشاركة الملاحظة مع كابتن كريم (المدرب) وهنا (أخصائية التغذية)' : 'Share note with Karim (Trainer) & Hana (Dietitian)'}
+                {lang === 'ar' ? 'إظهار الملاحظة للعميل' : 'Make this note visible to the client'}
               </label>
 
               <Btn type="submit" className="w-full">
@@ -654,6 +738,14 @@ function Inner({ id }: { id?: string }) {
               {(p) => <input {...p} inputMode="numeric" className={`${inputCls} num`} value={nf.reps} onChange={(e) => setNf({ ...nf, reps: e.target.value })} />}
             </Field>
           </div>
+
+          <Field label={lang === 'ar' ? 'اليوم' : 'Day of the week'}>
+            {(p) => (
+              <select {...p} className={inputCls} value={nf.day} onChange={(e) => setNf({ ...nf, day: e.target.value })}>
+                {DAY_NAMES.map((d, i) => <option key={d} value={i + 1}>{d}</option>)}
+              </select>
+            )}
+          </Field>
 
           <Field label={lang === 'ar' ? 'تعليمات سريرية وتوجيهات الأداء' : 'Clinical Instructions & Form Cues'}>
             {(p) => <input {...p} placeholder="e.g. 45-second isometric hold, shin vertical" className={inputCls} value={nf.notes} onChange={(e) => setNf({ ...nf, notes: e.target.value })} />}

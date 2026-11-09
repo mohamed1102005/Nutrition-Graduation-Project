@@ -22,13 +22,6 @@ type A = {
   rateEgp?: number
 }
 
-const seed: A[] = [
-  { id: 1, name: 'Dr. Yasmin Farouk', initials: 'YF', svc: 'recover', role: 'Physical therapist', city: 'Cairo', years: 8, applied: '12 Oct', docs: [['Syndicate licence', 'PDF, 1.2 MB'], ['Degree certificate', 'PDF, 0.8 MB'], ['National ID', 'JPG, 0.4 MB']] },
-  { id: 2, name: 'Ali Tarek, RD', initials: 'AT', svc: 'eat', role: 'Dietitian', city: 'Alexandria', years: 5, applied: '11 Oct', docs: [['Nutrition licence', 'PDF, 0.9 MB'], ['Degree certificate', 'PDF, 1.1 MB']] },
-  { id: 3, name: 'Coach Salma Ibrahim', initials: 'SI', svc: 'move', role: 'Personal trainer', city: 'Giza', years: 6, applied: '10 Oct', docs: [['Trainer certificate', 'PDF, 0.6 MB'], ['First aid card', 'JPG, 0.3 MB']] },
-  { id: 4, name: 'Dr. Hesham Zaki', initials: 'HZ', svc: 'recover', role: 'Physical therapist', city: 'Mansoura', years: 3, applied: '8 Oct', docs: [['Degree certificate', 'PDF, 1.0 MB']] },
-]
-
 function getSvc(type?: string): Svc {
   if (!type) return 'recover'
   const t = type.toLowerCase()
@@ -47,9 +40,9 @@ function getRoleLabel(type?: string): string {
 
 export default function Approvals() {
   const { t } = useLanguage()
-  const [rows, setRows] = useState<A[]>(seed)
+  const [rows, setRows] = useState<A[]>([])
   const [tab, setTab] = useState<'pending' | 'reviewed'>('pending')
-  const [state, setState] = useState<DemoState>('loaded')
+  const [state, setState] = useState<DemoState>('loading')
   const [doc, setDoc] = useState<{ who: string; name: string } | null>(null)
   const [ok, setOk] = useState<A | null>(null)
   const [no, setNo] = useState<A | null>(null)
@@ -57,12 +50,13 @@ export default function Approvals() {
   const [rErr, setRErr] = useState('')
   const [msg, setMsg] = useState('')
 
-  useEffect(() => {
+  const load = () => {
     let active = true
+    setState('loading')
     api.getAdminSpecialists()
       .then((data) => {
-        if (!active || !data?.specialists) return
-        if (data.specialists.length > 0) {
+        if (!active) return
+        {
           const mapped: A[] = data.specialists.map((s: any) => ({
             id: s.id,
             name: s.name,
@@ -83,13 +77,17 @@ export default function Approvals() {
             rateEgp: s.rateEgp,
           }))
           setRows(mapped)
+          setState('loaded')
         }
       })
       .catch((err) => {
         console.error('Failed to load specialists for approval:', err)
+        if (active) setState('error')
       })
     return () => { active = false }
-  }, [])
+  }
+
+  useEffect(load, [])
 
   const pending = rows.filter((r) => !r.outcome)
   const reviewed = rows.filter((r) => r.outcome)
@@ -100,9 +98,9 @@ export default function Approvals() {
       await api.updateSpecialistApproval(specialist.id, 'approved')
       setRows((prev) => prev.map((r) => (r.id === specialist.id ? { ...r, outcome: 'Approved' } : r)))
       setMsg(`${specialist.name} is approved and can take bookings.`)
-    } catch {
-      setRows((prev) => prev.map((r) => (r.id === specialist.id ? { ...r, outcome: 'Approved' } : r)))
-      setMsg(`${specialist.name} is approved and can take bookings.`)
+    } catch (err: any) {
+      // Never pretend it worked: the specialist stays pending until the server says so.
+      setMsg(err?.message || `Could not approve ${specialist.name}. Please try again.`)
     } finally {
       setOk(null)
     }
@@ -112,14 +110,11 @@ export default function Approvals() {
     e.preventDefault()
     if (reason.trim().length < 5) return setRErr('Tell the applicant why, in at least a few words.')
     try {
-      if (no) {
-        await api.updateSpecialistApproval(no.id, 'rejected')
-      }
+      await api.updateSpecialistApproval(no!.id, 'rejected', reason.trim())
       setRows((prev) => prev.map((r) => (r.id === no!.id ? { ...r, outcome: 'Rejected', reason: reason.trim() } : r)))
-      setMsg(`${no!.name} was rejected. They will get your reason by email.`)
-    } catch {
-      setRows((prev) => prev.map((r) => (r.id === no!.id ? { ...r, outcome: 'Rejected', reason: reason.trim() } : r)))
-      setMsg(`${no!.name} was rejected. They will get your reason by email.`)
+      setMsg(`${no!.name} was rejected. They can see your reason in their notifications.`)
+    } catch (err: any) {
+      setMsg(err?.message || `Could not reject ${no!.name}. Please try again.`)
     } finally {
       setNo(null)
       setReason('')
@@ -148,7 +143,7 @@ export default function Approvals() {
       </div>
       <Gate
         state={state}
-        retry={() => setState('loaded')}
+        retry={load}
         skeleton={<div className="space-y-4">{[0, 1].map((i) => <Skeleton key={i} className="h-48" />)}</div>}
         empty={<Card><EmptyState title={t('approvals.empty_title', 'Nothing to review')} text={t('approvals.empty_text', 'New specialist applications show up here.')} /></Card>}
       >
