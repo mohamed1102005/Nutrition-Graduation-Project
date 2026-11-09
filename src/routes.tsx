@@ -36,6 +36,8 @@ const Login = load(() => import('./pages/Auth'), 'Login')
 const Signup = load(() => import('./pages/Auth'), 'Signup')
 const JoinOrg = load(() => import('./pages/Auth'), 'JoinOrg')
 const RegisterOrg = load(() => import('./pages/Auth'), 'RegisterOrg')
+const ForgotPassword = load(() => import('./pages/Auth'), 'ForgotPassword')
+const Account = load(() => import('./pages/Account'))
 const Onboarding = load(() => import('./pages/Onboarding'))
 const Shell = load(() => import('./pages/Shell'))
 const Today = load(() => import('./pages/AppPages'), 'Today')
@@ -102,6 +104,7 @@ export const router = createBrowserRouter([
   { path: '/', Component: Landing },
   { path: '/login', Component: Login },
   { path: '/signup', Component: Signup },
+  { path: '/forgot-password', Component: ForgotPassword },
   { path: '/join', Component: JoinOrg },
   { path: '/register-org', Component: RegisterOrg },
   {
@@ -123,6 +126,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="today" replace /> },
       { path: 'today', Component: Today },
+      { path: 'account', Component: Account },
       { path: 'specialists', Component: only('Client', SpecialistsList) },
       { path: 'my-specialists', Component: only('Client', MySpecialists) },
       { path: 'specialists/:id', Component: only('Client', SpecialistProfile) },

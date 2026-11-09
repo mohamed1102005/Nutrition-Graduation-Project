@@ -137,9 +137,9 @@ export function Login() {
           {(p) => <PasswordInput {...p} autoComplete="current-password" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} />}
         </Field>
         <div className="flex justify-end -mt-2">
-          <a href="#" className="font-semibold underline underline-offset-4 min-h-11 inline-flex items-center">
+          <Link to="/forgot-password" className="font-semibold underline underline-offset-4 min-h-11 inline-flex items-center">
             {t('auth.forgot_pw', 'Forgot password?')}
-          </a>
+          </Link>
         </div>
         <Btn type="submit" className="w-full" disabled={loading}>
           {loading ? t('auth.logging_in', 'Logging in...') : t('auth.login_btn', 'Log in')}
@@ -161,6 +161,76 @@ const FOCUS_SUGGESTIONS: Record<string, string[]> = {
   Trainer: ['Strength & Conditioning', 'Fat loss', 'Muscle Hypertrophy', 'Athletic Performance', 'Mobility & Posture', 'HIIT'],
   Dietitian: ['Clinical Nutrition', 'Fat loss & Weight Management', 'Sports Nutrition', 'Diabetes & PCOS Care', 'Gut Health', 'Muscle Gain'],
   'Physical therapist': ['Sports Rehab', 'ACL & Knee Recovery', 'Spine & Lower Back Rehab', 'Shoulder & Rotator Cuff', 'Post-Surgery Rehab', 'Manual Therapy'],
+}
+
+export function ForgotPassword() {
+  const nav = useNavigate()
+  const { t } = useLanguage()
+  const [params] = useSearchParams()
+  const [token, setToken] = useState(params.get('token') || '')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [info, setInfo] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const requestReset = async (e: FormEvent) => {
+    e.preventDefault()
+    setError('')
+    if (!emailOk(email)) return setError(t('auth.err_incomplete_email', 'That email looks incomplete. Try name@rebound.eg.'))
+    setLoading(true)
+    try {
+      const res = await api.forgotPassword(email)
+      // Demo mode returns the token directly (there is no email service).
+      if (res.resetToken) setToken(res.resetToken)
+      else setInfo(t('auth.reset_sent', 'If that email exists, a reset link has been sent.'))
+    } catch (err: any) {
+      setError(err?.message || t('auth.reset_failed', 'Could not start the reset. Try again.'))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const finishReset = async (e: FormEvent) => {
+    e.preventDefault()
+    setError('')
+    if (password.length < 8) return setError(t('auth.min_chars', 'At least 8 characters'))
+    setLoading(true)
+    try {
+      await api.resetPassword(token, password)
+      nav('/login')
+    } catch (err: any) {
+      setError(err?.message || t('auth.reset_failed', 'Could not reset the password. Try again.'))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <AuthLayout>
+      <h1 className="h-display text-[28px] sm:text-[32px]">{t('auth.reset_title', 'Reset your password')}</h1>
+      {token ? (
+        <form onSubmit={finishReset} noValidate className="mt-8 space-y-5">
+          <Field label={t('account.new_pw', 'New password')} error={error}>
+            {(p) => <PasswordInput {...p} autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />}
+          </Field>
+          <Btn type="submit" className="w-full" disabled={loading}>{t('account.update_pw', 'Update password')}</Btn>
+        </form>
+      ) : (
+        <form onSubmit={requestReset} noValidate className="mt-8 space-y-5">
+          <p className="text-ink-2">{t('auth.reset_intro', 'Enter your email and we will send you a link to choose a new password.')}</p>
+          <Field label={t('auth.email', 'Email')} error={error}>
+            {(p) => <input {...p} type="email" autoComplete="email" className={inputCls} value={email} onChange={(e) => setEmail(e.target.value)} />}
+          </Field>
+          {info && <p role="status" className="rounded-xl bg-ok-tint px-4 py-3 font-semibold">{info}</p>}
+          <Btn type="submit" className="w-full" disabled={loading}>{t('auth.reset_send', 'Send reset link')}</Btn>
+        </form>
+      )}
+      <p className="mt-8 text-ink-2">
+        <Link to="/login" className="font-bold text-ink underline underline-offset-4">{t('auth.back_to_login', 'Back to log in')}</Link>
+      </p>
+    </AuthLayout>
+  )
 }
 
 export function Signup() {

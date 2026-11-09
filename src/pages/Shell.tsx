@@ -156,8 +156,40 @@ export default function Shell() {
   const [menu, setMenu] = useState(false)
   const [moreOpen, setMore] = useState(false)
   const [supportModalOpen, setSupportModalOpen] = useState(false)
+  const [notifications, setNotifications] = useState<any[]>([])
+  const [unread, setUnread] = useState(0)
   const loc = useLocation()
   const go = useNavigate()
+
+  const loadNotifications = () => {
+    if (!getToken()) return
+    api.getNotifications()
+      .then((res) => { setNotifications(res.notifications); setUnread(res.unreadCount) })
+      .catch(() => {})
+  }
+  useEffect(() => {
+    loadNotifications()
+    const timer = setInterval(loadNotifications, 60000)
+    return () => clearInterval(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [role])
+
+  const markAllRead = () => {
+    api.markAllNotificationsRead().then(loadNotifications).catch(() => {})
+  }
+  const openNotification = (n: any) => {
+    if (!n.read) api.markNotificationRead(n.id).then(loadNotifications).catch(() => {})
+    setBell(false)
+    if (n.link) go(n.link)
+  }
+  const timeAgo = (iso: string) => {
+    const mins = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 60000))
+    if (mins < 1) return t('nav.just_now', 'Just now')
+    if (mins < 60) return `${mins} min`
+    const hrs = Math.floor(mins / 60)
+    if (hrs < 24) return `${hrs} h`
+    return `${Math.floor(hrs / 24)} d`
+  }
   const isSpecialistPending =
     role === 'Specialist' &&
     currentUser?.role === 'specialist' &&
@@ -319,12 +351,12 @@ export default function Shell() {
             </button>
             <button
               onClick={() => { setBell(!bell); setMenu(false) }}
-              aria-label="Notifications, 2 new"
+              aria-label={unread > 0 ? `Notifications, ${unread} new` : 'Notifications'}
               aria-expanded={bell}
               className="relative size-11 grid place-items-center rounded-full hover:bg-ink/[0.06] cursor-pointer transition-colors"
             >
               <Bell size={20} />
-              <span className="absolute top-0.5 end-0.5 grid size-5 place-items-center rounded-full border-2 border-paper bg-ink text-[11px] font-bold leading-none text-white">2</span>
+              {unread > 0 && <span className="absolute top-0.5 end-0.5 grid size-5 place-items-center rounded-full border-2 border-paper bg-ink text-[11px] font-bold leading-none text-white">{unread > 9 ? '9+' : unread}</span>}
             </button>
             <button
               onClick={() => { setMenu(!menu); setBell(false) }}
@@ -343,18 +375,28 @@ export default function Shell() {
               {moreOpen ? <X size={22} aria-hidden /> : <Menu size={22} aria-hidden />}
             </button>
             <Pop open={bell} onClose={() => setBell(false)} className={`w-[320px] max-w-[calc(100vw-40px)] p-2 ${isRtl ? 'left-0 right-auto' : 'right-0'}`}>
-              <p className="px-3 pt-2 pb-1 font-bold">{t('nav.notifications')}</p>
-              {({
-                Client: [['Dr. Mona changed Tuesday\'s squats', '2 h ago'], ['Hana added a lentil soup swap', 'Yesterday']],
-                Specialist: [['Laila Mostafa reported pain 8/10', '1 h ago'], ['Youssef Nabil reported pain 6/10', 'Yesterday']],
-                Admin: [['3 specialists are waiting for approval', '20 min ago'], ['1 account was suspended', 'Yesterday']],
-                Finance: [['October payouts ready for review', '1 h ago'], ['New Full Team subscription activated', '3 h ago']],
-                OrgAdmin: [['New members joined with invite code', '1 h ago'], ['Specialist assignment confirmed', 'Yesterday']],
-              }[role] || []).map(([t, w]) => (
-                <div key={t} className="px-3 py-3 rounded-xl hover:bg-ink/[0.04]">
-                  <p className="text-[15px] font-semibold">{t}</p>
-                  <p className="text-[14px] text-ink-2">{w}</p>
-                </div>
+              <div className="flex items-center justify-between px-3 pt-2 pb-1">
+                <p className="font-bold">{t('nav.notifications')}</p>
+                {unread > 0 && (
+                  <button className="text-[14px] font-semibold underline underline-offset-4 cursor-pointer" onClick={markAllRead}>
+                    {t('nav.mark_all_read', 'Mark all read')}
+                  </button>
+                )}
+              </div>
+              {notifications.length === 0 && <p className="px-3 py-4 text-[15px] text-ink-2">{t('nav.no_notifications', 'You are all caught up.')}</p>}
+              {notifications.map((n) => (
+                <button
+                  key={n.id}
+                  className={`w-full text-start px-3 py-3 rounded-xl hover:bg-ink/[0.04] cursor-pointer ${n.read ? '' : 'bg-ink/[0.03]'}`}
+                  onClick={() => { openNotification(n) }}
+                >
+                  <p className="text-[15px] font-semibold flex items-center gap-2">
+                    {!n.read && <span className="size-2 rounded-full bg-ink shrink-0" aria-hidden />}
+                    {n.title}
+                  </p>
+                  {n.body && <p className="text-[14px] text-ink-2">{n.body}</p>}
+                  <p className="text-[13px] text-ink-2 mt-0.5">{timeAgo(n.createdAt)}</p>
+                </button>
               ))}
             </Pop>
             <Pop open={menu} onClose={() => setMenu(false)} className={`w-[240px] p-2 ${isRtl ? 'left-0 right-auto' : 'right-0'}`}>
@@ -368,7 +410,7 @@ export default function Shell() {
               ].map(([I, l]) => {
                 const Icon = I as typeof Settings
                 return (
-                  <button key={l as string} className="w-full min-h-11 px-3 rounded-xl flex items-center gap-3 font-semibold hover:bg-paper cursor-pointer" onClick={() => setMenu(false)}>
+                  <button key={l as string} className="w-full min-h-11 px-3 rounded-xl flex items-center gap-3 font-semibold hover:bg-paper cursor-pointer" onClick={() => { setMenu(false); go('/app/account') }}>
                     <Icon size={18} aria-hidden /> {l as string}
                   </button>
                 )
@@ -445,10 +487,10 @@ export default function Shell() {
             </nav>
 
             <div className="mt-5 border-t border-line pt-3">
-              <button className="w-full min-h-12 px-4 rounded-xl flex items-center gap-3 font-semibold hover:bg-paper cursor-pointer" onClick={() => setMore(false)}>
+              <button className="w-full min-h-12 px-4 rounded-xl flex items-center gap-3 font-semibold hover:bg-paper cursor-pointer" onClick={() => { setMore(false); go('/app/account') }}>
                 <UserRound size={20} aria-hidden /> {t('nav.profile')}
               </button>
-              <button className="w-full min-h-12 px-4 rounded-xl flex items-center gap-3 font-semibold hover:bg-paper cursor-pointer" onClick={() => setMore(false)}>
+              <button className="w-full min-h-12 px-4 rounded-xl flex items-center gap-3 font-semibold hover:bg-paper cursor-pointer" onClick={() => { setMore(false); go('/app/account') }}>
                 <Settings size={20} aria-hidden /> {t('nav.settings')}
               </button>
               <button

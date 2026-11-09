@@ -397,6 +397,89 @@ export const api = {
     return apiFetch<{ slots: any[] }>(`/specialist/schedule${query}`)
   },
 
+  // Availability: open a 30-minute slot / block (remove) a free one
+  async openSlot(startsAt: string) {
+    return apiFetch<{ slot: { id: number; startsAt: string; endsAt: string; isBooked: boolean } }>('/specialist/schedule/slots', {
+      method: 'POST',
+      body: JSON.stringify({ startsAt }),
+    })
+  },
+
+  async blockSlot(slotId: number) {
+    return apiFetch<{ success: boolean; id: number }>(`/specialist/schedule/slots/${slotId}`, { method: 'DELETE' })
+  },
+
+  // Booking lifecycle (specialist side)
+  async completeBooking(bookingId: number | string) {
+    return apiFetch<{ success: boolean }>(`/specialist/bookings/${bookingId}/complete`, { method: 'PATCH' })
+  },
+
+  async specialistCancelBooking(bookingId: number | string) {
+    return apiFetch<{ success: boolean }>(`/specialist/bookings/${bookingId}/cancel`, { method: 'PATCH' })
+  },
+
+  // --- Subscription ---
+  async cancelSubscription() {
+    return apiFetch<{ success: boolean }>('/checkout/cancel', { method: 'POST' })
+  },
+
+  // --- Notifications ---
+  async getNotifications() {
+    return apiFetch<{ unreadCount: number; notifications: any[] }>('/notifications')
+  },
+
+  async markNotificationRead(id: number) {
+    return apiFetch<{ success: boolean }>(`/notifications/${id}/read`, { method: 'PATCH' })
+  },
+
+  async markAllNotificationsRead() {
+    return apiFetch<{ success: boolean }>('/notifications/read-all', { method: 'POST' })
+  },
+
+  // --- Account ---
+  async getAccount() {
+    return apiFetch<{ user: any; specialist: any | null }>('/account')
+  },
+
+  async updateAccount(body: { name?: string; email?: string }) {
+    const data = await apiFetch<{ user: any }>('/account', { method: 'PUT', body: JSON.stringify(body) })
+    const stored = getStoredUser()
+    if (stored) setStoredUser({ ...stored, name: data.user.name, email: data.user.email })
+    return data
+  },
+
+  async changePassword(currentPassword: string, newPassword: string) {
+    return apiFetch<{ success: boolean }>('/account/password', {
+      method: 'PUT',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    })
+  },
+
+  async updateSpecialistProfile(body: {
+    bio?: string
+    city?: string
+    rateEgp?: number
+    yearsExperience?: number
+    languages?: string
+    focusTags?: string[]
+  }) {
+    return apiFetch<{ specialist: any }>('/account/specialist-profile', { method: 'PUT', body: JSON.stringify(body) })
+  },
+
+  async forgotPassword(email: string) {
+    return apiFetch<{ message: string; resetToken?: string }>('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    })
+  },
+
+  async resetPassword(token: string, newPassword: string) {
+    return apiFetch<{ success: boolean }>('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, newPassword }),
+    })
+  },
+
   // --- Admin Portal ---
   async getAdminOverview() {
     return apiFetch<{ counts: any; recentActivity: any[] }>('/admin/overview')
@@ -481,12 +564,7 @@ export const api = {
 
   async settleFinancePayout(body: {
     specialistId: number
-    amountEgp: number
-    platformCutEgp?: number
-    netPayoutEgp: number
-    periodStart?: string
-    periodEnd?: string
-    reference?: string
+    reference?: string // amounts are computed by the server
   }) {
     return apiFetch<{ payout: any }>('/finance/payouts/settle', {
       method: 'POST',
