@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate, Link, useOutletContext } from 'react-router'
-import { Bell, CalendarDays, ClipboardList, House, LineChart, Menu, Sparkles, Users, X, LogOut, Settings, UserRound, LayoutDashboard, ShieldCheck, Contact, Coins, ReceiptText, CreditCard, Clock, Headset, Building2 } from 'lucide-react'
+import { Bell, CalendarDays, ClipboardList, House, LineChart, Menu, Sparkles, Users, X, LogOut, Settings, UserRound, LayoutDashboard, ShieldCheck, Contact, Coins, ReceiptText, CreditCard, Clock, Headset, Building2, Eye, EyeOff, Globe } from 'lucide-react'
 import { Btn, Card, EmptyState, Wordmark } from '../ui'
 import { LanguageToggle } from '../components/ui/LanguageToggle'
 import { SupportModal } from '../components/support/SupportModal'
@@ -139,7 +139,7 @@ const DEMO_USERS: Record<Role, { id: number; name: string; email: string; role: 
 }
 
 export default function Shell() {
-  const { t, isRtl } = useLanguage()
+  const { t, isRtl, lang, toggleLang } = useLanguage()
   const [currentUser, setCurrentUser] = useState<any>(getStoredUser())
   const [role, setRole] = useState<Role>(roleFromUser(getStoredUser()))
   const isOrgMember = Boolean(currentUser?.organizationId || currentUser?.organization)
@@ -156,6 +156,16 @@ export default function Shell() {
   const [menu, setMenu] = useState(false)
   const [moreOpen, setMore] = useState(false)
   const [supportModalOpen, setSupportModalOpen] = useState(false)
+  // Show or hide the demo role switcher. Remembered in this browser; shown by default.
+  const [showSwitcher, setShowSwitcher] = useState(() => {
+    try { return localStorage.getItem('rebound_show_role_switch') !== '0' } catch { return true }
+  })
+  const toggleSwitcher = () => {
+    setShowSwitcher((v) => {
+      try { localStorage.setItem('rebound_show_role_switch', v ? '0' : '1') } catch { /* private mode: just don't remember */ }
+      return !v
+    })
+  }
   const [notifications, setNotifications] = useState<any[]>([])
   const [unread, setUnread] = useState(0)
   const loc = useLocation()
@@ -315,7 +325,7 @@ export default function Shell() {
           ))}
         </nav>
         <div className="mt-auto">
-          <RoleSwitch activeKey={activeDemoKey} onSelect={changeRoleByKey} />
+          {showSwitcher && <RoleSwitch activeKey={activeDemoKey} onSelect={changeRoleByKey} />}
         </div>
       </aside>
 
@@ -340,15 +350,6 @@ export default function Shell() {
             )}
           </div>
           <div className="flex items-center gap-2 relative">
-            <LanguageToggle />
-            <button
-              onClick={() => setSupportModalOpen(true)}
-              title={t('support.modal_title')}
-              aria-label={t('support.modal_title')}
-              className="relative size-11 grid place-items-center rounded-full hover:bg-ink/[0.06] cursor-pointer text-ink transition-colors"
-            >
-              <Headset size={20} />
-            </button>
             <button
               onClick={() => { setBell(!bell); setMenu(false) }}
               aria-label={unread > 0 ? `Notifications, ${unread} new` : 'Notifications'}
@@ -416,6 +417,16 @@ export default function Shell() {
                 )
               })}
               <button
+                type="button"
+                className="w-full min-h-11 px-3 rounded-xl flex items-center gap-3 font-semibold hover:bg-ink/[0.04] cursor-pointer"
+                onClick={toggleLang}
+                aria-label={lang === 'en' ? 'Switch language to Arabic' : 'Switch language to English'}
+              >
+                <Globe size={18} aria-hidden />
+                <span className="flex-1 text-start">{t('nav.language', 'Language')}</span>
+                <span className="text-[14px] font-bold text-ink-2">{lang === 'en' ? 'العربية' : 'English'}</span>
+              </button>
+              <button
                 className="w-full min-h-11 px-3 rounded-xl flex items-center gap-3 font-semibold hover:bg-ink/[0.04] cursor-pointer"
                 onClick={() => {
                   setMenu(false)
@@ -424,6 +435,21 @@ export default function Shell() {
               >
                 <Headset size={18} aria-hidden /> {t('support.modal_title')}
               </button>
+              {IS_DEMO_MODE && (
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={showSwitcher}
+                  onClick={toggleSwitcher}
+                  className="w-full min-h-11 px-3 rounded-xl flex items-center gap-3 font-semibold hover:bg-ink/[0.04] cursor-pointer"
+                >
+                  {showSwitcher ? <Eye size={18} aria-hidden /> : <EyeOff size={18} aria-hidden />}
+                  <span className="flex-1 text-start">{t('nav.role_switcher', 'Role switcher')}</span>
+                  <span aria-hidden className={`relative h-6 w-10 rounded-full transition-colors ${showSwitcher ? 'bg-ink' : 'bg-ink/20'}`}>
+                    <span className={`absolute top-0.5 size-5 rounded-full bg-white transition-all ${showSwitcher ? 'start-[18px]' : 'start-0.5'}`} />
+                  </span>
+                </button>
+              )}
               <button className="w-full min-h-11 px-3 rounded-xl flex items-center gap-3 font-semibold hover:bg-paper cursor-pointer" onClick={() => { api.logout(); go('/login') }}>
                 <LogOut size={18} aria-hidden /> {t('nav.logout')}
               </button>
@@ -505,7 +531,22 @@ export default function Shell() {
             </div>
 
             <div className="mt-auto pt-6">
-              <RoleSwitch activeKey={activeDemoKey} onSelect={changeRoleByKey} />
+              {showSwitcher && <RoleSwitch activeKey={activeDemoKey} onSelect={changeRoleByKey} />}
+              {IS_DEMO_MODE && (
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={showSwitcher}
+                  onClick={toggleSwitcher}
+                  className="mt-4 w-full min-h-12 px-4 rounded-xl flex items-center gap-3 font-semibold hover:bg-paper cursor-pointer"
+                >
+                  {showSwitcher ? <Eye size={20} aria-hidden /> : <EyeOff size={20} aria-hidden />}
+                  <span className="flex-1 text-start">{t('nav.role_switcher', 'Role switcher')}</span>
+                  <span aria-hidden className={`relative h-6 w-10 rounded-full transition-colors ${showSwitcher ? 'bg-ink' : 'bg-ink/20'}`}>
+                    <span className={`absolute top-0.5 size-5 rounded-full bg-white transition-all ${showSwitcher ? 'start-[18px]' : 'start-0.5'}`} />
+                  </span>
+                </button>
+              )}
               <button className="mt-4 w-full min-h-12 px-4 rounded-xl flex items-center gap-3 font-semibold hover:bg-paper cursor-pointer" onClick={() => { api.logout(); go('/login') }}>
                 <LogOut size={20} aria-hidden /> {t('nav.logout')}
               </button>
