@@ -34,9 +34,9 @@ function AuthLayout({ children, wide = false }: { children: ReactNode; wide?: bo
       <div className="hidden lg:block bg-ink text-paper" aria-hidden>
         <div className="sticky top-0 h-screen flex flex-col justify-between gap-12 p-10 xl:p-16">
           <p className="h-display text-[clamp(44px,5vw,84px)] leading-[0.98]" style={{ letterSpacing: '-0.045em' }}>
-            {t('lp.hero_l1', 'Knee pain')}
+            {t('lp.hero_l1', 'Three experts.')}
             <br />
-            {t('lp.hero_l2', 'changes lunch.')}
+            {t('lp.hero_l2', 'One plan.')}
           </p>
           <div className="flex flex-col gap-3 max-w-[460px]">
             <p className="text-[18px] leading-[1.55] mb-4 max-w-[40ch]">

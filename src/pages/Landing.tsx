@@ -164,12 +164,12 @@ function Hero() {
         <h1 className="h-display lp-display lp-lines max-w-[1200px]">
           <span className="lp-line">
             <span data-line style={{ '--i': 0 } as React.CSSProperties}>
-              {t('lp.hero_l1', 'Knee pain')}
+              {t('lp.hero_l1', 'Three experts.')}
             </span>
           </span>{' '}
           <span className="lp-line">
             <span data-line style={{ '--i': 1 } as React.CSSProperties}>
-              {t('lp.hero_l2', 'changes lunch.')}
+              {t('lp.hero_l2', 'One plan.')}
             </span>
           </span>
         </h1>
@@ -249,10 +249,10 @@ function TryIt() {
       <div className={`${wrap} grid gap-12 lg:grid-cols-12 lg:gap-8`}>
         <div className="lg:col-span-5">
           <h2 className="h-display lp-h2" data-reveal>
-            {t('lp.try_title', "Set Sara's knee pain")}
+            {t('lp.try_title', 'Slide the pain. Watch the plan change.')}
           </h2>
           <p className="mt-6 text-[18px] leading-[1.55] max-w-[40ch]" data-reveal style={{ '--d': 1 } as React.CSSProperties}>
-            {t('lp.try_sub', 'She logs it in the app on Monday night. Move the score and watch what her team changes for Tuesday.')}
+            {t('lp.try_sub', 'Sara logs her knee pain on Monday night. Move the score and see what her team changes for Tuesday.')}
           </p>
           <div className="mt-12" data-ui data-reveal style={{ '--d': 2 } as React.CSSProperties}>
             <label htmlFor="pain" className="block font-bold text-[18px]">
@@ -298,7 +298,7 @@ function TryIt() {
         </div>
         <div className="lg:col-span-7 lg:ps-8" data-reveal style={{ '--d': 2 } as React.CSSProperties}>
           <div className="rounded-[28px] bg-white p-5 sm:p-8" data-ui>
-            <p className="h-display text-[26px] px-1">{t('lp.try_tuesday', "Sara's Tuesday")}</p>
+            <p className="h-display text-[26px] px-1">{t('lp.try_tuesday', 'Her plan for Tuesday')}</p>
             <ul className="mt-6 grid gap-3">
               {rows.map((r, i) => (
                 <li key={`${r.svc}:${r.meta}`} className={`lp-swap rounded-2xl p-5 ${tint[r.svc]}`} style={{ animationDelay: `${i * 70}ms` }}>
