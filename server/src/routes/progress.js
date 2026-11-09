@@ -11,6 +11,7 @@ import { requireAuth } from '../middleware/auth.js'
 import { requireRole } from '../middleware/requireRole.js'
 import { validate } from '../middleware/validate.js'
 import { toCamelCase } from '../utils/case.js'
+import { cairoToday, addDays, mondayOf, checkEntryDate } from '../utils/time.js'
 
 const router = Router()
 
@@ -19,26 +20,14 @@ router.use(requireAuth, requireRole('client'))
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function getMondayOfDate(dateStr) {
-  const d = new Date(dateStr + 'T00:00:00Z')
-  const day = d.getUTCDay() // 0=Sun, 1=Mon...
-  const diffToMon = day === 0 ? -6 : 1 - day
-  const monday = new Date(d)
-  monday.setUTCDate(d.getUTCDate() + diffToMon)
-  return monday.toISOString().slice(0, 10)
+  return mondayOf(dateStr)
 }
 
 function getRangeStartDate(range) {
-  const now = new Date()
-  if (range === '8w') {
-    now.setUTCDate(now.getUTCDate() - 56)
-    return now.toISOString().slice(0, 10)
-  }
-  if (range === 'all') {
-    return '1970-01-01'
-  }
-  // Default to 4w (28 days)
-  now.setUTCDate(now.getUTCDate() - 28)
-  return now.toISOString().slice(0, 10)
+  const today = cairoToday()
+  if (range === '8w') return addDays(today, -56)
+  if (range === 'all') return '1970-01-01'
+  return addDays(today, -28) // default 4w
 }
 
 // ── Validation Schema ───────────────────────────────────────────────────────
@@ -139,7 +128,12 @@ router.get('/', (req, res) => {
  */
 router.put('/', validate(progressSchema), (req, res) => {
   const clientId = req.user.id
-  const date = req.body.date || new Date().toISOString().slice(0, 10)
+  const date = req.body.date || cairoToday()
+
+  const dateError = checkEntryDate(date)
+  if (dateError) {
+    return res.status(400).json({ error: { code: 'INVALID_DATE', message: dateError } })
+  }
   const { weightKg, workoutDone, painLevel, note } = req.body
 
   db.prepare(

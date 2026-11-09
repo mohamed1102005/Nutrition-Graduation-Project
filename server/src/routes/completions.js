@@ -9,6 +9,7 @@ import { z } from 'zod'
 import db from '../db/connection.js'
 import { requireAuth } from '../middleware/auth.js'
 import { requireRole } from '../middleware/requireRole.js'
+import { cairoToday, checkEntryDate } from '../utils/time.js'
 import { validate } from '../middleware/validate.js'
 
 const router = Router()
@@ -28,7 +29,12 @@ const completionSchema = z.object({
 router.put('/', validate(completionSchema), (req, res) => {
   const clientId = req.user.id
   const { planItemId, status } = req.body
-  const date = req.body.date || new Date().toISOString().slice(0, 10)
+  const date = req.body.date || cairoToday()
+
+  const dateError = checkEntryDate(date)
+  if (dateError) {
+    return res.status(400).json({ error: { code: 'INVALID_DATE', message: dateError } })
+  }
 
   // 1. Verify plan item belongs to this client's active plan
   const item = db

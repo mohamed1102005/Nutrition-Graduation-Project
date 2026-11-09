@@ -11,6 +11,8 @@ import { requireAuth } from '../middleware/auth.js'
 import { requireRole } from '../middleware/requireRole.js'
 import { validate } from '../middleware/validate.js'
 import { generatePlan } from '../services/aiPlanner.js'
+import { asyncHandler } from '../utils/asyncHandler.js'
+import { notify } from '../services/notify.js'
 
 const router = Router()
 
@@ -42,7 +44,7 @@ const generatePlanRequestSchema = z.object({
  * Generates an injury-aware draft using AI or deterministic fallback.
  * Saves the request and draft in ai_plan_requests.
  */
-router.post('/plan', validate(generatePlanRequestSchema), async (req, res) => {
+router.post('/plan', validate(generatePlanRequestSchema), asyncHandler(async (req, res) => {
   const clientId = req.user.id
   const input = req.body
 
@@ -82,7 +84,7 @@ router.post('/plan', validate(generatePlanRequestSchema), async (req, res) => {
       draft: result.draft,
     },
   })
-})
+}))
 
 /**
  * POST /api/ai/plan/:id/send
@@ -112,6 +114,22 @@ router.post('/plan/:id/send', (req, res) => {
     return res.status(400).json({ error: { code: 'INVALID_DRAFT', message: 'Draft data is incomplete.' } })
   }
 
+  // A draft nobody can review is useless, so the client needs at least one specialist first.
+  const reviewers = db
+    .prepare(
+      `SELECT ct.specialist_id AS id FROM care_team ct
+       WHERE ct.client_id = ? AND ct.status = 'active'`
+    )
+    .all(clientId)
+  if (reviewers.length === 0) {
+    return res.status(409).json({
+      error: {
+        code: 'NO_SPECIALIST',
+        message: 'Book a session with a specialist first, so someone can review your AI draft.',
+      },
+    })
+  }
+
   const planIds = []
 
   const findAssignedSpecialist = (service) => {
@@ -129,6 +147,11 @@ router.post('/plan/:id/send', (req, res) => {
   }
 
   const sendTransaction = db.transaction(() => {
+    // Sending again replaces the previous unreviewed AI draft instead of stacking another one.
+    db.prepare(
+      "UPDATE plans SET status = 'archived', updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE client_id = ? AND source = 'ai' AND status = 'draft'"
+    ).run(clientId)
+
     // 1. Move Plan
     const insertPlan = db.prepare(
       `INSERT INTO plans (client_id, service, author_id, source, status, title, summary)
@@ -236,6 +259,18 @@ router.post('/plan/:id/send', (req, res) => {
   })
 
   sendTransaction()
+
+  // Tell the care team. A high-pain draft (needsReview) is flagged as urgent.
+  const urgent = Boolean(draft.needsReview)
+  for (const r of reviewers) {
+    notify(
+      r.id,
+      'ai_draft_sent',
+      urgent ? 'Urgent: AI draft needs review' : 'AI draft ready for review',
+      `${req.user.name} sent an AI-generated plan for your review.${urgent ? ' They reported high pain.' : ''}`,
+      `/app/clients/${clientId}`
+    )
+  }
 
   res.json({
     data: {

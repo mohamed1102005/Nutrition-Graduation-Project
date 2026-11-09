@@ -22,7 +22,7 @@ const router = Router()
 // ── Validation schemas ───────────────────────────────────────────────────────
 
 const createBookingSchema = z.object({
-  specialistId: z.union([z.number(), z.string()]),
+  specialistId: z.coerce.number().int().positive('A valid specialist is required.'),
   slotId: z.coerce.number().int().positive('Slot ID is required.'),
   sessionType: z.string().transform((v) => {
     const s = String(v).toLowerCase()
@@ -86,17 +86,7 @@ router.post('/', requireAuth, requireRole('client'), validate(createBookingSchem
   const clientId = req.user.id
   const { specialistId, slotId, sessionType, packageId, notes } = req.body
 
-  let resolvedSpecialistId = Number(specialistId)
-  if (Number.isNaN(resolvedSpecialistId)) {
-    const row = db
-      .prepare(
-        `SELECT u.id FROM users u
-         JOIN specialists s ON s.user_id = u.id
-         WHERE LOWER(u.email) LIKE ? OR LOWER(u.name) LIKE ?`
-      )
-      .get(`${String(specialistId).toLowerCase()}%`, `%${String(specialistId).toLowerCase()}%`)
-    resolvedSpecialistId = row ? row.id : 0
-  }
+  const resolvedSpecialistId = specialistId
 
   try {
     const bookTransaction = db.transaction(() => {
@@ -435,6 +425,22 @@ router.patch('/:id/reschedule', requireAuth, requireRole('client'), validate(res
         code: 'TOO_LATE_TO_CANCEL',
         message: 'Sessions cannot be rescheduled less than 12 hours before start time.',
       },
+    })
+  }
+
+  // The specialist must still be approved and visible to this client (same rule as booking).
+  const clientUser = db.prepare('SELECT organization_id FROM users WHERE id = ?').get(clientId)
+  const specialistRow = db
+    .prepare("SELECT organization_id FROM specialists WHERE user_id = ? AND approval_status = 'approved'")
+    .get(booking.specialist_id)
+  if (!specialistRow) {
+    return res.status(400).json({
+      error: { code: 'SPECIALIST_UNAVAILABLE', message: 'This specialist is no longer available for booking.' },
+    })
+  }
+  if ((clientUser?.organization_id ?? null) !== (specialistRow.organization_id ?? null)) {
+    return res.status(403).json({
+      error: { code: 'FORBIDDEN', message: 'You can no longer book this specialist.' },
     })
   }
 

@@ -12,8 +12,13 @@ import { z } from 'zod'
 import db from '../db/connection.js'
 import { validate } from '../middleware/validate.js'
 import { requireAuth } from '../middleware/auth.js'
+import { createAttemptLimiter, tooManyAttempts } from '../utils/rateLimit.js'
 
 const router = Router()
+
+// 10 wrong passwords per e-mail+IP every 15 minutes; 30 sign-ups per IP per hour.
+const loginLimiter = createAttemptLimiter({ max: 10, windowMs: 15 * 60 * 1000 })
+const signupLimiter = createAttemptLimiter({ max: 30, windowMs: 60 * 60 * 1000 })
 
 // ── Validation schemas ───────────────────────────────────────────────────────
 
@@ -200,6 +205,9 @@ function signToken(userId, role) {
  * Specialists require type and credentials, and start with approval_status = 'pending'.
  */
 router.post('/register', validate(registerSchema), (req, res) => {
+  const wait = signupLimiter.retryAfter(req.ip)
+  if (wait) return tooManyAttempts(res, wait)
+  signupLimiter.hit(req.ip)
   const {
     name,
     email,
@@ -322,9 +330,14 @@ router.post('/register', validate(registerSchema), (req, res) => {
 router.post('/login', validate(loginSchema), (req, res) => {
   const { email, password } = req.body
 
+  const limitKey = `${req.ip}|${email.toLowerCase()}`
+  const wait = loginLimiter.retryAfter(limitKey)
+  if (wait) return tooManyAttempts(res, wait)
+
   const user = db.prepare('SELECT * FROM users WHERE email = ? COLLATE NOCASE').get(email)
 
   if (!user || !bcrypt.compareSync(password, user.password_hash)) {
+    loginLimiter.hit(limitKey) // only failures count
     return res.status(401).json({
       error: { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password.' },
     })
@@ -335,6 +348,8 @@ router.post('/login', validate(loginSchema), (req, res) => {
       error: { code: 'ACCOUNT_SUSPENDED', message: 'Your account has been suspended.' },
     })
   }
+
+  loginLimiter.reset(limitKey)
 
   // Update last_active_at
   db.prepare("UPDATE users SET last_active_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = ?").run(user.id)

@@ -12,6 +12,7 @@ import { requireAuth } from '../middleware/auth.js'
 import { requireRole } from '../middleware/requireRole.js'
 import { validate } from '../middleware/validate.js'
 import { toCamelCase } from '../utils/case.js'
+import { cairoToday } from '../utils/time.js'
 
 const router = Router()
 
@@ -292,7 +293,7 @@ router.put('/', validate(updateProfileSchema), (req, res) => {
 router.post('/complete', (req, res) => {
   const userId = req.user.id
 
-  const today = new Date().toISOString().slice(0, 10)
+  const today = cairoToday()
 
   db.prepare(
     `UPDATE client_profiles

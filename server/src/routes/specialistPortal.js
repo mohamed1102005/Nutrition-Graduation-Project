@@ -15,11 +15,24 @@ import { requireAuth } from '../middleware/auth.js'
 import { requireRole } from '../middleware/requireRole.js'
 import { validate } from '../middleware/validate.js'
 import { notify } from '../services/notify.js'
+import { cairoToday, addDays, daysBetween } from '../utils/time.js'
 
 const router = Router()
 
-// All routes here strictly require an authenticated specialist
-router.use(requireAuth, requireRole('specialist'))
+// Only APPROVED specialists may use the portal. Pending or rejected accounts
+// can log in (to see their status) but never touch client data.
+function requireApproved(req, res, next) {
+  const row = db.prepare('SELECT approval_status FROM specialists WHERE user_id = ?').get(req.user.id)
+  if (!row || row.approval_status !== 'approved') {
+    return res.status(403).json({
+      error: { code: 'NOT_APPROVED', message: 'Your specialist account has not been approved yet.' },
+    })
+  }
+  next()
+}
+
+// All routes here strictly require an authenticated, approved specialist
+router.use(requireAuth, requireRole('specialist'), requireApproved)
 
 // Mapping between specialist type in database and service category
 const SPECIALIST_SERVICE_MAP = {
@@ -42,9 +55,7 @@ function getInitials(name = '') {
 function calculateProgramWeek(planStartDate, programWeeksRaw) {
   const programWeeks = programWeeksRaw ?? 8 // null in the database means "use the default"
   if (!planStartDate) return { week: 1, of: programWeeks }
-  const today = new Date().toISOString().slice(0, 10)
-  const diffMs = new Date(today) - new Date(planStartDate)
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+  const diffDays = daysBetween(planStartDate, cairoToday())
   let week = Math.floor(diffDays / 7) + 1
   if (week < 1) week = 1
   return { week, of: programWeeks }
@@ -52,28 +63,19 @@ function calculateProgramWeek(planStartDate, programWeeksRaw) {
 
 function formatRelativeCheckin(dateStr) {
   if (!dateStr) return 'Never'
-  const today = new Date().toISOString().slice(0, 10)
+  const today = cairoToday()
   if (dateStr === today) return 'Today'
 
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
-  if (dateStr === yesterday) return 'Yesterday'
+  if (dateStr === addDays(today, -1)) return 'Yesterday'
 
-  const diffMs = new Date(today) - new Date(dateStr)
-  const days = Math.floor(diffMs / 86400000)
+  const days = daysBetween(dateStr, today)
   if (days <= 0) return 'Today'
   return `${days} days ago`
 }
 
+// Client ids are numbers. Name/e-mail guessing used to live here and could pick the wrong person.
 function resolveClientId(param) {
-  const num = Number(param)
-  if (!Number.isNaN(num)) return num
-  const row = db
-    .prepare(
-      `SELECT u.id FROM users u
-       WHERE LOWER(u.email) LIKE ? OR LOWER(u.name) LIKE ?`
-    )
-    .get(`${param.toLowerCase()}%`, `%${param.toLowerCase()}%`)
-  return row ? row.id : null
+  return /^\d+$/.test(String(param)) ? Number(param) : null
 }
 
 /**
@@ -708,23 +710,13 @@ const createSlotSchema = z.object({
   startsAt: z.string().refine((v) => !Number.isNaN(new Date(v).getTime()), 'startsAt must be a valid date-time.'),
 })
 
-function requireApprovedSpecialist(req, res, next) {
-  const row = db.prepare('SELECT approval_status FROM specialists WHERE user_id = ?').get(req.user.id)
-  if (!row || row.approval_status !== 'approved') {
-    return res.status(403).json({
-      error: { code: 'NOT_APPROVED', message: 'Your account must be approved before you can manage availability.' },
-    })
-  }
-  next()
-}
-
 const toIsoZ = (d) => d.toISOString().replace(/\.\d{3}Z$/, 'Z')
 
 /**
  * POST /api/specialist/schedule/slots
  * Opens one 30-minute slot. Safe to repeat: an existing slot is returned as-is.
  */
-router.post('/schedule/slots', requireApprovedSpecialist, validate(createSlotSchema), (req, res) => {
+router.post('/schedule/slots', validate(createSlotSchema), (req, res) => {
   const start = new Date(req.body.startsAt)
   const now = Date.now()
 

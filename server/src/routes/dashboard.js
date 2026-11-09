@@ -8,26 +8,11 @@ import { Router } from 'express'
 import db from '../db/connection.js'
 import { requireAuth } from '../middleware/auth.js'
 import { requireRole } from '../middleware/requireRole.js'
+import { cairoToday, addDays, daysBetween, mondayOf, isoWeekday } from '../utils/time.js'
 
 const router = Router()
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
-
-function getMondayToSunday(d = new Date()) {
-  const date = new Date(d)
-  const day = date.getDay() // 0 = Sun, 1 = Mon...
-  const diffToMon = day === 0 ? -6 : 1 - day
-  const monday = new Date(date)
-  monday.setDate(date.getDate() + diffToMon)
-  monday.setHours(0, 0, 0, 0)
-
-  const sunday = new Date(monday)
-  sunday.setDate(monday.getDate() + 6)
-  sunday.setHours(23, 59, 59, 999)
-
-  const toDateStr = (dt) => dt.toISOString().slice(0, 10)
-  return { mondayStr: toDateStr(monday), sundayStr: toDateStr(sunday) }
-}
 
 function calculateStreak(clientId) {
   // Query distinct dates with a 'done' completion, ordered descending
@@ -42,20 +27,15 @@ function calculateStreak(clientId) {
   if (rows.length === 0) return 0
 
   const dates = new Set(rows.map((r) => r.date))
-  const today = new Date()
-  const toDateStr = (dt) => dt.toISOString().slice(0, 10)
-  const todayStr = toDateStr(today)
+  const todayStr = cairoToday()
 
   // Start checking from today; if not done today yet, start from yesterday
-  const checkDate = new Date(today)
-  if (!dates.has(todayStr)) {
-    checkDate.setDate(checkDate.getDate() - 1)
-  }
+  let checkDate = dates.has(todayStr) ? todayStr : addDays(todayStr, -1)
 
   let streak = 0
-  while (dates.has(toDateStr(checkDate))) {
+  while (dates.has(checkDate)) {
     streak++
-    checkDate.setDate(checkDate.getDate() - 1)
+    checkDate = addDays(checkDate, -1)
   }
 
   return streak
@@ -86,8 +66,7 @@ function formatMeta(item) {
  */
 router.get('/today', requireAuth, requireRole('client'), (req, res) => {
   const clientId = req.user.id
-  const now = new Date()
-  const todayStr = now.toISOString().slice(0, 10)
+  const todayStr = cairoToday()
 
   // 1. Client profile for weekOfProgram and goals
   const profile = db.prepare('SELECT * FROM client_profiles WHERE user_id = ?').get(clientId)
@@ -95,13 +74,13 @@ router.get('/today', requireAuth, requireRole('client'), (req, res) => {
   const programWeeks = profile?.program_weeks ?? 8
   let currentWeek = 1
   if (profile?.plan_start_date) {
-    const start = new Date(profile.plan_start_date + 'T00:00:00Z')
-    const diffDays = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+    const diffDays = daysBetween(profile.plan_start_date, todayStr)
     currentWeek = Math.max(1, Math.min(programWeeks, Math.floor(diffDays / 7) + 1))
   }
 
   // 2. Weekly workouts
-  const { mondayStr, sundayStr } = getMondayToSunday(now)
+  const mondayStr = mondayOf(todayStr)
+  const sundayStr = addDays(mondayStr, 6)
 
   const completionWorkouts = db
     .prepare(
@@ -146,8 +125,7 @@ router.get('/today', requireAuth, requireRole('client'), (req, res) => {
   }
 
   // 5. Today's plan items
-  const jsDow = now.getDay()
-  const dbDow = jsDow === 0 ? 7 : jsDow // 1=Mon ... 7=Sun
+  const dbDow = isoWeekday(todayStr) // 1=Mon ... 7=Sun
 
   const planRows = db
     .prepare(

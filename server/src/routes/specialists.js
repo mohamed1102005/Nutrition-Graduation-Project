@@ -174,14 +174,18 @@ router.get('/', (req, res) => {
 function resolveSpecialistId(param) {
   const num = Number(param)
   if (!Number.isNaN(num)) return num
-  const row = db
+  // Friendly slugs such as "mona" are still accepted for public profile links,
+  // but wildcards are escaped and an ambiguous name matches nobody.
+  const needle = String(param).toLowerCase().replace(/[\\%_]/g, (c) => '\\' + c)
+  const rows = db
     .prepare(
       `SELECT u.id FROM users u
        JOIN specialists s ON s.user_id = u.id
-       WHERE LOWER(u.email) LIKE ? OR LOWER(u.name) LIKE ?`
+       WHERE LOWER(u.email) LIKE ? ESCAPE '\\' OR LOWER(u.name) LIKE ? ESCAPE '\\'
+       LIMIT 2`
     )
-    .get(`${param.toLowerCase()}%`, `%${param.toLowerCase()}%`)
-  return row ? row.id : null
+    .all(`${needle}%`, `%${needle}%`)
+  return rows.length === 1 ? rows[0].id : null
 }
 
 function getSpecialistIfAccessible(specialistId, user) {
