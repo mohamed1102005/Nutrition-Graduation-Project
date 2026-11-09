@@ -4,13 +4,12 @@ import { ArrowRight, Menu, X } from 'lucide-react'
 import { Wordmark } from '../ui'
 import { specialists, type Svc } from '../data'
 import { useLanguage } from '../context/LanguageContext'
-import { assetUrl } from '../basePath'
 import './landing.css'
 
 const wrap = 'lp-wrap'
-const media = assetUrl('landing')
-const movePhoto = 'https://images.unsplash.com/photo-1566568531155-07244e00963d?auto=format&fit=crop&w=1400&q=80'
-const recoverPhoto = 'https://images.unsplash.com/photo-1645005512942-a17817fb7c11?auto=format&fit=crop&w=1400&q=80'
+const movePhoto = 'https://images.unsplash.com/photo-1533560904424-a0c61dc306fc?auto=format&fit=crop&w=1400&q=80'
+const recoverPhoto = 'https://images.unsplash.com/photo-1649751361457-01d3a696c7e6?auto=format&fit=crop&w=1400&q=80'
+const eatPhoto = 'https://images.unsplash.com/photo-1762631934518-f75e233413ca?auto=format&fit=crop&w=1200&q=80'
 
 const pill = 'inline-flex min-h-12 items-center gap-3 rounded-full px-6 text-[18px] font-bold transition-[transform,background-color] hover:-translate-y-0.5 active:scale-[.97]'
 const primary = 'group inline-flex min-h-14 items-center justify-center gap-3 rounded-full bg-move px-8 text-[18px] font-bold text-ink transition-transform hover:-translate-y-0.5 active:scale-[.97]'
@@ -368,19 +367,19 @@ function Sheets() {
       body: t('lp.sheet_move_p', 'Three to five workouts a week, at home or in a gym, with a video demo for every exercise and a weekly check-in that changes the load.'),
       by: t('lp.sheet_move_by', 'With Coach Karim Adel, 9 years coaching'),
       src: movePhoto,
-      alt: t('lp.move_alt', 'A kettlebell resting on a training mat'),
+      alt: t('lp.move_alt', 'Lifters spotting a heavy barbell squat in a gym'),
       w: 1400,
       h: 933,
     },
     {
       svc: 'eat',
       name: t('lp.sheet_eat', 'Eat: food you already like'),
-      body: t('lp.sheet_eat_p', 'Meal plans built from ful, koshari, grilled chicken and lentil soup, with calories and protein set to your goal. Swap any meal and your dietitian rebalances the day.'),
+      body: t('lp.sheet_eat_p', 'Meal plans built from grilled chicken, ful, lentil soup and fresh vegetables, with calories and protein set to your goal. Swap any meal and your dietitian rebalances the day.'),
       by: t('lp.sheet_eat_by', 'With Hana Ibrahim, RD, 7 years'),
-      src: `${media}/ful-medames.jpg`,
-      alt: t('lp.ful_alt', 'A plate of ful medames with eggs, bread, olives and salad'),
+      src: eatPhoto,
+      alt: t('lp.ful_alt', 'Grilled chicken with rice and colorful roasted vegetables'),
       w: 1200,
-      h: 1224,
+      h: 900,
     },
     {
       svc: 'recover',
@@ -388,7 +387,7 @@ function Sheets() {
       body: t('lp.sheet_rec_p', 'Short daily routines for the injured area, pain check-ins reviewed within 24 hours, and limits your trainer sees the moment they change.'),
       by: t('lp.sheet_rec_by', 'With Dr. Mona Fathy, PT, 11 years'),
       src: recoverPhoto,
-      alt: t('lp.rec_alt', 'A physical therapist guiding a resistance band exercise'),
+      alt: t('lp.rec_alt', 'A physical therapist assessing a knee on a treatment table'),
       w: 1400,
       h: 933,
     },
